@@ -8,7 +8,7 @@ TECtools is a suite of tools for processing data from Transcription Elongation C
 
 **mtrx2cols** - Extract reactivity trajectories for specific nucleotides from a reactivity matrix
 
-**TECtools is only intended for use on Linux and MacOS systems**
+
 
 ## Compiling TECtools scripts
 
@@ -24,9 +24,12 @@ sh ./build_TECprobe.sh
 
 This will generate the executables cotrans_preprocessor, mkmtrx, and mtrx2cols in the build_TECprobe directory.
 
+
+
 ## Processing TECprobe data using cotrans_preprocessor
 
 cotrans_preprocessor performs sequencing read preprocessing to prepare data for analysis by ShapeMapper 2
+
 
 ### Set cotrans_preprocessor run mode (required)
 
@@ -39,7 +42,9 @@ run_mode_specifiers:
   
   MAKE_3pEND_TARGETS  Generate 3' end targets to be used for demultiplexing FASTQ files by 
                       transript length, and intermediate transcript targets to be used for 
-                      sequencing read alignment.
+                      sequencing read alignment. 3' end targets contain all native and 1nt
+                      substitution, insertion, and deletion variants of the last 14 nt 
+                      (or more, if specified) of every possible intermediate transcript.
   
   PROCESS_MULTI       Perform preprocessing for TECprobe-ML experiments
   
@@ -47,6 +52,7 @@ run_mode_specifiers:
   
   MAKE_RUN_SCRIPT      Generate shell script for running ShapeMapper2
 ```
+
 
 ### MAKE_FASTA mode inputs and options
 
@@ -57,6 +63,7 @@ Required:
 
 -s/--sequence <sequence>          Target sequence.
 ```
+
 
 ### MAKE_3pEnd_TARGETS mode inputs and options
 
@@ -84,6 +91,7 @@ Optional:
                         to validate correct 3' end mapping. Complete coverage of all 1 nt
                         variations typically requires that --multiplier be set to at least 30.
 ```
+
 
 ### PROCESS_MULTI and PROCESS_SINGLE mode inputs and options
 
@@ -117,9 +125,36 @@ Optional:
                               generated in MAKE_3pEND_TARGETS mode using the -T option.
 ```
 
+
 ### MAKE_RUN_SCRIPT mode input
 
 Required:
 ```
 -c/--config <config_file>     Run script configuration file input.
 ```
+
+### Basic usage of cotrans_preprocessor
+
+1.  Generate a target sequence FASTA file by running cotrans_preprocessor in MAKE_FASTA mode:
+    
+    `cotrans_preprocessor -m MAKE_FASTA -n <target_RNA_name> -s <target_RNA_sequence>`
+    
+
+2.  If analyzing TECprobe-ML data, generate 3' end and intermediate transcript targets by
+    running cotrans_preprocessor in MAKE_3pEND_TARGET mode:
+    
+    without test_data:
+    `cotrans_preprocessor -m MAKE_3pEND_TARGETS -A <target_RNA_fasta_file>`
+    
+    with native 3' end test_data generation:
+    `cotrans_preprocessor -m MAKE_3pEND_TARGETS -A <target_RNA_fasta_file> -T`
+    
+    with randomized 3' end test_data generation:
+    `cotrans_preprocessor -m MAKE_3pEND_TARGETS -A <target_RNA_fasta_file> -T -R -U 30`
+    
+    
+    
+    
+    
+    
+    
