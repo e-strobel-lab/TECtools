@@ -262,10 +262,14 @@ Required:
   
 The format for the filter file is:
 
+'''
 line1: 'nts=' followed by a list of comma-separated values specifying which nucleotide trajectores to extract.
+  
 line2: min=<n>,max=<m>, where <n> and <m> are the start and end of a transcript length window. Multiple transcript
        length window lines can be included.
 line3: empty (file must end with newline character)
+'''
+  
 
 For example, the filter
   
