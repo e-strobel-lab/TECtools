@@ -249,7 +249,7 @@ This will generate the following files in <data_directory>
   
 ## Extract reactivity trajectories using mtrx2cols
     
-`mtrx2cols` extracts reactivity trajectories for specific nucleotides from a reactivity matrix.
+`mtrx2cols` extracts reactivity trajectories for specific nucleotides from one or more reactivity matrices.
   
 ### mtrx2cols inputs and options
   
@@ -280,13 +280,25 @@ min=169,max=172
 ```
 
 will generate a file containing reactivity trajectories for nucleotides 67, 69, and 70 for windows from transcripts
-20 to 137 and 169 to 172
+20 to 137 and 169 to 172.
   
   
 Optional:
 ```
--a/--alias <alias_file>   
--o/--output <output_name>
+-a/--alias <alias_file>   File containing aliases for input data. The --alias
+                          option must be supplied **after** all reactivity matrix
+                          csv files
+-o/--output <output_name> Output file name
 ```
   
+The format for the alias file is:
+  
+<input_matrix_name><tab><alias>
+  
+Aliases for multiple reactivity matrices can be supplied in the same alias file if more than one reactivity matrix csv is being processed.
+  
 ### Basic usage of mtrx2cols
+  
+`mtrx2cols -m <matrix_csv1> -m <matrix_csv2> -a <aliases> -f <filter> -o <output_file_name>
+  
+ ill generate a file '<output_file_name>.txt' that contains reactivity trajectories for the nucleotide specified by <filter>, with column names that use the aliases supplied by <aliases>.
