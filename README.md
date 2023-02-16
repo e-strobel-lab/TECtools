@@ -53,7 +53,7 @@ run_mode_specifiers:
   
   PROCESS_SINGLE      Perform preprocessing for TECprobe-SL experiments
   
-  MAKE_RUN_SCRIPT      Generate shell script for running ShapeMapper2
+  MAKE_RUN_SCRIPT     Generate shell script for running ShapeMapper2
 ```
 
 
