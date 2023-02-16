@@ -293,12 +293,12 @@ Optional:
   
 The format for the alias file is:
   
-<input_matrix_name><tab><alias>
+`<input_matrix_name><tab><alias>`
   
 Aliases for multiple reactivity matrices can be supplied in the same alias file if more than one reactivity matrix csv is being processed.
   
 ### Basic usage of mtrx2cols
   
-`mtrx2cols -m <matrix_csv1> -m <matrix_csv2> -a <aliases> -f <filter> -o <output_file_name>
+`mtrx2cols -m <matrix_csv1> -m <matrix_csv2> -a <aliases> -f <filter> -o <output_file_name>`
   
- ill generate a file '<output_file_name>.txt' that contains reactivity trajectories for the nucleotide specified by <filter>, with column names that use the aliases supplied by <aliases>.
+will generate a file '<output_file_name>.txt' that contains reactivity trajectories for the nucleotide specified by `<filter>`, with column names that use the aliases supplied by `<aliases>`.
