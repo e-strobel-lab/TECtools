@@ -1,4 +1,4 @@
-# TECtools_public
+# TECtools
 
 TECtools is a suite of tools for processing data from Transcription Elongation Complex RNA structure probing (TECprobe) data including:
 
@@ -12,7 +12,7 @@ TECtools is a suite of tools for processing data from Transcription Elongation C
 
 ## Compiling TECtools scripts
 
-** TECtools will only run on Linux and MacOS systems. Windows is not currently supported **
+**TECtools will only run on Linux and MacOS systems. Windows is not currently supported**
 
 The cotrans_preprocessor, mkmtrx, and mtrx2cols scripts can be compiled using the following commands:
 
@@ -30,7 +30,9 @@ This will generate the executables cotrans_preprocessor, mkmtrx, and mtrx2cols i
 
 cotrans_preprocessor performs sequencing read preprocessing to prepare data for analysis by ShapeMapper 2
 
-** cotrans_preprocessor requires that fastp (https://github.com/OpenGene/fastp) is installed **
+**cotrans_preprocessor requires that fastp (https://github.com/OpenGene/fastp) is installed**
+
+**analysis of TECprobe using cotrans_preprocessor requires that ShapeMapper2 (https://github.com/Weeks-UNC/shapemapper2) is installed** 
 
 ### Set cotrans_preprocessor run mode (required)
 
@@ -176,7 +178,35 @@ Required:
     If analyzing TECprobe-SL data, run cotrans_preprocessor in `PROCESS_SINGLE` mode:
   
     `cotrans_preprocessor -m PROCESS_SINGLE -i <read1_fastq_file> -I <read2_fastq_file> -a <target_RNA_FASTA_file>`
+    
+    This will generate
+      * `fastp` output files `fastp.html` and `fastp.json`
+      * `processing.txt`, which contains sequencing read processing metrics
+      * `length_distribution.txt` which contains the number of reads that mapped to each transcript length
+      * a directory called `split` that contains 
+        * fastq files split by untreated/modified channel and transcript length (PROCESS_MULTI only)
+        * `smooth_transition.sh` which can be used to concatenate fastq files for neighboring transcripts when performing neighboring transcript smoothing
+      * `config.txt` which is used to configure ShapeMapper2 run script generation 
+    
+4. If performing neighboring transcript smoothing, run the command:
 
+  `sh ./split/smooth_transition.sh`
+  
+  This will generate the directory `split_smooth` that contains fastq files in which sequencing reads for neighboring transcripts have been concatenated.
+  
+5. Make a directory for running ShapeMapper2, copy config.txt to that directory, and change to that directory
+    
+6. Generate a ShapeMapper2 run script:
+
+   After providing all required information in the `config.txt` file, run `cotrans_preprocessor` in `MAKE_RUN_SCRIPT` mode:
+   
+   `cotrans_preprocessor -m MAKE_RUNSCRIPT -c config.txt`
+   
+   This will generate 
+   * parsed_config.txt, which reports the settings that were parsed from config.txt
+   * a shell script containing commands to run ShapeMapper2 analysis for every intermediate transcript
+     
+7. Run the shell script that was generated in Step 6 to start ShapeMapper2 processing.
   
     
 
