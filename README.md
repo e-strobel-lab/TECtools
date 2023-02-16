@@ -244,7 +244,7 @@ This will generate the following files in <data_directory>
   * `<data_directory>_columns.txt` which contains a column of all reactivity values transcripts that
     were enriched by biotin-streptavidin roadblocks (which can be modified using the `--include-up-to` and
     `--exclude-term` options. The columnized reactivities are useful for plotting replicate correlation.
-  * `<data_directory>_linebars.txt which contains reactivites formatted for making overlapping bar plots
+  * `<data_directory>_linebars.txt` which contains reactivites formatted for making overlapping bar plots
 
   
 ## Extract reactivity trajectories using mtrx2cols
