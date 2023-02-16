@@ -301,4 +301,4 @@ Aliases for multiple reactivity matrices can be supplied in the same alias file 
   
 `mtrx2cols -m <matrix_csv1> -m <matrix_csv2> -a <aliases> -f <filter> -o <output_file_name>`
   
-will generate a file '<output_file_name>.txt' that contains reactivity trajectories for the nucleotide specified by `<filter>`, with column names that use the aliases supplied by `<aliases>`.
+will generate a file `<output_file_name>.txt` that contains reactivity trajectories for the nucleotide specified by `<filter>`, with column names that use the aliases supplied by `<aliases>`.
