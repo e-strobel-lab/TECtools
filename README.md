@@ -2,7 +2,7 @@
 
 TECtools is a suite of tools for processing data from Transcription Elongation Complex RNA structure probing (TECprobe) data including:
 
-**cotrans_preprocessor** - Perform sequencing read preprocessing to prepare data for analysis by ShapeMapper2
+**cotrans_preprocessor** - Perform sequencing read preprocessing to prepare data for analysis by ShapeMapper2 (https://github.com/Weeks-UNC/shapemapper2)
 
 **mkmtrx** - Assemble data into matrix and other useful formats, reports alignment rates, and can be used to generate rdat files
 
@@ -12,7 +12,7 @@ TECtools is a suite of tools for processing data from Transcription Elongation C
 
 ## Compiling TECtools scripts
 
-**TECtools will only run on Linux and MacOS systems. Windows is not currently supported **
+** TECtools will only run on Linux and MacOS systems. Windows is not currently supported **
 
 The cotrans_preprocessor, mkmtrx, and mtrx2cols scripts can be compiled using the following commands:
 
@@ -30,6 +30,7 @@ This will generate the executables cotrans_preprocessor, mkmtrx, and mtrx2cols i
 
 cotrans_preprocessor performs sequencing read preprocessing to prepare data for analysis by ShapeMapper 2
 
+** cotrans_preprocessor requires that fastp (https://github.com/OpenGene/fastp) is installed **
 
 ### Set cotrans_preprocessor run mode (required)
 
@@ -135,22 +136,50 @@ Required:
 
 ### Basic usage of cotrans_preprocessor
 
-1.  Generate a target sequence FASTA file by running cotrans_preprocessor in MAKE_FASTA mode:
+1.  Generate a target sequence FASTA file by running cotrans_preprocessor in `MAKE_FASTA` mode:
     
     `cotrans_preprocessor -m MAKE_FASTA -n <target_RNA_name> -s <target_RNA_sequence>`
     
+    This will generate a FASTA file named `<target_RNA_name>.fa` with the sequence `<target_RNA_sequence>`.
+    
 
 2.  If analyzing TECprobe-ML data, generate 3' end and intermediate transcript targets by
-    running cotrans_preprocessor in MAKE_3pEND_TARGET mode:
+    running cotrans_preprocessor in `MAKE_3pEND_TARGET` mode:
     
     without test_data:
+    
     `cotrans_preprocessor -m MAKE_3pEND_TARGETS -A <target_RNA_fasta_file>`
     
     with native 3' end test_data generation:
+    
     `cotrans_preprocessor -m MAKE_3pEND_TARGETS -A <target_RNA_fasta_file> -T`
     
     with randomized 3' end test_data generation:
+    
     `cotrans_preprocessor -m MAKE_3pEND_TARGETS -A <target_RNA_fasta_file> -T -R -U 30`
+    
+    This will generate a directory `<target_RNA_name>_targets` that contains:
+      * a 3' end targets file `<target_RNA_name>_ends_<n>ntLong.txt`, where <n> is the
+        length of the 3' end targets
+      * a sub-directory called `intermediate_transcripts` that contains a FASTA file for
+        every intermediate transcript sequence
+      * a sub-directory called `metrics` that contains target generation QC metrics files
+      * if test_data generation was enabled, a sub-directory called test_data that contains
+        test_data fastq files
+    
+3.  Process sequencing reads:
+
+    If analyzing TECprobe-ML data, run cotrans_preprocessor in `PROCESS_MULTI` mode:
+  
+    `cotrans_preprocessor -m PROCESS_MULTI -i <read1_fastq_file> -I <read2_fastq_file> -e <3p_ends_target file>`
+  
+    If analyzing TECprobe-SL data, run cotrans_preprocessor in `PROCESS_SINGLE` mode:
+  
+    `cotrans_preprocessor -m PROCESS_SINGLE -i <read1_fastq_file> -I <read2_fastq_file> -a <target_RNA_FASTA_file>`
+
+  
+    
+
     
     
     
