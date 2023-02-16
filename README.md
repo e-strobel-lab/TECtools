@@ -240,7 +240,7 @@ This will generate the following files in <data_directory>
   * `<data_directory>_modified.csv`   which contains a matrix of modified effective read depth values
   * `<data_directory>_alignment_totals.txt` which contains the number of reads that passed processing
     by 'cotrans_preprocessor` and the number of reads that aligned
-  * `<data_directory>_alignment_rates.txt' which contains alignment rates for each transcript length
+  * `<data_directory>_alignment_rates.txt` which contains alignment rates for each transcript length
   * `<data_directory>_columns.txt` which contains a column of all reactivity values transcripts that
     were enriched by biotin-streptavidin roadblocks (which can be modified using the `--include-up-to` and
     `--exclude-term` options. The columnized reactivities are useful for plotting replicate correlation.
