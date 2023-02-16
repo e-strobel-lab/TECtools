@@ -34,7 +34,7 @@ This will generate the executables `cotrans_preprocessor`, `mkmtrx`, and `mtrx2c
 
 **analysis of TECprobe using `cotrans_preprocessor` requires that `ShapeMapper2` (https://github.com/Weeks-UNC/shapemapper2) is installed** 
 
-### Set cotrans_preprocessor run mode (required)
+### Set cotrans_preprocessor run mode (required for all run modes)
 
 ```
 -m/--mode <run_mode_specifier>
