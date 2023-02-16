@@ -14,7 +14,7 @@ TECtools is a suite of tools for processing data from Transcription Elongation C
 
 **TECtools will only run on Linux and MacOS systems. Windows is not currently supported**
 
-The cotrans_preprocessor, mkmtrx, and mtrx2cols scripts can be compiled using the following commands:
+The `cotrans_preprocessor`, `mkmtrx`, and `mtrx2cols` scripts can be compiled using the following commands:
 
 ```
 cd ./TECtools_public/build_TECprobe
@@ -22,17 +22,17 @@ cd ./TECtools_public/build_TECprobe
 sh ./build_TECprobe.sh
 ```
 
-This will generate the executables cotrans_preprocessor, mkmtrx, and mtrx2cols in the build_TECprobe directory.
+This will generate the executables `cotrans_preprocessor`, `mkmtrx`, and `mtrx2cols` in the build_TECprobe directory.
 
 
 
 ## Processing TECprobe data using cotrans_preprocessor
 
-cotrans_preprocessor performs sequencing read preprocessing to prepare data for analysis by ShapeMapper 2
+`cotrans_preprocessor` performs sequencing read preprocessing to prepare data for analysis by `ShapeMapper2`
 
-**cotrans_preprocessor requires that fastp (https://github.com/OpenGene/fastp) is installed**
+**`cotrans_preprocessor` requires that `fastp` (https://github.com/OpenGene/fastp) is installed**
 
-**analysis of TECprobe using cotrans_preprocessor requires that ShapeMapper2 (https://github.com/Weeks-UNC/shapemapper2) is installed** 
+**analysis of TECprobe using `cotrans_preprocessor` requires that `ShapeMapper2` (https://github.com/Weeks-UNC/shapemapper2) is installed** 
 
 ### Set cotrans_preprocessor run mode (required)
 
@@ -138,7 +138,7 @@ Required:
 
 ### Basic usage of cotrans_preprocessor
 
-1.  Generate a target sequence FASTA file by running cotrans_preprocessor in `MAKE_FASTA` mode:
+1.  Generate a target sequence FASTA file by running `cotrans_preprocessor` in `MAKE_FASTA` mode:
     
     `cotrans_preprocessor -m MAKE_FASTA -n <target_RNA_name> -s <target_RNA_sequence>`
     
@@ -146,7 +146,7 @@ Required:
     
 
 2.  If analyzing TECprobe-ML data, generate 3' end and intermediate transcript targets by
-    running cotrans_preprocessor in `MAKE_3pEND_TARGET` mode:
+    running `cotrans_preprocessor` in `MAKE_3pEND_TARGET` mode:
     
     without test_data:
     
@@ -171,11 +171,11 @@ Required:
     
 3.  Process sequencing reads:
 
-    If analyzing TECprobe-ML data, run cotrans_preprocessor in `PROCESS_MULTI` mode:
+    If analyzing TECprobe-ML data, run `cotrans_preprocessor` in `PROCESS_MULTI` mode:
   
     `cotrans_preprocessor -m PROCESS_MULTI -i <read1_fastq_file> -I <read2_fastq_file> -e <3p_ends_target file>`
   
-    If analyzing TECprobe-SL data, run cotrans_preprocessor in `PROCESS_SINGLE` mode:
+    If analyzing TECprobe-SL data, run `cotrans_preprocessor` in `PROCESS_SINGLE` mode:
   
     `cotrans_preprocessor -m PROCESS_SINGLE -i <read1_fastq_file> -I <read2_fastq_file> -a <target_RNA_FASTA_file>`
     
