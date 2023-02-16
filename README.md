@@ -45,7 +45,7 @@ run_mode_specifiers:
   
   MAKE_3pEND_TARGETS  Generate 3' end targets to be used for demultiplexing FASTQ files by 
                       transript length, and intermediate transcript targets to be used for 
-                      sequencing read alignment. 3' end targets contain all native and 1nt
+                      sequencing read alignment. 3' end targets contain all native and 1 nt
                       substitution, insertion, and deletion variants of the last 14 nt 
                       (or more, if specified) of every possible intermediate transcript.
   
