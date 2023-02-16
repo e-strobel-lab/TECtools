@@ -26,7 +26,7 @@ This will generate the executables cotrans_preprocessor, mkmtrx, and mtrx2cols i
 
 cotrans_preprocessor performs sequencing read preprocessing to prepare data for analysis by ShapeMapper 2
 
-### Set cotrans_preprocessor run mode
+### Set cotrans_preprocessor run mode (required)
 
 ```
 -m/--mode <run_mode_specifier>
@@ -36,6 +36,66 @@ run_mode_specifiers:
   MAKE_3pEND_TARGETS - Generate 3' end targets to be used for demultiplexing FASTQ files by transript length, and intermediate transcript targets to be used for sequencing read alignment.
   PROCESS_MULTI - Perform preprocessing for TECprobe-ML experiments
   PROCESS_SINGLE - Perform preprocessing for TECprobe-SL experiments
+  MAKE_RUN_SCRIPT - Generate shell script for running ShapeMapper2
 ```
 
 ### MAKE_FASTA mode inputs and options
+
+Required:
+
+```
+-n/--seq-name <name_of_sequence>
+-s/--sequence <sequence>
+```
+
+### MAKE_3pEnd_TARGETS mode inputs and options
+
+Required:
+```
+-A/--fasta  <fasta_file_containing_target_sequence>
+```
+
+Optional:
+```
+-E/--end-length 
+-S/--min-length
+-T/--test-data
+-U/--multiplier
+-R/--end-randomization
+```
+
+### PROCESS_MULTI and PROCESS_SINGLE mode inputs and options
+
+Required for PROCESS_MULTI and PROCESS_SINGLE modes:
+
+```
+-i/--read1
+-I/--read2
+```
+
+Required for PROCESS_MULTI mode only:
+
+```
+-e/--3pEnd
+```
+
+Required for PROCESS_SINGLE mode only:
+
+```
+-a/--fasta-ref
+```
+
+Optional:
+
+```
+-p/--fastp-path
+-l/--limit
+-t/--testdata
+```
+
+### MAKE_RUN_SCRIPT mode input
+
+Required:
+```
+-c/--config
+```
