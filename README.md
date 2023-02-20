@@ -17,7 +17,7 @@ TECtools is a suite of tools for processing data from Transcription Elongation C
 The `cotrans_preprocessor`, `mkmtrx`, and `mtrx2cols` scripts can be compiled using the following commands:
 
 ```
-cd ./TECtools_public/build_TECprobe
+cd ./TECtools-1.0.0/build_TECprobe
 
 sh ./build_TECprobe.sh
 ```
