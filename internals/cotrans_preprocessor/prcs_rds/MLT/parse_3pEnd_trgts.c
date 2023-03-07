@@ -4,6 +4,7 @@
 //
 //  Created by Eric Strobel on 3/15/22.
 //
+//  230307: Added memory allocation for targets struct elements to accommodate seq2bin_hash.h changes
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -81,6 +82,22 @@ void parse_3pEnd_trgts(FILE * ifp, target * trgts, opt_3pEnd * end3p, target3p_p
         //the sequence contains a non-ATGCN/atgcn character
         if (reverse_complement(rcsq, trgt_sq, REVCOMP)) {
             printf("parse_3pEnd_trgts: error - target sequence %s contains unexpected character. aborting...\n", trgt_sq);
+        }
+        
+        //allocate memory for target structure values
+        if ((trgts[trg_prms->cnt].id = malloc((strlen(trgt_id)+1) * sizeof(trgts[trg_prms->cnt].id))) == NULL) {
+            printf("parse_3pEnd_trgts: error - memory allocation failed. aborting...\n");
+            abort();
+        }
+        
+        if ((trgts[trg_prms->cnt].sq = malloc((strlen(trgt_sq)+1) * sizeof(trgts[trg_prms->cnt].sq))) == NULL) {
+            printf("parse_3pEnd_trgts: error - memory allocation failed. aborting...\n");
+            abort();
+        }
+        
+        if ((trgts[trg_prms->cnt].rc = malloc((strlen(rcsq)+1) * sizeof(trgts[trg_prms->cnt].rc))) == NULL) {
+            printf("parse_3pEnd_trgts: error - memory allocation failed. aborting...\n");
+            abort();
         }
         
         //set trgts structure values

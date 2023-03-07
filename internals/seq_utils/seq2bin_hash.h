@@ -4,6 +4,7 @@
 //
 //  Created by Eric Strobel on 3/15/22.
 //
+//  230207: memory for target struct members id, sq, and rc is now dynamically allocated in parse_3pEnd_trgts.c
 
 #ifndef seq2bin_hash_h
 #define seq2bin_hash_h
@@ -21,13 +22,13 @@
 
 /* target: structure containing values for hash table targets */
 typedef struct target {
-    char *key;					//pointer to key for generating hash, can point to sq, rc, or opt member
-    char id[SEQ2BIN_MAX_IPT+1];	//target identifier
-    char sq[SEQ2BIN_MAX_IPT+1];	//target sequence
-    char rc[SEQ2BIN_MAX_IPT+1];	//reverse complement of target sequence
-    int cnt;                    //number of reads that map to target
-    int mul;                    //flag that sequence is identical to a prior target
-    void * opt;					//pointer for adding additional data to target structure
+    char *key;  //pointer to key for generating hash, can point to sq, rc, or opt member
+    char * id;	//target identifier
+    char * sq;	//target sequence
+    char * rc;	//reverse complement of target sequence
+    int cnt;    //number of reads that map to target
+    int mul;    //flag that sequence is identical to a prior target
+    void * opt;	//pointer for adding additional data to target structure
 } target;
 
 /*h_node: hash table node */
