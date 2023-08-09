@@ -36,6 +36,8 @@ int parse_constraints(FILE * ipt, constraints * cons, basemap * bmap, char * cns
     int j = 0;    //index for input line
     int k = 0;    //index for code and tmp arrays
     
+    int n = 0;    //index for checking duplicate constraint names
+    
     char line[MAX_LINE+1] = {0};         //array to store input line
     char code[MAX_CODE+1] = {0};         //array to store constraint code
     char tmp_pos[MAX_POS_ARRAY+1] = {0}; //array to store position value characters
@@ -65,6 +67,14 @@ int parse_constraints(FILE * ipt, constraints * cons, basemap * bmap, char * cns
                 cons[i].nm[j] = (isspace(line[j])) ? '_' : line[j];
             }
             cons[i].nm[j] = '\0';
+            
+            //check for duplicate constraint name
+            for (n = 0; n < i; n++) {
+                if (!strcmp(cons[n].nm, cons[i].nm)) {
+                    printf("parse_constraints: error - duplicate entry for constraint %s. aborting...\n", cons[i].nm);
+                    abort();
+                }
+            }
             
             new_constraint = 0; //turn off new constraint flag
             

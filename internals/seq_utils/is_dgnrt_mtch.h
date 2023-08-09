@@ -13,6 +13,6 @@
 
 #include "./isIUPACbase.h"
 
-int is_dgnrt_mtch(char bs, char dgnrt_bs);
+int is_dgnrt_mtch(char bs1, char bs2);
 
 #endif /* is_dgnrt_mtch_h */
