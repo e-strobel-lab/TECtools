@@ -87,7 +87,13 @@ int columnize_mtrx(char * prnt_dir, char * smpl_nm, cotrans_matrix * mtrx)
     for (i = mtrx->tl[MIN]; i <= mtrx->tl[MAX]; i++) {               //for each transcript
         if (mtrx->Nrchd[i]) {                                        //if the transcript was enriched
             for (j = mtrx->nt[MIN]; mtrx->vals[i][j] != NULL; j++) { //print the reactivity of each nucleotide
-                fprintf(out_fp, "%s\n", mtrx->vals[i][j]);
+                
+                if (mtrx->vals[i][j] != NULL) {                //if there is a value
+                    fprintf(out_fp, "%s\n", mtrx->vals[i][j]); //print the value on the line
+                } else {
+                    fprintf(out_fp, "\n");                     //or print a newline if there is no value
+                }
+                
             }
         }
     }

@@ -86,15 +86,14 @@ int get_profiles(char * prnt_dir, cotrans_matrix * mtrx, alignment_stats * algn,
                 proceed = 0;                        //set proceed to false to exit all loops
                 
             } else if (i && !fnd_d_entry) {         //could not find expected subdirectory entry, throw error and abort
-                printf("get_profiles: error - could not find directory entry with suffix %s in directory %s. something is missing. aborting...\n", xpctd_suffix[i], file_loc);
-                abort();
+                printf("get_profiles: warning - could not find directory entry with suffix %s in directory %s. something may be missing.\n\n", xpctd_suffix[i], file_loc);
                 
             } else if (!i && fnd_d_entry) {         //found shapemapper analysis directory
                 
                 //check that shapemapper analysis directory prefix is composed of digits
                 for (j = 0; ntry_prfx[j]; j++) {
                     if (!isdigit(ntry_prfx[j])) {
-                        printf("get_profiles: error - unexpected non digit character in prefix of shapemapper analysis directory. aborting...");
+                        printf("get_profiles: error - unexpected non digit character in prefix of shapemapper analysis directory. aborting...\n");
                         abort();
                     }
                     
@@ -156,7 +155,7 @@ int get_profiles(char * prnt_dir, cotrans_matrix * mtrx, alignment_stats * algn,
                 }
             }
         }
-        if (proceed) {                                     //found shapemapper output file
+        if (proceed && fnd_d_entry) {                      //found shapemapper output file
             parse_profile(file_loc, transcript_len, mtrx); //store reactivity data in cotrans_matrix struct
         }
     }
@@ -205,7 +204,7 @@ int parse_profile(char * prfl_loc, int len, cotrans_matrix * mtrx)
     
     //open shapemapper output file
     if ((prfl_p = fopen(prfl_loc, "r")) == NULL) {
-        printf("parse_profile: error - failed to open profile file. aborting\n");
+        printf("parse_profile: warning - failed to open profile file in location %s. aborting\n", prfl_loc);
         abort();
     }
     
