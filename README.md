@@ -28,7 +28,7 @@ This will generate the executables `cotrans_preprocessor`, `mkmtrx`, and `mtrx2c
 
 ## Processing TECprobe data using cotrans_preprocessor
 
-`cotrans_preprocessor` performs sequencing read preprocessing to prepare data for analysis by `ShapeMapper2`
+`cotrans_preprocessor` performs sequencing read preprocessing to prepare data for analysis by `ShapeMapper2`. The expected run time is variable depending on the size of the  data set. A TECprobe-VL data set with a typical sequencing depth (60-100M paired end reads) will typically take 30-60 minutes to process.
 
 **`cotrans_preprocessor` requires that `fastp` (https://github.com/OpenGene/fastp) is installed**
 
