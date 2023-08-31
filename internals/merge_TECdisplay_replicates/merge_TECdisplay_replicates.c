@@ -22,12 +22,12 @@
 #include "../TECdisplay_navigator/TECdisplay_navigator_defs.h"
 #include "../TECdisplay_navigator/TECdisplay_navigator_structs.h"
 
-
+/* merge_replicates: generate output file that combines the read counts for replicate bound and unbound channels */
 void merge_replicates(values_input * vals_ipt, int vals_cnt, char * out_nm);
 
 int main(int argc, char *argv[])
 {
-    extern int debug; //flag to run debug mode
+    extern int debug;                  //flag to run debug mode
     
     values_input vals[MAX_VALS] = {0}; //storage for sample name, file name, and file pointer of values files
     
@@ -35,6 +35,8 @@ int main(int argc, char *argv[])
     int out_nm_provided = 0;           //number of output file names provided
     
     char out_nm[MAX_NAME] = {0};       //array to store output file name
+    
+    int i = 0;                         //general purpose index
     
     /****** parse options using getopt_long ******/
     int c = -1;
@@ -57,8 +59,7 @@ int main(int argc, char *argv[])
         }
         switch (c) {
             case 0: /*printf("long option\n");*/ break;
-                
-           
+                           
             case 'v': //get values file
                 if (vals_cnt < MAX_VALS) {                              //check that MAX_VALS will not be exceeded
                     strcpy(vals[vals_cnt].fn, argv[optind-1]);          //store file name
@@ -71,17 +72,27 @@ int main(int argc, char *argv[])
                 }
                 break;
                 
-            case 'o': //set output_directory name
-                if (!out_nm_provided) {                        //check that output directory was not previously provided
-                    if (strlen(argv[optind-1]) < (MAX_NAME)) { //check output directory name length
-                        strcpy(out_nm, argv[optind-1]);        //store output file name
+            case 'o': //set output file name
+                if (!out_nm_provided) {  //check that output file was not previously provided
+                    
+                    if (strlen(argv[optind-1]) < MAX_NAME) { //check output file name length
+                        strcpy(out_nm, argv[optind-1]);      //store output file name
+                        
+                        //check that output file name contains only alphanumeric and '_' characters
+                        for (i = 0; out_nm[i]; i++) {
+                            if (!isalnum(out_nm[i]) && out_nm[i] != '_') {
+                                printf("merge_TECdisplay_replicates: error output file name contains the invalid character %c (%d). aborting...\n", out_nm[i], out_nm[i]);
+                                abort();
+                            }
+                        }
                     } else {
-                        printf("merge_TECdisplay_replicates: error - output directory name is longer than the maximum length (%d). setting output directory to default name 'out'.\n", MAX_NAME);
+                        printf("merge_TECdisplay_replicates: error - output file name is longer than the maximum length (%d). aborting...\n", MAX_NAME);
+                        abort();
                     }
                     out_nm_provided++; //increment output name counter
                     
                 } else {
-                    printf("merge_TECdisplay_replicates: error - more than one output directory name was provided. aborting\n");
+                    printf("merge_TECdisplay_replicates: error - more than one output file name was provided. aborting\n");
                     abort();
                 }
                 break;
@@ -111,9 +122,29 @@ int main(int argc, char *argv[])
         abort();
     }
     
-    //TODO: check for existing files with same output name
-    //TODO: check whether output name was supplied with a suffix?
+    /* generate merge record */
+    FILE * merge_record = NULL;             //pointer for merge record file
+    char output_file_name[MAX_LINE] = {0};  //array to store merge record file name
     
+    sprintf(output_file_name, "%s_replicate_merge_record.txt", out_nm); //generate merge record file name by appending '_replicate_merge_record.txt' suffix
+
+    if ((merge_record = fopen(output_file_name, "w")) == NULL) { //open merge record file
+        printf("merge_TECdisplay_replicates: error - could not open merge record file. Aborting program...\n");
+        abort();
+    }
+    
+    //print the input and output file names
+    for (i = 0; i < vals_cnt; i++) {
+        fprintf(merge_record, "input%d: %s\n", i+1, vals[i].fn);
+    }
+    fprintf(merge_record, "output: %s.txt\n", out_nm);
+    
+    /* close merged values file */
+    if (fclose(merge_record) == EOF) {
+        printf("merge_TECdisplay_replicates: error - error occurred when closing merged input file. Aborting program...\n");
+        abort();
+    }
+        
     merge_replicates(&vals[0], vals_cnt, out_nm);  //merge replicate values
 }
 
@@ -200,7 +231,7 @@ void merge_replicates(values_input * vals_ipt, int vals_cnt, char * out_nm)
                 }
                 
                 if (line_cnt == 0) { //reading column header line (first line of each file)
-                    if (v == 0) { //reading column header line of first values file
+                    if (v == 0) {    //reading column header line of first values file
                         
                         /* when reading the column headers of the first values file, parse
                          the headers and validate against the expected headers (variant_id,
@@ -214,7 +245,7 @@ void merge_replicates(values_input * vals_ipt, int vals_cnt, char * out_nm)
                         for (j = 0; p_vals[0][j] && i < XPCTD_FIELDS; i++, field_count++) {
                             
                             //copy column header into col_nm array
-                            for (k = 0; p_vals[0][j] != '\t' && p_vals[0][j] && k < (MAX_COL_NM); j++, k++) {
+                            for (k = 0; p_vals[0][j] != '\t' && p_vals[0][j] && k < MAX_COL_NM; j++, k++) {
                                 col_nm[i][k] = p_vals[0][j];
                             }
                             col_nm[i][k] = '\0';
@@ -272,22 +303,22 @@ void merge_replicates(values_input * vals_ipt, int vals_cnt, char * out_nm)
                     } else {
                         
                         /* read p_vals string. confirm expected number of fields (count started
-                         above) and to check that all characters are of expected types. total
-                         read counts for each channel of the libray (bound and unbound) are
+                         above) and check that all characters are of expected types. total read
+                         counts for each channel of the library (bound and unbound) are then
                          determined for the current variant. */
                         
                         for (i = 0, crrnt_val = &p_vals[v][0], found_term = 0; !found_term && i < MAX_LINE; i++) {
                             if (p_vals[v][i] == '\t' || !p_vals[v][i]) { //if a tab or term null was reached
                                 
-                                if (!p_vals[v][i]) {                            //found terminating null
-                                    found_term = 1;                             //set found terminating null flag
+                                if (!p_vals[v][i]) {  //found terminating null
+                                    found_term = 1;   //set found terminating null flag
                                 }
                                 
-                                if (isdigit(p_vals[v][i-1])) {                  //if the preceding character was a digit
-                                    p_vals[v][i] = '\0';                        //set the delimiter to a term null
+                                if (isdigit(p_vals[v][i-1])) {  //if the preceding character was a digit
+                                    p_vals[v][i] = '\0';        //set the delimiter to a term null
                                     
-                                    if (field_count == TDSPLY_BND_HDR) {        //if reading bound reads field
-                                        crrnt_bnd_cnt += atoi(crrnt_val);       //add reads to bound reads total
+                                    if (field_count == TDSPLY_BND_HDR) {  //if reading bound reads field
+                                        crrnt_bnd_cnt += atoi(crrnt_val); //add reads to bound reads total
                                     
                                     } else if (field_count == TDSPLY_UNB_HDR) { //if reading unbound reads field
                                         crrnt_unb_cnt += atoi(crrnt_val);       //add reads to unbound reads total
@@ -296,7 +327,7 @@ void merge_replicates(values_input * vals_ipt, int vals_cnt, char * out_nm)
                                     field_count++;                              //increment field count
                                 }
                                 
-                                crrnt_val = &p_vals[v][i+1];                    //set pointer to start of next value field
+                                crrnt_val = &p_vals[v][i+1];  //set pointer to start of next value field
                                 
                             } else if (!isdigit(p_vals[v][i]) && //char is not a digit
                                        p_vals[v][i] != '.'    && //or a '.'
