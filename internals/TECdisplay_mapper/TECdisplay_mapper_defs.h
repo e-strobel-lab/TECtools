@@ -18,6 +18,10 @@
 #define MAP_TEST_DATA 0      //map test data mode
 #define MAP_SEQ_READS 1      //map sequencing reads mode
 
+/* quality score threshold indices */
+#define Q_VARIABLE 0         //index of minimum variable base quality score
+#define Q_CONSTANT 1         //index of minimum constant base quality score
+
 /* channel ID definitions */
 #define CHANNEL_BC_LENGTH 4  //length of the channel barcode at the head of read 2
 #define MIN_MATCH 3          //minimum channel barcode match (3/4 nucleotides)

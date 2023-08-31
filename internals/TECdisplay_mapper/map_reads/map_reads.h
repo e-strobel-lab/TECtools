@@ -29,17 +29,20 @@
 #include "../testdata_analysis/assess_test_data.h"
 
 /* map_reads: coordinates targets parsing, fastp processing, read mapping, and output file generation */
-int map_reads (names * nm, FILE * fp_trgs, fastp_params fastp_prms, testdata_vars * testdata, int mode);
+int map_reads (names * nm, FILE * fp_trgs, char * minQ, fastp_params fastp_prms, testdata_vars * testdata, int mode);
 
 /* mk_htbl_TDSPLY: construct hash table from target structure */
 int mk_htbl_TDSPLY(h_node **htbl, h_node_bank *bank, target *trgts, target *refs, target_params *trg_prms);
 
 /* map_expected_reads: map reads to user-supplied targets */
-void map_expected_reads(FILE *ifp, h_node **htbl, target *refs, target *trgts, target_params * trg_prms, metrics * met, testdata_vars * testdata, int mode);
+void map_expected_reads(FILE *ifp, h_node **htbl, target *refs, target *trgts, char * minQ, target_params * trg_prms, metrics * met, testdata_vars * testdata, int mode);
 
 /* get_key: generate key string composed the nucleotides at variable
  base positions in the input read sequence */
-int get_key(char * key, char * end5p, char * qscore, target *refs, int key_type);
+int get_key(char * key, char * end5p, char * qscore5p, char * minQv, target *refs, int key_type);
+
+/* test_cbase_qscores: test whether all constant bases meet or exceed the minimum qscore */
+int test_cbase_qscores(char * qscore5p, char * minQc, target *refs);
 
 /* count_matched_targets: count the number of targets to which at least 1 read mapped */
 int count_matched_targets(target * trgts, target_params * trg_prms);

@@ -32,7 +32,7 @@
 extern int debug;
 
 /* map_reads: coordinates targets parsing, fastp processing, read mapping, and output file generation */
-int map_reads (names * nm, FILE * fp_trgs, fastp_params fastp_prms, testdata_vars * testdata, int mode)
+int map_reads (names * nm, FILE * fp_trgs, char * minQ, fastp_params fastp_prms, testdata_vars * testdata, int mode)
 {
     FILE *ifp = NULL;               //pointers for merged fastq file
     metrics met = {0};              //read processing metrics storage
@@ -125,7 +125,7 @@ int map_reads (names * nm, FILE * fp_trgs, fastp_params fastp_prms, testdata_var
         abort();
     }
     
-    map_expected_reads(ifp, htbl, refs, trgts, &trg_prms, &met, testdata, mode); //map reads to targets
+    map_expected_reads(ifp, htbl, refs, trgts, minQ, &trg_prms, &met, testdata, mode); //map reads to targets
     trg_prms.mapped2 = count_matched_targets(trgts, &trg_prms); //count non-redundant targets with >=1 mapped read
     
     print_output(trgts, &trg_prms, nm);             //print output file
@@ -198,8 +198,8 @@ int mk_htbl_TDSPLY(h_node **htbl, h_node_bank *bank, target *trgts, target *refs
         //performance in a meaningful way
         if (debug) {printf("all reference key check:\n");}
         for (r = 0, p_altnd = &null_nd, fnd_altMatch = 0; r < trg_prms->r_cnt && !fnd_altMatch; r++) {
-            p_altnd = &null_nd;                                       //set p_altnd to NULL
-            get_key(altkey, trgts[i].sq, NULL, &refs[r], TARGET_KEY); //generate key using alternate reference seq
+            p_altnd = &null_nd;                                             //set p_altnd to NULL
+            get_key(altkey, trgts[i].sq, NULL, NULL, &refs[r], TARGET_KEY); //generate key using alternate reference seq
             
             if ((p_altnd = srch_htbl(altkey, htbl))) {                //search hash table with alternate reference key
                 if ((*p_altnd) != NULL) {                             //if a node match is found
@@ -233,7 +233,7 @@ int mk_htbl_TDSPLY(h_node **htbl, h_node_bank *bank, target *trgts, target *refs
 }
 
 /* map_expected_reads: map reads to user-supplied targets */
-void map_expected_reads(FILE *ifp, h_node **htbl, target *refs, target *trgts, target_params * trg_prms, metrics * met, testdata_vars * testdata, int mode)
+void map_expected_reads(FILE *ifp, h_node **htbl, target *refs, target *trgts, char * minQ, target_params * trg_prms, metrics * met, testdata_vars * testdata, int mode)
 {
     extern int debug;  //flag to turn on debug mode
     
@@ -364,7 +364,7 @@ void map_expected_reads(FILE *ifp, h_node **htbl, target *refs, target *trgts, t
                 if (debug) {printf(">read mapping\n");}
                 for (ref_indx = 0, mtch = 0; ref_indx < trg_prms->r_cnt && ref_indx < MAXREF && !mtch; ref_indx++) {
                     
-                    if (get_key(key, end5p, qscore5p, &refs[ref_indx], READ_KEY)) { //generate hash key
+                    if (get_key(key, end5p, qscore5p, &minQ[Q_VARIABLE], &refs[ref_indx], READ_KEY)) { //generate hash key
 
                         if (debug) {printf("ref%d key: %s\n", ref_indx, key);}
                         
@@ -390,6 +390,15 @@ void map_expected_reads(FILE *ifp, h_node **htbl, target *refs, target *trgts, t
                             //is reached before the terminating null in the target
                             if (!end5p[rd_indx] && (*p_rdnd)->trg->sq[rd_indx]) {
                                 mtch = 0;
+                            }
+                            
+                            //if the min constant base qscore is higher than 0 (!), check that
+                            //all bases in the target RNA segment of the read meet or exceed
+                            //the minimum constant base qscore
+                            if (minQ[Q_CONSTANT] > '!') {
+                                if (!test_cbase_qscores(qscore5p, &minQ[Q_CONSTANT], &refs[ref_indx])) {
+                                    mtch = 0;
+                                }
                             }
                             
                             if (mtch) { //read is a true match to the target
@@ -451,7 +460,7 @@ void map_expected_reads(FILE *ifp, h_node **htbl, target *refs, target *trgts, t
 
 /* get_key: generate key string composed the nucleotides at variable
  base positions in the input read sequence */
-int get_key(char * key, char * end5p, char * qscore5p, target *refs, int key_type)
+int get_key(char * key, char * end5p, char * qscore5p, char * minQv, target *refs, int key_type)
 {
     int i = 0;                                     //general purpose index
     int len = strlen(end5p);                       //length of the input read sequence
@@ -475,10 +484,8 @@ int get_key(char * key, char * end5p, char * qscore5p, target *refs, int key_typ
             if (key_type == TARGET_KEY) {                 //input sequence is a target, no qscore check needed
                 key[i] = end5p[crnt_ref_val->vb_pos[i]];  //copy variable position base to key string
                 
-            } else if (key_type == READ_KEY && qscore5p[crnt_ref_val->vb_pos[i]] >= '!') {
+            } else if (key_type == READ_KEY && qscore5p[crnt_ref_val->vb_pos[i]] >= *minQv) {
                 //input sequence is a read, check that qscore exceeds minimum qscore value
-                //Q00=! Q20=5 Q30=?
-                //TODO: make qscore filtering an option
                 key[i] = end5p[crnt_ref_val->vb_pos[i]];  //copy variable position base to key string
                 
             } else {
@@ -504,6 +511,44 @@ int get_key(char * key, char * end5p, char * qscore5p, target *refs, int key_typ
     } else {
         return 1;
     }
+}
+
+/* test_cbase_qscores: test whether all constant bases meet or exceed the minimum qscore */
+int test_cbase_qscores(char * qscore5p, char * minQc, target *refs)
+{
+    int i = 0;                  //general purpose index
+    int j = 0;                  //general purpose index
+    int len = strlen(refs->sq); //length of reference target
+    int pass = 1;               //flag that all qscores passed, initalized to true
+    
+    opt_ref * crnt_ref_val = (opt_ref *)refs->opt; //pointer to reference target optional values
+    
+    //test whether constant bases meet/exceed the minimum qscore
+    for (i = 0; i < len && qscore5p[i] && pass; i++) {
+        
+        //check whether the current index matches a vbase index at each position. the
+        //vbase indices are in ascending order, so it is only necessary to check whether
+        //the next vbase index has been reached yet
+        
+        if (i != crnt_ref_val->vb_pos[j]) {    //if the current base is a constant base
+            
+            if (qscore5p[i] < *minQc) {        //if min cbase qscore is not met/exceeded
+                pass = 0;                      //set pass to false
+            }
+            
+        } else if (j < crnt_ref_val->vb_cnt) { //if the current vbase is not the last vbase
+            j++;                               //increment the vbase index.
+        }
+    }
+    
+    //the length test below is redundant with the length test performed during read mapping
+    //but is kept here as a sanity check
+    
+    if (i != len) { //check that loop exited because the qscore for every base was tested
+        pass = 0;   //if not, set pass to false
+    }
+    
+    return pass;    //return the result of the test
 }
 
 /* count_matched_targets: count the number of targets to which at least 1 read mapped */

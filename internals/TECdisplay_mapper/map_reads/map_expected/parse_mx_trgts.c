@@ -464,7 +464,7 @@ void set_trgt(target * trgts, opt_mx_trg * trg_val, target * crnt_ref, char * tr
     p_trg_val->ref = crnt_ref;					//set trgts->opt->ref to point to current reference target
     p_ref_val = (opt_ref *)p_trg_val->ref->opt;	//dereference trgts->opt->ref to simplify code below
     
-    get_key(p_trg_val->vb_key, trgts->sq, NULL, p_trg_val->ref, TARGET_KEY); //generate key
+    get_key(p_trg_val->vb_key, trgts->sq, NULL, NULL, p_trg_val->ref, TARGET_KEY); //generate key
     trgts->key = &(p_trg_val->vb_key[0]); //set key pointer to point to key in opt_mx_trg structure
     
     return;
