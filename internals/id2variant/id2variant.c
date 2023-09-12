@@ -41,16 +41,20 @@ typedef struct variant_id {     //storage for variant id and alias
 int parse_variant_ids(FILE * ipt, variant_id * varID);
 
 /* print_variants: reconstruct variant sequences from variant ids and print to file */
-void print_variants(variant_id * varID, int id_cnt, basemap * bmap, char * out_dir_nm);
+void print_variants(variant_id * varID, int id_cnt, basemap * bmap, char * out_dir_nm, int max_nt);
 
 int main(int argc, char *argv[])
 {
+    int i = 0;                        //general purpose index
+    
     variant_input ipt = {{0}};        //input file attributes
     
     int ipt_provided = 0;             //number of input files provided
     int out_nm_provided = 0;          //number of output directory names provided
     
     char out_dir_nm[MAX_NAME] = {0};  //array to store output directory name
+    
+    int max_nt = 0;                   //maximum nucleotide to print
     
     /****** parse options using getopt_long ******/
     int c = -1;
@@ -59,12 +63,13 @@ int main(int argc, char *argv[])
     while (1) {
         static struct option long_options[] =
         {
-            {"variants",      required_argument,  0,  'v'},  //variants file input
-            {"out-name",      required_argument,  0,  'o'},  //set output directory name
+            {"variants",       required_argument,  0,  'v'},  //variants file input
+            {"out-name",       required_argument,  0,  'o'},  //set output directory name
+            {"max-nucleotide", required_argument,  0,  'x'},  //set maximum nucleotide to print
             {0, 0, 0, 0}
         };
         
-        c = getopt_long(argc, argv, "v:o:", long_options, &option_index);
+        c = getopt_long(argc, argv, "v:o:x:", long_options, &option_index);
         
         if (c == -1) {
             break;
@@ -97,6 +102,16 @@ int main(int argc, char *argv[])
                     printf("id2variant: error - more than one output directory name was provided. aborting\n");
                     abort();
                 }
+                break;
+                
+            case 'x': //set maximum nucleotide limit
+                for (i = 0; argv[optind-1][i]; i++) {  //check that max nucleotide limit string is digits
+                    if (!isdigit(argv[optind-1][i])) {
+                        printf("id2variant: error - maximum nucleotide limit must be composed of digits. aborting...\n");
+                        abort();
+                    }
+                }
+                max_nt = atoi(argv[optind-1]); //set max nucleotide limit
                 break;
 
             default:
@@ -138,7 +153,7 @@ int main(int argc, char *argv[])
     }
     id_cnt = parse_variant_ids(ipt.fp, varID); //parse variant id input file
     
-    print_variants(varID, id_cnt, &bmap, out_dir_nm); //reconstruct variant sequences and print to file
+    print_variants(varID, id_cnt, &bmap, out_dir_nm, max_nt); //reconstruct variant sequences and print to file
 }
 
 /* parse_variant_ids: read and store variant ids and aliases */
@@ -240,9 +255,10 @@ int parse_variant_ids(FILE * ipt, variant_id * varID)
 }
 
 /* print_variants: reconstruct variant sequences from variant ids and print to file */
-void print_variants(variant_id * varID, int id_cnt, basemap * bmap, char * out_dir_nm)
+void print_variants(variant_id * varID, int id_cnt, basemap * bmap, char * out_dir_nm, int max_nt)
 {
-    FILE * ofp = NULL;
+    FILE * lfp = NULL;            //list file pointer
+    FILE * ofp = NULL;            //individual output file pointer
     char out_nm[MAX_LINE] = {0};
     
     int i = 0;  //general purpose index
@@ -259,6 +275,14 @@ void print_variants(variant_id * varID, int id_cnt, basemap * bmap, char * out_d
     
     char * p_vbase = NULL;          //pointer to variable base in variant id string
     base_params vbPrms = {0};       //storage for parsed variable base parameters
+    
+    sprintf(out_nm, "./%s/%s_list.txt", out_dir_nm, out_dir_nm);
+    
+    //open list output file
+    if ((lfp = fopen(out_nm, "w")) == NULL) {
+        printf("print_variants: error - could not open output file. Aborting program...\n");
+        abort();
+    }
     
     for (i = 0; i < id_cnt; i++) {  //for every variant id
         
@@ -293,16 +317,36 @@ void print_variants(variant_id * varID, int id_cnt, basemap * bmap, char * out_d
         
         //print contents of output file
         if (varID[i].alias != NULL) {
+            fprintf(lfp, ">%s_%s\n", varID[i].alias, varID[i].id);
             fprintf(ofp, ">%s_%s\n", varID[i].alias, varID[i].id);
         } else {
+            fprintf(lfp, ">%s\n", varID[i].id);
             fprintf(ofp, ">%s\n", varID[i].id);
         }
-        fprintf(ofp, "%s\n", bmap->rS);
+        
+        if (max_nt) {
+            for (j = 0; j < max_nt && bmap->rS[j]; j++) {
+                fputc(bmap->rS[j], lfp);
+                fputc(bmap->rS[j], ofp);
+            }
+            fputc('\n', lfp);
+            fputc('\n', ofp);
+            
+        } else {
+            fprintf(lfp, "%s\n", bmap->rS);
+            fprintf(ofp, "%s\n", bmap->rS);
+        }
         
         /* close current variant output file */
         if (fclose(ofp) == EOF) {
             printf("print_variants: error - error occurred when closing output file. Aborting program...\n");
             abort();
         }
+    }
+    
+    /* close list output file */
+    if (fclose(lfp) == EOF) {
+        printf("print_variants: error - error occurred when closing output file. Aborting program...\n");
+        abort();
     }
 }
