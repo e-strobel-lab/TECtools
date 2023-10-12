@@ -26,7 +26,7 @@
 
 /* filter_values: read input values file and send variants that match each set of
  constraints to the respective output file */
-int filter_values(FILE * ipt, constraints * cons, int cons_cnt, basemap * bmap, char * out_dir_nm) {
+int filter_values(FILE * ipt, constraints * cons, int cons_cnt, basemap * bmap, char * out_dir_nm, int nonstandard) {
     
     extern const char TECdsply_clmn_hdrs[4][32]; //column headers from TECdisplay_output_column_headers.c
     
@@ -42,7 +42,9 @@ int filter_values(FILE * ipt, constraints * cons, int cons_cnt, basemap * bmap, 
     
     //general input variables
     int smpl_cnt = 0;                     //number of samples in merged values file
-    char line[MAX_LINE+1] = {0};            //array to store value file line
+    char line[MAX_LINE+1] = {0};          //array to store value file line
+    char tmp_hdr[MAX_COL_NM+1] = {0};     //array to temporarily store non-standard headers
+    int line_end = 0;                     //flag that end of line was reached
     
     //vbase input variables
     char *p_id = NULL;                    //pointer to start of variant id in line array
@@ -63,7 +65,10 @@ int filter_values(FILE * ipt, constraints * cons, int cons_cnt, basemap * bmap, 
     
     /**** parse first line of values file to get column headers ****/
     get_line(line, ipt);                                   //get first line of values file
-    smpl_cnt = get_sample_info(line, &vals[0], &tot_vals); //parse line for column headers
+    
+    if (!nonstandard) { //input data is standard TECdisplay format
+        smpl_cnt = get_sample_info(line, &vals[0], &tot_vals); //parse line for column headers
+    }
     
     /**** open output file for each constraint ****/
     for (i = 0; i < cons_cnt; i++) {
@@ -76,15 +81,32 @@ int filter_values(FILE * ipt, constraints * cons, int cons_cnt, basemap * bmap, 
         }
         
         //print column headers line
-        fprintf(ofp[i], "%s_id", cons[i].nm);       //print variant id header once
-        for (j = 0; j < smpl_cnt; j++) {            //for every sample
+        if (!nonstandard) { //input data is standard TECdisplay format
+            fprintf(ofp[i], "%s_id", cons[i].nm);       //print variant id header once
+            for (j = 0; j < smpl_cnt; j++) {            //for every sample
+                
+                //k starts at 1 to skip variant id header
+                for (k = 1; k < TDSPLY_HDR_CNT; k++) {  //print bound/unbound/fracBound headers
+                    fprintf(ofp[i], "\t%s_%s_%s", cons[i].nm, vals[j].nm, TECdsply_clmn_hdrs[k]);
+                }
+            }
+            fprintf(ofp[i], "\n");
             
-            //k starts at 1 to skip variant id header
-            for (k = 1; k < TDSPLY_HDR_CNT; k++) {  //print bound/unbound/fracBound headers
-                fprintf(ofp[i], "\t%s_%s_%s", cons[i].nm, vals[j].nm, TECdsply_clmn_hdrs[k]);
+        } else { //input data is nonstandard format
+            for (j = 0, k = 0, line_end = 0; !line_end; j++) {
+                if (line[j] && line[j] != '\t') { //store tab-delimited column header
+                    tmp_hdr[k++] = line[j];
+                } else {
+                    tmp_hdr[k] = '\0'; //terminate tmp_hdr string
+                    fprintf(ofp[i], "%s_%s%c", cons[i].nm, tmp_hdr, line[j]); //print column header
+                    k = 0;             //reset k to 0 for next column header
+                    
+                    if (!line[j]) {    //found terminal null
+                        line_end = 1;  //turn on line end flag
+                    }
+                }
             }
         }
-        fprintf(ofp[i], "\n");
     }
         
     /**** determine if each variant matches any of the supplied constraints ****/
@@ -121,8 +143,10 @@ int filter_values(FILE * ipt, constraints * cons, int cons_cnt, basemap * bmap, 
             abort();
         }
         
-        //validate data-containing segment of line
-        validate_data_line(p_id, p_vals, tot_vals);
+        //if input data is standard TECdisplay format, validate data-containing segment of line
+        if (!nonstandard) {
+            validate_data_line(p_id, p_vals, tot_vals);
+        }
         
         //test if variant is a match to a constraint
         fnd_match = test_bases(p_id, &vbases[0], crnt_vbase_cnt, cons, cons_cnt, bmap, &match[0]);

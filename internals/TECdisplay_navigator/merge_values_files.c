@@ -23,7 +23,7 @@
 
 /* merge_values_files: merge multiple values files into a single file */
 //TODO: change vals_cnt variable to something more representative of what it is
-int merge_values_files(values_input * vals_ipt, int vals_cnt, char * merged_out_nm)
+int merge_values_files(values_input * vals_ipt, int vals_cnt, char * merged_out_nm, int nonstandard)
 {
     extern const char TECdsply_clmn_hdrs[4][32]; //column headers from TECdisplay_output_column_headers.c
     
@@ -96,67 +96,83 @@ int merge_values_files(values_input * vals_ipt, int vals_cnt, char * merged_out_
                 
                 
                 if (line_cnt == 0) { //reading column header line (first line of each file)
-                    if (v == 0) { //reading column header line of first values file
+                    
+                    if (!nonstandard) { //input data uses standard TECdisplay format, check all column headers
                         
-                        /* when reading the column headers of the first values file, parse
-                         the headers and validate against the expected headers (variant_id,
-                         bound, unbound, fracBound). all subsequent header lines can then
-                         be compared diectly against those from the first values file*/
-                                                
-                        i = 0;                        //initialize i (column name index) to zero
-                        strcpy(col_nm[i++], p_id[0]); //copy the variant id column name to col_nm[0], increment i
-                        
-                        //parse values headers and store in col_nm array
-                        for (j = 0; p_vals[0][j] && i < XPCTD_FIELDS; i++, field_count++) {
+                        if (v == 0) { //reading column header line of first values file
                             
-                            //copy column header into col_nm array
-                            for (k = 0; p_vals[0][j] != '\t' && p_vals[0][j] && k < (MAX_COL_NM); j++, k++) {
-                                col_nm[i][k] = p_vals[0][j];
-                            }
-                            col_nm[i][k] = '\0';
-                                                        
-                            //test that loop exited on a tab or null character.
-                            //if test fails, column name is too long.
-                            if (p_vals[0][j] == '\t') {        //ended on tab, more headers
-                                j++;                           //increment j
+                            /* when reading the column headers of the first values file, parse
+                             the headers and validate against the expected headers (variant_id,
+                             bound, unbound, fracBound). all subsequent header lines can then
+                             be compared diectly against those from the first values file*/
+                                                    
+                            i = 0;                        //initialize i (column name index) to zero
+                            strcpy(col_nm[i++], p_id[0]); //copy the variant id column name to col_nm[0], increment i
+                            
+                            //parse values headers and store in col_nm array
+                            for (j = 0; p_vals[0][j] && i < XPCTD_FIELDS; i++, field_count++) {
                                 
-                            } else if (p_vals[0][j] != '\0') { //if loop did not exit on tab or null, name is too long
-                                printf("merge_values_files: error - unexpected long column name in values file. aborting...\n");
+                                //copy column header into col_nm array
+                                for (k = 0; p_vals[0][j] != '\t' && p_vals[0][j] && k < (MAX_COL_NM); j++, k++) {
+                                    col_nm[i][k] = p_vals[0][j];
+                                }
+                                col_nm[i][k] = '\0';
+                                                            
+                                //test that loop exited on a tab or null character.
+                                //if test fails, column name is too long.
+                                if (p_vals[0][j] == '\t') {        //ended on tab, more headers
+                                    j++;                           //increment j
+                                    
+                                } else if (p_vals[0][j] != '\0') { //if loop did not exit on tab or null, name is too long
+                                    printf("merge_values_files: error - unexpected long column name in values file. aborting...\n");
+                                    abort();
+                                }
+                            }
+                            
+                            //test that loop exited on a null character and that
+                            //the expected number of value fields were identified
+                            if (p_vals[0][j] || field_count != XPCTD_FIELDS) {
+                                printf("merge_values_files: error - unexpected headers for values files. aborting...\n");
                                 abort();
                             }
-                        }
-                        
-                        //test that loop exited on a null character and that
-                        //the expected number of value fields were identified
-                        if (p_vals[0][j] || field_count != XPCTD_FIELDS) {
-                            printf("merge_values_files: error - unexpected headers for values files. aborting...\n");
-                            abort();
-                        }
-                        
-                        //test that column headers match expected strings
-                        //strstr is used for variant id header because header can be variable but always
-                        //contains the substring "id". other headers are not variable, so test is for
-                        //an exact match
-                        //TODO: make id test look only at last chars of col name?
-                        if (strstr(col_nm[TDSPLY_VID_HDR], TECdsply_clmn_hdrs[TDSPLY_VID_HDR]) == NULL ||
-                            strcmp(col_nm[TDSPLY_BND_HDR], TECdsply_clmn_hdrs[TDSPLY_BND_HDR])         ||
-                            strcmp(col_nm[TDSPLY_UNB_HDR], TECdsply_clmn_hdrs[TDSPLY_UNB_HDR])         ||
-                            strcmp(col_nm[TDSPLY_FRC_HDR], TECdsply_clmn_hdrs[TDSPLY_FRC_HDR])) {
-                            printf("merge_values_files: error - unexpected headers for values files. aborting...\n");
-                            abort();
-                        }
+                            
+                            //test that column headers match expected strings
+                            //strstr is used for variant id header because header can be variable but always
+                            //contains the substring "id". other headers are not variable, so test is for
+                            //an exact match
+                            //TODO: make id test look only at last chars of col name?
+                            if (strstr(col_nm[TDSPLY_VID_HDR], TECdsply_clmn_hdrs[TDSPLY_VID_HDR]) == NULL ||
+                                strcmp(col_nm[TDSPLY_BND_HDR], TECdsply_clmn_hdrs[TDSPLY_BND_HDR])         ||
+                                strcmp(col_nm[TDSPLY_UNB_HDR], TECdsply_clmn_hdrs[TDSPLY_UNB_HDR])         ||
+                                strcmp(col_nm[TDSPLY_FRC_HDR], TECdsply_clmn_hdrs[TDSPLY_FRC_HDR])) {
+                                printf("merge_values_files: error - unexpected headers for values files. aborting...\n");
+                                abort();
+                            }
 
-                    /* compare all other values file headers to the headers from
-                     the first values file, which has already been validated */
-                    //TODO: make id test look only at last chars of col name?
-                    } else if (strstr(p_id[v], TECdsply_clmn_hdrs[TDSPLY_VID_HDR]) == NULL ||
-                               strcmp(p_vals[v], p_vals[0])) {
-                        printf("merge_values_files: error - supplied values files contain discordant headers. aborting...\n");
-                        abort();
+                        /* compare all other values file headers to the headers from
+                         the first values file, which has already been validated */
+                        //TODO: make id test look only at last chars of col name?
+                        } else if (strstr(p_id[v], TECdsply_clmn_hdrs[TDSPLY_VID_HDR]) == NULL ||
+                                   strcmp(p_vals[v], p_vals[0])) {
+                            printf("merge_values_files: error - supplied values files contain discordant headers. aborting...\n");
+                            abort();
+                        }
+                        
+                        /* print column headers for the current values file to the merged output file*/
+                        fprintf(vals_merged, "\t%s_%s\t%s_%s\t%s_%s",
+                                vals_ipt[v].nm, TECdsply_clmn_hdrs[TDSPLY_BND_HDR],
+                                vals_ipt[v].nm, TECdsply_clmn_hdrs[TDSPLY_UNB_HDR],
+                                vals_ipt[v].nm, TECdsply_clmn_hdrs[TDSPLY_FRC_HDR]);
+                        
+                    } else { //input data files use non-standard format, only check id column header
+                        //TODO: make id test look only at last chars of col name?
+                        if (strstr(p_id[v], TECdsply_clmn_hdrs[TDSPLY_VID_HDR]) == NULL) {
+                            printf("merge_values_files: error - nonstandard data files must contain the string '%s' in the header of the first column. aborting...\n", TECdsply_clmn_hdrs[TDSPLY_VID_HDR]);
+                            abort();
+                        }
+                        
+                        fprintf(vals_merged, "\t%s", p_vals[v]); //print non-standard headers
                     }
-                    
-                    /* print column headers for the current values file to the merged output file*/
-                    fprintf(vals_merged, "\t%s_bound\t%s_unbound\t%s_fracBound", vals_ipt[v].nm, vals_ipt[v].nm, vals_ipt[v].nm);
                     
                 } else { //reading data line
                     
@@ -168,7 +184,8 @@ int merge_values_files(values_input * vals_ipt, int vals_cnt, char * merged_out_
                         printf("merge_values_files: error - variant ids are not aligned. aborting...\n");
                         abort();
                         
-                    } else {
+                    } else if (!nonstandard) { //input data is standard TECdisplay format, check formatting
+                        
                         /* read p_vals string to confirm expected number of fields (count started
                          above) and to check that all characters are of expected types*/
                         for (i = 0, found_term = 0; !found_term && i < MAX_LINE; i++) {
@@ -202,12 +219,13 @@ int merge_values_files(values_input * vals_ipt, int vals_cnt, char * merged_out_
                             abort();
                         }
                         
-                        if (v == 0) {                            //if reading line from first values file
-                            fprintf(vals_merged, "%s", p_id[0]); //print variant id to merged output file
-                        }
-                        
-                        fprintf(vals_merged, "\t%s", p_vals[v]); //print values string to merged output file
                     }
+                    
+                    //all data checks passed, or reading non-standard file format
+                    if (v == 0) {                            //if reading line from first values file
+                        fprintf(vals_merged, "%s", p_id[0]); //print variant id to merged output file
+                    }
+                    fprintf(vals_merged, "\t%s", p_vals[v]); //print values string to merged output file
                 }
             }
         }

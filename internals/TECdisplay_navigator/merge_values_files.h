@@ -23,6 +23,6 @@
 #include "./TECdisplay_navigator_structs.h"
 
 /* merge_values_files: merge multiple values files into a single file */
-int merge_values_files(values_input * vals_ipt, int vals_cnt, char * merged_out_nm);
+int merge_values_files(values_input * vals_ipt, int vals_cnt, char * merged_out_nm, int nonstandard);
 
 #endif /* merge_values_files_h */

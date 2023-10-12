@@ -40,6 +40,7 @@ int main(int argc, char *argv[])
     int vals_cnt = 0;                          //number of values files provided
     int cons_provided = 0;                     //number of constraint files provided
     int out_nm_provided = 0;                   //number of output directory names provided
+    int nonstandard = 0;                       //flag that input is non-standard format
     
     char out_dir_nm[MAX_NAME] = {0};           //array to store output directory name
     
@@ -54,11 +55,11 @@ int main(int argc, char *argv[])
             {"constraints",   required_argument,  0,  'c'},  //constraints file input
             {"debug",   	  required_argument,  0,  'd'},  //turn on debug mode
             {"out-name",      required_argument,  0,  'o'},  //set output directory name
-            
+            {"non-standard",  no_argument,        0,  'n'},  //set flag that input is non-standard format
             {0, 0, 0, 0}
         };
         
-        c = getopt_long(argc, argv, "v:c:d:o:", long_options, &option_index);
+        c = getopt_long(argc, argv, "v:c:d:o:n", long_options, &option_index);
         
         if (c == -1) {
             break;
@@ -104,6 +105,10 @@ int main(int argc, char *argv[])
                 }
                 break;
             
+            case 'n': //turn on flag that input is non-standard format
+                nonstandard = 1;
+                break;
+                
             case 'd': //turn on debug mode
                 debug = 1;
                 break;
@@ -141,7 +146,7 @@ int main(int argc, char *argv[])
     } else {                                                                    //otherwise
         sprintf(merged_out_nm, "%s/%s_merged_out.txt", out_dir_nm, out_dir_nm); //set to <out_dir_nm>_merged_out.txt
     }
-    merge_values_files(&vals[0], vals_cnt, merged_out_nm);       //merge input files
+    merge_values_files(&vals[0], vals_cnt, merged_out_nm, nonstandard); //merge input files
     
     FILE * ipt = NULL;                               //pointer to merged values file
     if ((ipt = fopen(merged_out_nm, "r")) == NULL) { //open merged values file
@@ -155,9 +160,9 @@ int main(int argc, char *argv[])
     constraints cons[MAX_CONSTRAINTS] = {{0}}; //constraint parameters
     int cons_cnt = 0;                          //number of constraints in constraints file
     
-    parse_reference(fp_cons, &bmap, &wt, &cnstnt_indels);                  //construct basemap from reference sequence
-    cons_cnt = parse_constraints(fp_cons, &cons[0], &bmap, cnstnt_indels); //parse constraints file and set constraints
-    filter_values(ipt, &cons[0], cons_cnt, &bmap, out_dir_nm);             //filter values for matches to constraints
+    parse_reference(fp_cons, &bmap, &wt, &cnstnt_indels);                   //construct basemap from reference sequence
+    cons_cnt = parse_constraints(fp_cons, &cons[0], &bmap, cnstnt_indels);  //parse constraints file and set constraints
+    filter_values(ipt, &cons[0], cons_cnt, &bmap, out_dir_nm, nonstandard); //filter values for matches to constraints
     
     /* close merged values file */
     if (fclose(ipt) == EOF) {

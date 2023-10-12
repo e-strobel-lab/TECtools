@@ -27,7 +27,7 @@
 
 /* filter_values: read input values file and send variants that match each set of
  constraints to the respective output file */
-int filter_values(FILE * ipt, constraints * cons, int cons_cnt, basemap * bmap, char * out_dir_nm);
+int filter_values(FILE * ipt, constraints * cons, int cons_cnt, basemap * bmap, char * out_dir_nm, int nonstandard);
 
 /* validate_data_line: validate data line from merged values file */
 void validate_data_line(char * p_id, char * p_vals, int tot_vals);
