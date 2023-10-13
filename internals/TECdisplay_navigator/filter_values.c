@@ -94,18 +94,29 @@ int filter_values(FILE * ipt, constraints * cons, int cons_cnt, basemap * bmap, 
             
         } else { //input data is nonstandard format
             for (j = 0, k = 0, line_end = 0; !line_end; j++) {
+                
                 if (line[j] && line[j] != '\t') { //store tab-delimited column header
                     tmp_hdr[k++] = line[j];
+                    
                 } else {
                     tmp_hdr[k] = '\0'; //terminate tmp_hdr string
-                    fprintf(ofp[i], "%s_%s%c", cons[i].nm, tmp_hdr, line[j]); //print column header
-                    k = 0;             //reset k to 0 for next column header
+                    fprintf(ofp[i], "%s_%s", cons[i].nm, tmp_hdr); //print column header
                     
-                    if (!line[j]) {    //found terminal null
-                        line_end = 1;  //turn on line end flag
+                    if (line[j] == '\t') {     //found tab separator
+                        fprintf(ofp[i], "\t"); //print tab to file
+                        
+                    } else if (!line[j]) {     //found terminal null
+                        line_end = 1;          //turn on line end flag
+                        
+                    } else {
+                        printf("filter_values: error - this should be unreachable.\n");
                     }
+                    
+                    k = 0; //reset k to 0 for next column header
                 }
             }
+            
+            fprintf(ofp[i], "\n"); //print newline to end line
         }
     }
         
