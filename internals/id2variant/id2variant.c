@@ -41,7 +41,7 @@ typedef struct variant_id {     //storage for variant id and alias
 int parse_variant_ids(FILE * ipt, variant_id * varID);
 
 /* print_variants: reconstruct variant sequences from variant ids and print to file */
-void print_variants(variant_id * varID, int id_cnt, basemap * bmap, char * out_dir_nm, int max_nt);
+void print_variants(variant_id * varID, int id_cnt, basemap * bmap, char * out_dir_nm, int min_nt, int max_nt);
 
 int main(int argc, char *argv[])
 {
@@ -54,6 +54,7 @@ int main(int argc, char *argv[])
     
     char out_dir_nm[MAX_NAME] = {0};  //array to store output directory name
     
+    int min_nt = 0;                   //minimum nucleotide to print
     int max_nt = 0;                   //maximum nucleotide to print
     
     /****** parse options using getopt_long ******/
@@ -65,11 +66,12 @@ int main(int argc, char *argv[])
         {
             {"variants",       required_argument,  0,  'v'},  //variants file input
             {"out-name",       required_argument,  0,  'o'},  //set output directory name
+            {"min-nucleotide", required_argument,  0,  'm'},  //set minimum nucleotide to print
             {"max-nucleotide", required_argument,  0,  'x'},  //set maximum nucleotide to print
             {0, 0, 0, 0}
         };
         
-        c = getopt_long(argc, argv, "v:o:x:", long_options, &option_index);
+        c = getopt_long(argc, argv, "v:o:m:x:", long_options, &option_index);
         
         if (c == -1) {
             break;
@@ -102,6 +104,21 @@ int main(int argc, char *argv[])
                     printf("id2variant: error - more than one output directory name was provided. aborting\n");
                     abort();
                 }
+                break;
+               
+            case 'm': //set minimum nucleotide limit
+                for (i = 0; argv[optind-1][i]; i++) {  //check that min nucleotide limit string is digits
+                    if (!isdigit(argv[optind-1][i])) {
+                        printf("id2variant: error - minimum nucleotide limit must be composed of digits. aborting...\n");
+                        abort();
+                    }
+                }
+                min_nt = atoi(argv[optind-1]); //set min nucleotide limit
+                
+                if (!min_nt) {
+                    printf("id2variant: warning - minimum nucleotide was set to 0 which will print from the beginning of the sequence (as if the minimum nucleotide were set to 1).\n");
+                }
+                
                 break;
                 
             case 'x': //set maximum nucleotide limit
@@ -153,7 +170,7 @@ int main(int argc, char *argv[])
     }
     id_cnt = parse_variant_ids(ipt.fp, varID); //parse variant id input file
     
-    print_variants(varID, id_cnt, &bmap, out_dir_nm, max_nt); //reconstruct variant sequences and print to file
+    print_variants(varID, id_cnt, &bmap, out_dir_nm, min_nt, max_nt); //reconstruct variant sequences and print to file
 }
 
 /* parse_variant_ids: read and store variant ids and aliases */
@@ -255,7 +272,7 @@ int parse_variant_ids(FILE * ipt, variant_id * varID)
 }
 
 /* print_variants: reconstruct variant sequences from variant ids and print to file */
-void print_variants(variant_id * varID, int id_cnt, basemap * bmap, char * out_dir_nm, int max_nt)
+void print_variants(variant_id * varID, int id_cnt, basemap * bmap, char * out_dir_nm, int min_nt, int max_nt)
 {
     FILE * lfp = NULL;            //list file pointer
     FILE * ofp = NULL;            //individual output file pointer
@@ -281,6 +298,19 @@ void print_variants(variant_id * varID, int id_cnt, basemap * bmap, char * out_d
     //open list output file
     if ((lfp = fopen(out_nm, "w")) == NULL) {
         printf("print_variants: error - could not open output file. Aborting program...\n");
+        abort();
+    }
+    
+    if (!min_nt) {  //if min_nt option was not provided
+        min_nt = 1; //set min nucleotide to 1
+    }
+    
+    if (!max_nt) {                 //if max_nt option was not provided
+        max_nt = strlen(bmap->rS); //set max nucleotide to the ref seq string length
+    }
+    
+    if (min_nt >= max_nt) { //check that min nucleotide is not greater than or equal to max nucleotide
+        printf("print_variants: error - minimum nucleotide cannot be greater than or equal to max nucleotide. aborting...\n");
         abort();
     }
     
@@ -324,18 +354,12 @@ void print_variants(variant_id * varID, int id_cnt, basemap * bmap, char * out_d
             fprintf(ofp, ">%s\n", varID[i].id);
         }
         
-        if (max_nt) {
-            for (j = 0; j < max_nt && bmap->rS[j]; j++) {
-                fputc(bmap->rS[j], lfp);
-                fputc(bmap->rS[j], ofp);
-            }
-            fputc('\n', lfp);
-            fputc('\n', ofp);
-            
-        } else {
-            fprintf(lfp, "%s\n", bmap->rS);
-            fprintf(ofp, "%s\n", bmap->rS);
+        for (j = min_nt-1; j < max_nt && bmap->rS[j]; j++) {
+            fputc(bmap->rS[j], lfp);
+            fputc(bmap->rS[j], ofp);
         }
+        fputc('\n', lfp);
+        fputc('\n', ofp);
         
         /* close current variant output file */
         if (fclose(ofp) == EOF) {
