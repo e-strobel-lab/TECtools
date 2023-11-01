@@ -41,6 +41,7 @@ int main(int argc, char *argv[])
     int cons_provided = 0;                     //number of constraint files provided
     int out_nm_provided = 0;                   //number of output directory names provided
     int nonstandard = 0;                       //flag that input is non-standard format
+    int exclude = 0;                           //flag to exclude variants that match any constraint
     
     char out_dir_nm[MAX_NAME] = {0};           //array to store output directory name
     
@@ -56,6 +57,7 @@ int main(int argc, char *argv[])
             {"debug",   	  required_argument,  0,  'd'},  //turn on debug mode
             {"out-name",      required_argument,  0,  'o'},  //set output directory name
             {"non-standard",  no_argument,        0,  'n'},  //set flag that input is non-standard format
+            {"exclude",       no_argument,        0,  'x'},  //exclude variants that match any constraint
             {0, 0, 0, 0}
         };
         
@@ -107,6 +109,10 @@ int main(int argc, char *argv[])
             
             case 'n': //turn on flag that input is non-standard format
                 nonstandard = 1;
+                break;
+                
+            case 'x': //turn on flag to exclude variants that match any constraint
+                exclude = 1;
                 break;
                 
             case 'd': //turn on debug mode
@@ -162,7 +168,12 @@ int main(int argc, char *argv[])
     
     parse_reference(fp_cons, &bmap, &wt, &cnstnt_indels);                   //construct basemap from reference sequence
     cons_cnt = parse_constraints(fp_cons, &cons[0], &bmap, cnstnt_indels);  //parse constraints file and set constraints
-    filter_values(ipt, &cons[0], cons_cnt, &bmap, out_dir_nm, nonstandard); //filter values for matches to constraints
+    
+    if (!exclude) {
+        filter_values(ipt, &cons[0], cons_cnt, &bmap, out_dir_nm, nonstandard); //filter values for matches to constraints
+    } else {
+        exclude_matches(ipt, &cons[0], cons_cnt, &bmap, out_dir_nm, nonstandard); //exclude constraint matches
+    }
     
     /* close merged values file */
     if (fclose(ipt) == EOF) {

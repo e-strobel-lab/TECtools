@@ -190,6 +190,170 @@ int filter_values(FILE * ipt, constraints * cons, int cons_cnt, basemap * bmap, 
     return 1;
 }
 
+int exclude_matches(FILE * ipt, constraints * cons, int cons_cnt, basemap * bmap, char * out_dir_nm, int nonstandard) {
+    
+    extern const char TECdsply_clmn_hdrs[4][32]; //column headers from TECdisplay_output_column_headers.c
+    
+    int i = 0; //general purpose index
+    int j = 0; //general purpose index
+    int k = 0; //general purpose index
+    
+    int vi = 0; //variant index, counts the number of variants in values file
+    
+    //output variables
+    FILE * ofp[MAX_CONSTRAINTS];          //output file pointers
+    char tmp_nm[2048] = {0};              //array to store name of output files
+    
+    //general input variables
+    int smpl_cnt = 0;                     //number of samples in merged values file
+    char line[MAX_LINE+1] = {0};          //array to store value file line
+    char tmp_hdr[MAX_COL_NM+1] = {0};     //array to temporarily store non-standard headers
+    int line_end = 0;                     //flag that end of line was reached
+    
+    //vbase input variables
+    char *p_id = NULL;                    //pointer to start of variant id in line array
+    char *p_vbase = NULL;                 //pointer to current vbase string in variant id
+    base_params vbases[MAX_VBASES] = {0}; //storage for variable bases in variant ids
+    int crnt_vbase_cnt = 0;               //number of variable bases in current variant id
+        
+    //values input variables
+    char *p_vals = NULL;                  //pointer to start of variant values in line array
+    int tot_vals = 0;                     //number of tab-separated value fields observed in the line
+    sample_values vals[MAX_SAMPLE] = {0}; //array of variant names. NOTE: this structure was previously
+                                          //used to store data too, but this functionality is not in use
+    
+    //match tracking variables
+    int match[MAX_CONSTRAINTS] = {0};     //array to track which constraints a given variant matches
+    int fnd_match = 0;                    //flag that variant is a match to current constraint being assessed
+    int match_cnt = 0;                    //the number of constraints that a variant matches
+    
+    /**** parse first line of values file to get column headers ****/
+    get_line(line, ipt);                                   //get first line of values file
+    
+    if (!nonstandard) { //input data is standard TECdisplay format
+        smpl_cnt = get_sample_info(line, &vals[0], &tot_vals); //parse line for column headers
+    }
+    
+    /**** open output file for each constraint ****/
+    for (i = 0; i < cons_cnt; i++) {
+        
+        //generate output file
+        sprintf(tmp_nm, "%s/%s.txt", out_dir_nm, cons[i].nm);
+        if ((ofp[i] = fopen(tmp_nm, "w")) == NULL) {
+            printf("filter_values: error - could not open output file. Aborting program...\n");
+            abort();
+        }
+        
+        //print column headers line
+        if (!nonstandard) { //input data is standard TECdisplay format
+            fprintf(ofp[i], "%s_id", cons[i].nm);       //print variant id header once
+            for (j = 0; j < smpl_cnt; j++) {            //for every sample
+                
+                //k starts at 1 to skip variant id header
+                for (k = 1; k < TDSPLY_HDR_CNT; k++) {  //print bound/unbound/fracBound headers
+                    fprintf(ofp[i], "\t%s_%s_%s", cons[i].nm, vals[j].nm, TECdsply_clmn_hdrs[k]);
+                }
+            }
+            fprintf(ofp[i], "\n");
+            
+        } else { //input data is nonstandard format
+            for (j = 0, k = 0, line_end = 0; !line_end; j++) {
+                
+                if (line[j] && line[j] != '\t') { //store tab-delimited column header
+                    tmp_hdr[k++] = line[j];
+                    
+                } else {
+                    tmp_hdr[k] = '\0'; //terminate tmp_hdr string
+                    fprintf(ofp[i], "%s_%s", cons[i].nm, tmp_hdr); //print column header
+                    
+                    if (line[j] == '\t') {     //found tab separator
+                        fprintf(ofp[i], "\t"); //print tab to file
+                        
+                    } else if (!line[j]) {     //found terminal null
+                        line_end = 1;          //turn on line end flag
+                        
+                    } else {
+                        printf("filter_values: error - this should be unreachable.\n");
+                    }
+                    
+                    k = 0; //reset k to 0 for next column header
+                }
+            }
+            
+            fprintf(ofp[i], "\n"); //print newline to end line
+        }
+    }
+        
+    /**** determine if each variant matches any of the supplied constraints ****/
+    for (vi = 0; get_line(line, ipt); vi++) { //for every variant in the merged input file
+        
+        //initialize match to 1. failed matches are set
+        //to zero below in the test_bases function
+        for (i = 0; i < cons_cnt; i++) {match[i] = 1;}
+
+        //split input line into id and values strings
+        for (i = 0; line[i] != '\t' && line[i] && i < MAX_LINE; i++) {;} //iterate to first tab
+        if (line[i] == '\t') {
+            line[i] = '\0';             //set first tab to null char to terminate variant id
+            p_id = p_vbase = &line[0];  //set id and vbase pointers to start of line
+            p_vals = &line[i+1];        //set values pointer to the index after the first tab
+        } else if (line[i]) {
+            printf("filter_values: unexpected format for data line in merged values file. aborting...\n");
+            abort();
+        }
+        
+        //parse variant id for vbases
+        //NOTE: MAX_VBASES is used as the limit instead of SEQ2BIN_MAX_KEY because
+        //CONSTANT constraints can be present in variant ids alongside VARIABLE constraints
+        for (i = 0; *(p_vbase) && i < MAX_VBASES; i++) {
+            p_vbase = read_vbase(p_vbase, '_', &vbases[i], bmap, NAME); //read vbase to delimiter '_'
+            if (*p_vbase == '_') {      //reached delimiter, vbase was not the last vbase
+                p_vbase = &p_vbase[1];  //set vbase pointer to the start of the next vbase
+            }
+        }
+        crnt_vbase_cnt = i; //set crnt_vbase_cnt to the number of vbases in the current variant id
+        
+        if (crnt_vbase_cnt == MAX_VBASES && *(p_vbase)) { //check that MAX_VBASES is not exceeded by the variant ID
+            printf("filter_values: error - maximum number of vbases in variant name (%d) was exceeded. aborting...\n", MAX_VBASES);
+            abort();
+        }
+        
+        //if input data is standard TECdisplay format, validate data-containing segment of line
+        if (!nonstandard) {
+            validate_data_line(p_id, p_vals, tot_vals);
+        }
+        
+        //test if variant is a match to a constraint
+        fnd_match = test_bases(p_id, &vbases[0], crnt_vbase_cnt, cons, cons_cnt, bmap, &match[0]);
+        
+        if (fnd_match) {  //found match
+            match_cnt++;  //track number of variants with at least 1 match
+            
+            //iterate through match array. if match to a constraint was found,
+            //print the input line to the corresponding constraints file
+            for (i = 0; i < cons_cnt; i++) {
+                if (match[i]) {
+                    fprintf(ofp[i], "%s\t%s\n", p_id, p_vals); //print match to corresponding constraints file
+                }
+            }
+        }
+        
+        line[0] = '\0'; //zero the first character of the line array
+    }
+    
+    printf("\n%d variants with >=1 match\n", match_cnt); //print number of variants with at least one match to screen
+    
+    /* close output files */
+    for (i = 0; i < cons_cnt; i++) {
+        if (fclose(ofp[i]) == EOF) {
+            printf("filter_values: error - error occurred when output file %s.txt. Aborting program...\n", cons[i].nm);
+            abort();
+        }
+    }
+    
+    return 1;
+}
+
 /* validate_data_line: validate data line from merged values file */
 void validate_data_line(char * p_id, char * p_vals, int tot_vals)
 {
