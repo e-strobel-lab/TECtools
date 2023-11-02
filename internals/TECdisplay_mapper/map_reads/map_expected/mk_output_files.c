@@ -32,17 +32,20 @@ void print_output_header(FILE * out_fp, char * out_nm)
     //2. bound read count
     //3. unbound read count
     //4. fraction bound
-    for (i = 0; i < TDSPLY_HDR_CNT; i++) {                                              //for every column header
-        if (i == TDSPLY_VID_HDR && i == 0) {                                            //if at variant_id column
-            if (out_nm[0]) {                                                            //if an output name was supplied
-                fprintf(out_fp, "%s_%s", out_nm, TECdsply_clmn_hdrs[i]);                //print "<out_nm>_id"
-            } else {                                                                    //otherwise, "print variant_id"
-                fprintf(out_fp, "variant_%s", TECdsply_clmn_hdrs[i]);
+    for (i = 0; i < TDSPLY_HDR_CNT; i++) {                                  //for every column header
+        if (i == TDSPLY_VID_HDR && i == 0) {                                //if at variant_id column
+            if (out_nm[0]) {                                                //if an output name was supplied
+                fprintf(out_fp, "%s_%s", out_nm, TECdsply_clmn_hdrs[i]);    //print "<out_nm>_id"
+            } else {
+                fprintf(out_fp, "variant_%s", TECdsply_clmn_hdrs[i]);       //otherwise, "print variant_id"
             }
             
         } else if (i == TDSPLY_BND_HDR || i == TDSPLY_UNB_HDR || i == TDSPLY_FRC_HDR) { //if printing data column
-            fprintf(out_fp, "\t%s", TECdsply_clmn_hdrs[i]);                             //print <tab><clmn_hdr>
-            
+            if (out_nm[0]) {                                                //if an output name was supplied
+                fprintf(out_fp, "\t%s_%s", out_nm, TECdsply_clmn_hdrs[i]);  //print "<tab><out_nm>_<clmn_hdr>"
+            } else {
+                fprintf(out_fp, "\t%s", TECdsply_clmn_hdrs[i]);             //otherwise, print "<tab><clmn_hdr>"
+            }
             
         } else { // this should not be reachable                                        //error exceed max column
             printf("print_output_header: error - header index exceeded the maximum. aborting...\n");

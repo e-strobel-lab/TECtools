@@ -31,7 +31,11 @@ int filter_values(FILE * ipt, constraints * cons, int cons_cnt, basemap * bmap, 
 
 /* exclude_matches: read input values file and send variants that do not match any
  constraints to the output file */
-int exclude_matches(FILE * ipt, constraints * cons, int cons_cnt, basemap * bmap, char * out_dir_nm, int nonstandard);
+int exclude_matches(FILE * ipt, constraints * cons, int cons_cnt, char * cons_nm, basemap * bmap, char * out_dir_nm, int nonstandard);
+
+void print_header_line(FILE * ofp, char * line, char * out_dir_nm, char * cons_hdr, int smpl_cnt, int nonstandard);
+
+int test_variant_match(basemap * bmap, constraints * cons, char * line, char ** p_id, char ** p_vals, int * match, int cons_cnt, int tot_vals, int nonstandard);
 
 /* validate_data_line: validate data line from merged values file */
 void validate_data_line(char * p_id, char * p_vals, int tot_vals);

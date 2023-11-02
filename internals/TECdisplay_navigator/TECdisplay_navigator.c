@@ -35,6 +35,7 @@ int main(int argc, char *argv[])
     extern int debug; //flag to run debug mode
     
     values_input vals[MAX_VALS] = {0};         //storage for sample name, file name, and file pointer of values files
+    char cons_nm[MAX_NAME+1] = {0};            //storage for constraints file name
     FILE * fp_cons = NULL;                     //pointer to constraints file
     
     int vals_cnt = 0;                          //number of values files provided
@@ -61,7 +62,7 @@ int main(int argc, char *argv[])
             {0, 0, 0, 0}
         };
         
-        c = getopt_long(argc, argv, "v:c:d:o:n", long_options, &option_index);
+        c = getopt_long(argc, argv, "v:c:d:o:nx", long_options, &option_index);
         
         if (c == -1) {
             break;
@@ -83,9 +84,10 @@ int main(int argc, char *argv[])
                 break;
             
             case 'c': //get constraints file
-                if (!cons_provided) {                     //check that a constraints file was not previously provided
-                    get_file(&(fp_cons), argv[optind-1]); //set file pointer to constraints file
-                    cons_provided++;                      //count constraints files provided
+                if (!cons_provided) {                         //check that a constraints file was not previously provided
+                    get_file(&(fp_cons), argv[optind-1]);     //set file pointer to constraints file
+                    get_sample_name(argv[optind-1], cons_nm); //get sample name from constraints file name
+                    cons_provided++;                          //count constraints files provided
                 } else {
                     printf("TECdisplay_navigator: error - more than one constraints file was provided. aborting..\n");
                     abort();
@@ -172,7 +174,7 @@ int main(int argc, char *argv[])
     if (!exclude) {
         filter_values(ipt, &cons[0], cons_cnt, &bmap, out_dir_nm, nonstandard); //filter values for matches to constraints
     } else {
-        exclude_matches(ipt, &cons[0], cons_cnt, &bmap, out_dir_nm, nonstandard); //exclude constraint matches
+        exclude_matches(ipt, &cons[0], cons_cnt, cons_nm, &bmap, out_dir_nm, nonstandard); //exclude constraint matches
     }
     
     /* close merged values file */
