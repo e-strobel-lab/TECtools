@@ -26,7 +26,7 @@
 
 /* filter_values: read input values file and send variants that match each set of
  constraints to the respective output file */
-int filter_values(FILE * ipt, constraints * cons, int cons_cnt, basemap * bmap, char * out_dir_nm, int nonstandard) {
+int filter_values(FILE * ipt, constraints * cons, int cons_cnt, basemap * bmap, char * out_dir_nm, int nonstandard, char * out_prefix) {
         
     int i = 0; //general purpose index
     int vi = 0; //variant index, counts the number of variants in values file
@@ -62,7 +62,12 @@ int filter_values(FILE * ipt, constraints * cons, int cons_cnt, basemap * bmap, 
     for (i = 0; i < cons_cnt; i++) {
         
         //generate output file
-        sprintf(tmp_nm, "%s/%s.txt", out_dir_nm, cons[i].nm);
+        if (out_prefix[0]) {
+            sprintf(tmp_nm, "%s/%s_%s.txt", out_dir_nm, out_prefix, cons[i].nm);
+        } else {
+            sprintf(tmp_nm, "%s/%s.txt", out_dir_nm, cons[i].nm);
+        }
+
         if ((ofp[i] = fopen(tmp_nm, "w")) == NULL) {
             printf("filter_values: error - could not open output file. Aborting program...\n");
             abort();
@@ -96,7 +101,7 @@ int filter_values(FILE * ipt, constraints * cons, int cons_cnt, basemap * bmap, 
     /* close output files */
     for (i = 0; i < cons_cnt; i++) {
         if (fclose(ofp[i]) == EOF) {
-            printf("filter_values: error - error occurred when output file %s.txt. Aborting program...\n", cons[i].nm);
+            printf("filter_values: error - error occurred when closing output file %s.txt. Aborting program...\n", cons[i].nm);
             abort();
         }
     }
@@ -106,7 +111,7 @@ int filter_values(FILE * ipt, constraints * cons, int cons_cnt, basemap * bmap, 
 
 /* exclude_matches: read input values file and send variants that do not match any
  constraints to the output file */
-int exclude_matches(FILE * ipt, constraints * cons, int cons_cnt, char * cons_nm, basemap * bmap, char * out_dir_nm, int nonstandard) {
+int exclude_matches(FILE * ipt, constraints * cons, int cons_cnt, char * cons_nm, basemap * bmap, char * out_dir_nm, int nonstandard, char * out_prefix) {
         
     int i = 0; //general purpose index
     int vi = 0; //variant index, counts the number of variants in values file
@@ -140,7 +145,13 @@ int exclude_matches(FILE * ipt, constraints * cons, int cons_cnt, char * cons_nm
     /**** open output file ****/
     
     //generate output file
-    sprintf(tmp_nm, "%s/%s_%s.txt", out_dir_nm, out_dir_nm, cons_nm);
+    if (out_prefix[0]) {
+        sprintf(tmp_nm, "%s/%s_%s.txt", out_dir_nm, out_prefix, cons_nm);
+    } else {
+        sprintf(tmp_nm, "%s/%s.txt", out_dir_nm, cons_nm);
+    }
+    
+    
     if ((ofp = fopen(tmp_nm, "w")) == NULL) {
         printf("filter_values: error - could not open output file. Aborting program...\n");
         abort();
@@ -165,7 +176,7 @@ int exclude_matches(FILE * ipt, constraints * cons, int cons_cnt, char * cons_nm
     
     /* close output file */
     if (fclose(ofp) == EOF) {
-        printf("filter_values: error - error occurred when output file %s.txt. Aborting program...\n", cons[i].nm);
+        printf("filter_values: error - error occurred when closing output file %s.txt. Aborting program...\n", cons[i].nm);
         abort();
     }
     

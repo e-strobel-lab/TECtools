@@ -41,10 +41,12 @@ int main(int argc, char *argv[])
     int vals_cnt = 0;                          //number of values files provided
     int cons_provided = 0;                     //number of constraint files provided
     int out_nm_provided = 0;                   //number of output directory names provided
+    int out_prfx_provided = 0;                 //number of output prefixes provided
     int nonstandard = 0;                       //flag that input is non-standard format
     int exclude = 0;                           //flag to exclude variants that match any constraint
     
     char out_dir_nm[MAX_NAME] = {0};           //array to store output directory name
+    char out_prefix[MAX_NAME] = {0};           //array to store output prefix
     
     /****** parse options using getopt_long ******/
     int c = -1;
@@ -57,12 +59,13 @@ int main(int argc, char *argv[])
             {"constraints",   required_argument,  0,  'c'},  //constraints file input
             {"debug",   	  required_argument,  0,  'd'},  //turn on debug mode
             {"out-name",      required_argument,  0,  'o'},  //set output directory name
+            {"out-prefix",    required_argument,  0,  'f'},  //set output file prefix
             {"non-standard",  no_argument,        0,  'n'},  //set flag that input is non-standard format
             {"exclude",       no_argument,        0,  'x'},  //exclude variants that match any constraint
             {0, 0, 0, 0}
         };
         
-        c = getopt_long(argc, argv, "v:c:d:o:nx", long_options, &option_index);
+        c = getopt_long(argc, argv, "v:c:d:o:f:nx", long_options, &option_index);
         
         if (c == -1) {
             break;
@@ -105,6 +108,22 @@ int main(int argc, char *argv[])
                     
                 } else {
                     printf("TECdisplay_navigator: error - more than one output directory name was provided. aborting\n");
+                    abort();
+                }
+                break;
+                
+            case 'f': //set output file prefix
+                if (!out_prfx_provided) {                      //check that output prefix was not previously provided
+                    if (strlen(argv[optind-1]) < (MAX_NAME)) { //check output prefix name length
+                        strcpy(out_prefix, argv[optind-1]);    //store output prefix name
+                    } else {
+                        printf("TECdisplay_navigator: error - output prefix name is longer than the maximum length (%d). aborting...\n", MAX_NAME);
+                        abort();
+                    }
+                    out_prfx_provided++; //increment output name counter
+                    
+                } else {
+                    printf("TECdisplay_navigator: error - more than one output prefix name was provided. aborting\n");
                     abort();
                 }
                 break;
@@ -172,9 +191,9 @@ int main(int argc, char *argv[])
     cons_cnt = parse_constraints(fp_cons, &cons[0], &bmap, cnstnt_indels);  //parse constraints file and set constraints
     
     if (!exclude) {
-        filter_values(ipt, &cons[0], cons_cnt, &bmap, out_dir_nm, nonstandard); //filter values for matches to constraints
+        filter_values(ipt, &cons[0], cons_cnt, &bmap, out_dir_nm, nonstandard, out_prefix); //filter values for matches to constraints
     } else {
-        exclude_matches(ipt, &cons[0], cons_cnt, cons_nm, &bmap, out_dir_nm, nonstandard); //exclude constraint matches
+        exclude_matches(ipt, &cons[0], cons_cnt, cons_nm, &bmap, out_dir_nm, nonstandard, out_prefix); //exclude constraint matches
     }
     
     /* close merged values file */

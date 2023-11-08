@@ -27,11 +27,11 @@
 
 /* filter_values: read input values file and send variants that match each set of
  constraints to the respective output file */
-int filter_values(FILE * ipt, constraints * cons, int cons_cnt, basemap * bmap, char * out_dir_nm, int nonstandard);
+int filter_values(FILE * ipt, constraints * cons, int cons_cnt, basemap * bmap, char * out_dir_nm, int nonstandard, char * out_prefix);
 
 /* exclude_matches: read input values file and send variants that do not match any
  constraints to the output file */
-int exclude_matches(FILE * ipt, constraints * cons, int cons_cnt, char * cons_nm, basemap * bmap, char * out_dir_nm, int nonstandard);
+int exclude_matches(FILE * ipt, constraints * cons, int cons_cnt, char * cons_nm, basemap * bmap, char * out_dir_nm, int nonstandard, char * out_prefix);
 
 void print_header_line(FILE * ofp, char * line, char * out_dir_nm, char * cons_hdr, int smpl_cnt, int nonstandard);
 
