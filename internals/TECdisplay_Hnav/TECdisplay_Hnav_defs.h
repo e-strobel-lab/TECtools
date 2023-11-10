@@ -13,7 +13,7 @@
 #include "../global/global_defs.h"
 #include "../TECdisplay_navigator/TECdisplay_navigator_defs.h"
 
-#define MAX_LAYERS 8
-#define MAX_OUT_FILES 16192
+#define MAX_LAYERS 8        //maximum number of layers that can be specified
+#define MAX_OUT_FILES 16192 //maximum number of output files
 
 #endif /* TECdisplay_Hnav_defs_h */

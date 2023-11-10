@@ -116,7 +116,7 @@ int parse_constraints(FILE * ipt, constraints * cons, basemap * bmap, char * cns
                 cons[i].bcnt = bi; //set base count
                 cons[i].pcnt = pi; //set pair count
                 
-                print_base_constraints(&cons[i]);
+                //print_base_constraints(&cons[i]);
                 
                 /* during constraint parsing, read_vbase checks that:
                  1. vbase matches expected format

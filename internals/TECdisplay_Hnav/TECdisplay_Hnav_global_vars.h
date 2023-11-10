@@ -10,4 +10,14 @@
 
 #include <stdio.h>
 
+#include "../global/global_defs.h"
+
+#include "../TECdisplay_navigator/TECdisplay_navigator_defs.h"
+
+#include "./TECdisplay_Hnav_defs.h"
+#include "./TECdisplay_Hnav_structs.h"
+#include "./TECdisplay_Hnav_global_vars.h"
+
+#include "TECdisplay_Hnav_global_vars.h"
+
 #endif /* TECdisplay_Hnav_global_vars_h */

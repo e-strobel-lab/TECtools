@@ -157,7 +157,7 @@ int main(int argc, char *argv[])
     wt_source wt = {0};           //wt source sequence
     basemap bmap = {0};           //basemap for storing variable base reference sequence
     char * cnstnt_indels = NULL;  //storage for constant indels string
-    parse_reference(ipt.fp, &bmap, &wt, &cnstnt_indels);  //construct basemap from reference sequence
+    parse_reference(ipt.fp, &bmap, &wt, &cnstnt_indels, 1);  //construct basemap from reference sequence
     
 
     int id_cnt = 0;               //number of variant ids in input file

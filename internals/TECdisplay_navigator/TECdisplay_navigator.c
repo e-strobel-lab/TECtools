@@ -187,8 +187,8 @@ int main(int argc, char *argv[])
     constraints cons[MAX_CONSTRAINTS] = {{0}}; //constraint parameters
     int cons_cnt = 0;                          //number of constraints in constraints file
     
-    parse_reference(fp_cons, &bmap, &wt, &cnstnt_indels);                   //construct basemap from reference sequence
-    cons_cnt = parse_constraints(fp_cons, &cons[0], &bmap, cnstnt_indels);  //parse constraints file and set constraints
+    parse_reference(fp_cons, &bmap, &wt, &cnstnt_indels, 1); //construct basemap from reference sequence
+    cons_cnt = parse_constraints(fp_cons, &cons[0], &bmap, cnstnt_indels); //parse and set constraints
     
     if (!exclude) {
         filter_values(ipt, &cons[0], cons_cnt, &bmap, out_dir_nm, nonstandard, out_prefix); //filter values for matches to constraints

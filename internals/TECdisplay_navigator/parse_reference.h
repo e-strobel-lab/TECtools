@@ -30,6 +30,6 @@
  reference sequence, and parsed vbases in wt_source and basemap structs. parsing vbases from the variable base
  reference sequence establishes the reference that vbases in each constraint and variant names will be checked
  against to establish their validity. */
-int parse_reference(FILE * ipt, basemap * bmap, wt_source * wt, char ** cnstnt_indels);
+int parse_reference(FILE * ipt, basemap * bmap, wt_source * wt, char ** cnstnt_indels, int print);
 
 #endif /* parse_reference_h */

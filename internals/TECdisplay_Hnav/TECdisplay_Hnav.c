@@ -104,7 +104,7 @@ int main(int argc, char *argv[])
             
             case 'c': //get constraints file
                 if (layr_cnt < MAX_LAYERS) {                                      //check that MAX_LAYERS was not exceeded
-                    get_constraint_metadata(argv[optind-1], &cons_meta[layr_cnt], 'c'); //process the contraints file
+                    get_constraint_metadata(argv[optind-1], &cons_meta[layr_cnt], 'c', layr_cnt); //process the contraints file
                     layr_cnt++;                                                         //count constraints files provided
                 } else {
                     printf("TECdisplay_navigator: error - too many constraints files were provied. the maximum number of layers is %d. aborting..\n", MAX_LAYERS);
@@ -114,7 +114,7 @@ int main(int argc, char *argv[])
                 
             case 'x': //get exclusion constraints file
                 if (layr_cnt < MAX_LAYERS) {                                      //check that MAX_LAYERS was not exceeded
-                    get_constraint_metadata(argv[optind-1], &cons_meta[layr_cnt], 'x'); //process the contraints file
+                    get_constraint_metadata(argv[optind-1], &cons_meta[layr_cnt], 'x', layr_cnt); //process the contraints file
                     layr_cnt++;                                                         //count constraints files provided
                 } else {
                     printf("TECdisplay_navigator: error - too many constraints files were provied. the maximum number of layers is %d. aborting..\n", MAX_LAYERS);
@@ -198,7 +198,10 @@ int main(int argc, char *argv[])
     }
     mk_out_dir(out_dir_nm);        //make output directory
     chdir(out_dir_nm);             //change to output directory
-        
+    
+    print_constraint_metadata(layr_cnt, &cons_meta[0]);
+    valid8_constraint_compatiblity(layr_cnt, &cons_meta[0]);
+    
     char * layr_list[MAX_LAYERS] = {NULL}; //array to store layer names for temp output directory name construction
     
     calc_output_files(layr_cnt, &cons_meta[0]);                                        //calculate the number of output files
@@ -208,8 +211,8 @@ int main(int argc, char *argv[])
     aggregate_output(vals_cnt, &vals[0], layr_cnt, &cons_meta[0], out_prefix, col_id); //make aggregate output files
     
     //print list of TECdisplay_navigator output files for each layer
-    int i = 0;
-    int j = 0;
+    int i = 0; //general purpose index
+    int j = 0; //general purpose indexs
     
     for (i = 0; i < layr_cnt; i++) {
         printf("layer %d output files:\n", i);

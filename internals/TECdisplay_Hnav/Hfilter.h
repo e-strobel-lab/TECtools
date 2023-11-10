@@ -23,8 +23,10 @@
 #include "./TECdisplay_Hnav_structs.h"
 #include "./TECdisplay_Hnav_global_vars.h"
 
+/* Hfilter: hierarchically filter input data using a series of constraints files*/
 void Hfilter(constraint_metadata * cons_meta, char * prev_out_prfx, int cl, int layr_cnt, char * prev_TECDnav_out, char * layr_list[MAX_LAYERS]);
 
+/* store_out_filenames: store output file name in output_file_names structure */
 void store_out_filenames(int cl, char * prefix, constraint_metadata * cons_meta);
 
 #endif /* Hfilter_h */

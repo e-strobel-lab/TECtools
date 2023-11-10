@@ -30,7 +30,7 @@
  reference sequence, and parsed vbases in wt_source and basemap structs. parsing vbases from the variable base
  reference sequence establishes the reference that vbases in each constraint and variant names will be checked
  against to establish their validity. */
-int parse_reference(FILE * ipt, basemap * bmap, wt_source * wt, char ** cnstnt_indels)
+int parse_reference(FILE * ipt, basemap * bmap, wt_source * wt, char ** cnstnt_indels, int print)
 {
         
     int i = 0;  //tracks absolute array position
@@ -89,7 +89,9 @@ int parse_reference(FILE * ipt, basemap * bmap, wt_source * wt, char ** cnstnt_i
         abort();
     }
     
-    printf("\nseq: %s\nvbs: %s\nconstant_indels: %s\n\n", p_sq, p_vb, p_cid);
+    if (print) {
+        printf("\nseq: %s\nvbs: %s\nconstant_indels: %s\n", p_sq, p_vb, p_cid); //print constraint header
+    }
     
     //allocate memory for constant indels string
     if (((*cnstnt_indels) = malloc((strlen(p_cid)+1) * sizeof(*(*cnstnt_indels)))) == NULL) {
@@ -101,7 +103,10 @@ int parse_reference(FILE * ipt, basemap * bmap, wt_source * wt, char ** cnstnt_i
     /* construct basemap */
     set_wt_seq(wt, "seq", p_sq);            //set wt source sequence values
     set_basemap_seq(bmap, "vbs", p_vb, wt); //set basemap sequence values
-    print_vbases(bmap);                     //print parsed references vbases
+    
+    if (print) {
+        print_vbases(bmap); //print parsed references vbases
+    }
     
     return 1;
 }
