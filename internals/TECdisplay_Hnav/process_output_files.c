@@ -26,11 +26,11 @@ void clean_up_output(int layr_cnt, constraint_metadata * cons_meta)
 {
     int i = 0; //general purpose index
     
-    char rm_mrgd_out_command[MAX_LINE] = {0}; //array to store command for removing merged_out files
-    char mv_outFiles_command[MAX_LINE] = {0}; //array to store command for moving TECdisplay_navigator output file
-    char rm_out_dirs_command[MAX_LINE] = {0}; //array to store command for removing TECdisplay_navigator output directories
+    char rm_mrgd_out_command[MAX_LINE+1] = {0}; //array to store command for removing merged_out files
+    char mv_outFiles_command[MAX_LINE+1] = {0}; //array to store command for moving TECdisplay_navigator output file
+    char rm_out_dirs_command[MAX_LINE+1] = {0}; //array to store command for removing TECdisplay_navigator output directories
     
-    char crnt_layr[MAX_LINE] = {0}; //array to store current layer name
+    char crnt_layr[16] = {0}; //array to store current layer name
     
     system("rm merged_out.txt"); //remove top level merged_out file
     
@@ -71,10 +71,10 @@ void aggregate_output(int vals_cnt, values_input * vals, int layr_cnt, constrain
     int i = 0; //general purpose index
     int j = 0; //general purpose index
     
-    char layr_dir[8] = {0};          //array for generating layer directory name
-    char out_suffix[MAX_LINE] = {0}; //array for storing output file name, used to build output names acroos loop iterations
-    char val_out_nm[MAX_LINE] = {0}; //array for generating output file names for each values file
-    char tmp_str[MAX_LINE] = {0};    //array for temporary string storage
+    char layr_dir[MAX_NAME+1] = {0};   //array for generating layer directory name
+    char out_suffix[MAX_LINE+1] = {0}; //array for storing output file name, used to build output names across loop iterations
+    char val_out_nm[MAX_LINE+1] = {0}; //array for generating output file names for each values file
+    char tmp_str[MAX_LINE+1] = {0};    //array for temporary string storage
     
     int EOF_tot = 0;                 //total EOFs reached
     int * EOF_rchd = NULL;           //array for tracking which EOFs have been reached
@@ -117,14 +117,20 @@ void aggregate_output(int vals_cnt, values_input * vals, int layr_cnt, constrain
             
         } else {  //if processing a non-zero layer, append the constraint sample name to the output suffix
             strcpy(tmp_str, out_suffix);
-            sprintf(out_suffix, "%s_%s", tmp_str, cons_meta[i].sn);
+            if ((snprintf(out_suffix, MAX_LINE, "%s_%s", tmp_str, cons_meta[i].sn)) >= MAX_LINE) {
+                printf("aggregate_output: error - output suffix exceeded buffer. aborting...\n");
+                abort();
+            }
         }
         
         //generate an aggregated output file for each input values file
         for (j = 0; j < vals_cnt; j++) {
             
             //generate file name by appending out_suffix to the values file name
-            sprintf(val_out_nm, "%s_%s.txt", vals[j].nm, out_suffix);
+            if ((snprintf(val_out_nm, MAX_LINE, "%s_%s.txt", vals[j].nm, out_suffix)) >= MAX_LINE) {
+                printf("aggregate_output: error - output file name exceeded buffer. aborting...\n");
+                abort();
+            }
             
             //open the aggregated output file
             if ((ofp[j] = fopen(val_out_nm, "w")) == NULL) {
@@ -182,8 +188,8 @@ void read_output_hdrs(int vals_cnt, char * col_id, int crnt_layr, FILE ** TECDna
     int incldd_cols = 0; //number of included cols
     int line_end = 0;    //flag that the end of the line was reached
     
-    char line[MAX_LINE] = {0};    //array to store line
-    char tmp_val[MAX_LINE] = {0}; //array to store value strings
+    char line[MAX_LINE+1] = {0};    //array to store line
+    char tmp_val[MAX_LINE+1] = {0}; //array to store value strings
     
     char * p_col_id = NULL; //pointer to column id in value string
     
@@ -222,11 +228,11 @@ void read_output_hdrs(int vals_cnt, char * col_id, int crnt_layr, FILE ** TECDna
 
                             if (!i) {                //if reading the first file of the current layer
                                 cols2incld[v] = col; //store the number of included column at the current vals file index
-                                incldd_cols++;
+                                incldd_cols++;       //increment the number of included columns
                                 fprintf(ofp[v++], "%s", tmp_val); //print the header to the current vals file and
                                                                   //increment the values file index
                                 
-                            } else if (cols2incld[v] == col) { //if reading non-first file, check col2incld is same as 1st file
+                            } else if (col == cols2incld[v]) { //if reading non-first file, check cols2incld is same as 1st file
                                 fprintf(ofp[v++], "\t%s", tmp_val); //print the header to the curent vals file and
                                                                     //increment the values file index
                                 
@@ -274,7 +280,7 @@ void read_data_line(int vals_cnt, int crnt_layr, FILE ** TECDnav_out, int * cols
     char line[MAX_LINE] = {0};    //array to store line
     char tmp_val[MAX_LINE] = {0}; //array to store value strings
     
-    char * p_col_id = NULL;       //pointer to column id in value string
+    char * p_col_id = NULL; //pointer to column id in value string
     
     //process data line for each TECdisplay_navigator output file of the current layer
     for (i = 0; i < out_fns[crnt_layr].f_cnt; i++) {
@@ -302,9 +308,9 @@ void read_data_line(int vals_cnt, int crnt_layr, FILE ** TECDnav_out, int * cols
                         tmp_val[k] ='\0'; //terminate the value string
                         k = 0;            //reset k to zero for next iteration
                         
-                        if (col == cols2incld[v]) { //if the current column is to included. note it is confirmed that the number
-                                                    //of cols 2 include does not exceed the number of values files above in the
-                                                    //read_output_hdrs function
+                        if (col == cols2incld[v]) { //if the current column is to be included. note it is confirmed that the
+                                                    //number of cols 2 include does not exceed the number of values files above
+                                                    //in the read_output_hdrs function
                             
                             if (!i) {                               //if reading first file line
                                 fprintf(ofp[v++], "%s", tmp_val);   //print value w/o leading tab
@@ -347,5 +353,4 @@ void read_data_line(int vals_cnt, int crnt_layr, FILE ** TECDnav_out, int * cols
     for (v = 0; v < vals_cnt; v++) {
         fprintf(ofp[v], "\n");
     }
-
 }

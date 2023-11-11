@@ -30,22 +30,19 @@
  the file. This process also validates each constraint before it is used by TECdisplay_navigator */
 void get_constraint_metadata(char * ipt_fn, constraint_metadata * cons_meta, char type, int layr_cnt)
 {
-    get_file(&(cons_meta->fp), ipt_fn);     //set file pointer to constraints file
-    strcpy(cons_meta->fn, ipt_fn);          //store file name
-    get_sample_name(ipt_fn, cons_meta->sn); //get sample name from constraints file name
-    cons_meta->typ = type;                  //set constraint type
+    get_file(&(cons_meta->fp), ipt_fn); //set file pointer to constraints file
+    if (strlen(ipt_fn) < MAX_NAME) {
+        strcpy(cons_meta->fn, ipt_fn);  //store file name
+        get_sample_name(ipt_fn, cons_meta->sn); //get sample name from constraints file name
+    } else {
+        printf("get_constraint_metadata: error - input file name exceeds the maximum length (%d chars). aborting...\n", MAX_NAME);
+        abort();
+    }
+    cons_meta->typ = type;  //set constraint type
     
     FILE * tmp_ifp; //temporary file pointer for getting constraint names
     
-    int i = 0; //index for constraint groups
-    int j = 0; //index for input line
-    int k = 0; //index for code and tmp arrays
-    int n = 0; //index for checking duplicate constraint names
-    
-    char line[MAX_LINE+1] = {0};  //array to store input line
-    char code[MAX_CODE+1] = {0};  //array to store constraint code
-    
-    int new_constraint = 1;       //flag to indicate new constraint
+    int i = 0; //general purpose index
     
     get_file(&(tmp_ifp), ipt_fn); //set temp file pointer to constraints file
     
@@ -79,7 +76,7 @@ void valid8_constraint_compatiblity(int layr_cnt, constraint_metadata * cons_met
     } else {
         
         //check that the wt source seq, ref seq, and constant indels string
-        //for each constraint file matches the first constraint file
+        //for each constraint file match those of the first constraint file
         
         printf("\nvalidating constraint compatibility...\n");
         
@@ -87,17 +84,17 @@ void valid8_constraint_compatiblity(int layr_cnt, constraint_metadata * cons_met
             
             if (strcmp(cons_meta[i].wt.sq, cons_meta[0].wt.sq)) { //check wt source sequence
                 error = 1;
-                printf(">error - wt source for constraint file %s does not match the first constraint file (%s)\n", cons_meta[i].fn, cons_meta[0].fn);
+                printf(">error - wt source for constraint file '%s' does not match the first constraint file (%s)\n", cons_meta[i].fn, cons_meta[0].fn);
             }
             
             if (strcmp(cons_meta[i].bmap.rS, cons_meta[0].bmap.rS)) { //check reference sequence
                 error = 1;
-                printf(">error - variable base reference sequence for constraint file %s does not the first constraint file (%s)\n", cons_meta[i].fn, cons_meta[0].fn);
+                printf(">error - variable base reference sequence for constraint file '%s' does not match the first constraint file (%s)\n", cons_meta[i].fn, cons_meta[0].fn);
             }
             
             if (strcmp(cons_meta[i].cnstnt_indels, cons_meta[0].cnstnt_indels)) { //check constant indels string
                 error = 1;
-                printf(">error - constant indels string for constraint file %s does not the for first constraint file (%s)\n", cons_meta[i].fn, cons_meta[0].fn);
+                printf(">error - constant indels string for constraint file '%s' does not match the for first constraint file (%s)\n", cons_meta[i].fn, cons_meta[0].fn);
             }
         }
     }

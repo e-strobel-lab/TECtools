@@ -41,28 +41,28 @@
 
 int main(int argc, char *argv[])
 {
-    extern const char TECdsply_clmn_hdrs[4][32]; //column headers from TECdisplay_output_column_headers.c
+    extern const char TECdsply_clmn_hdrs[4][32];  //column headers from TECdisplay_output_column_headers.c
     
-    extern char TDHN_TECDnav_path[MAX_LINE];      //TECdisplay_navigator path
+    extern char TDHN_TECDnav_path[MAX_LINE+1];    //TECdisplay_navigator path
     extern char TDHN_merged_out_nm[15];           //merged_output filename
     extern output_file_names out_fns[MAX_LAYERS]; //storage for TECdisplay_navigator output filenames
     
     extern int debug; //flag to run debug mode
     
-    values_input vals[MAX_VALS] = {0};         //storage for sample name, file name, and file pointer of values files
+    values_input vals[MAX_VALS] = {{0}};       //storage for sample name, file name, and file pointer of values files
     
     int vals_cnt = 0;                          //number of values files provided
     int layr_cnt = 0;                          //number of constraint file layers provided
     int out_nm_provided = 0;                   //number of output directory names provided
     int out_prfx_provided = 0;                 //number of output prefixes provided
-    int nonstandard = 1;                       //flag that input is non-standard format
-    int exclude = 0;                           //flag to exclude variants that match any constraint
-    char col_id[MAX_NAME] = {0};               //column to print to aggregated output file TODO: add option to set this
+    int nonstandard = 1;                       //flag that input is non-standard format, always set to true here
+    int exclude = 0;                           //flag to exclude variants that match any constraint in constraints file
+    char col_id[MAX_NAME+1] = {0};             //column to print to aggregated output file TODO: add option to set this
     
-    char out_dir_nm[MAX_NAME] = {0};           //array to store output directory name
-    char out_prefix[MAX_NAME] = {0};           //array to store output prefix
+    char out_dir_nm[MAX_NAME+1] = {0};         //array to store output directory name
+    char out_prefix[MAX_NAME+1] = {0};         //array to store output prefix
         
-    constraint_metadata cons_meta[MAX_LAYERS] = {0}; //storage for constraint file metadata
+    constraint_metadata cons_meta[MAX_LAYERS] = {{0}}; //storage for constraint file metadata
     
     /****** parse options using getopt_long ******/
     int c = -1;
@@ -72,7 +72,7 @@ int main(int argc, char *argv[])
         static struct option long_options[] =
         {
             {"values",        required_argument,  0,  'v'},  //values file input
-            {"constraints",   required_argument,  0,  'c'},  //constraints file input
+            {"constraints",   required_argument,  0,  'c'},  //inclusion constraints file input
             {"exclude",       required_argument,  0,  'x'},  //exclusion constraints file input
             {"debug",         required_argument,  0,  'd'},  //turn on debug mode
             {"out-name",      required_argument,  0,  'o'},  //set output directory name
@@ -88,8 +88,7 @@ int main(int argc, char *argv[])
         }
         switch (c) {
             case 0: /*printf("long option\n");*/ break;
-                
-           
+ 
             case 'v': //get values file
                 if (vals_cnt < MAX_VALS) {                              //check that MAX_VALS will not be exceeded
                     strcpy(vals[vals_cnt].fn, argv[optind-1]);          //store file name
@@ -103,21 +102,21 @@ int main(int argc, char *argv[])
                 break;
             
             case 'c': //get constraints file
-                if (layr_cnt < MAX_LAYERS) {                                      //check that MAX_LAYERS was not exceeded
+                if (layr_cnt < MAX_LAYERS) { //check that MAX_LAYERS was not exceeded
                     get_constraint_metadata(argv[optind-1], &cons_meta[layr_cnt], 'c', layr_cnt); //process the contraints file
-                    layr_cnt++;                                                         //count constraints files provided
+                    layr_cnt++; //count constraints files provided
                 } else {
-                    printf("TECdisplay_navigator: error - too many constraints files were provied. the maximum number of layers is %d. aborting..\n", MAX_LAYERS);
+                    printf("TECdisplay_navigator: error - too many constraints files were provied. the maximum number of layers is %d. aborting...\n", MAX_LAYERS);
                     abort();
                 }
                 break;
                 
             case 'x': //get exclusion constraints file
-                if (layr_cnt < MAX_LAYERS) {                                      //check that MAX_LAYERS was not exceeded
+                if (layr_cnt < MAX_LAYERS) { //check that MAX_LAYERS was not exceeded
                     get_constraint_metadata(argv[optind-1], &cons_meta[layr_cnt], 'x', layr_cnt); //process the contraints file
-                    layr_cnt++;                                                         //count constraints files provided
+                    layr_cnt++; //count constraints files provided
                 } else {
-                    printf("TECdisplay_navigator: error - too many constraints files were provied. the maximum number of layers is %d. aborting..\n", MAX_LAYERS);
+                    printf("TECdisplay_navigator: error - too many constraints files were provied. the maximum number of layers is %d. aborting...\n", MAX_LAYERS);
                 }
                 break;
                 
@@ -157,7 +156,12 @@ int main(int argc, char *argv[])
                 break;
                 
             case 'p': //set TECdisplay_navigator path
-                strcpy(TDHN_TECDnav_path, argv[optind-1]);
+                if (strlen(argv[optind-1]) < MAX_LINE) {
+                    strcpy(TDHN_TECDnav_path, argv[optind-1]);
+                } else {
+                    printf("TECdisplay_navigator: error - TECdisplay_navigator path name is longer than the maximum length (%d). aborting...\n", MAX_LINE);
+                    abort();
+                }
                 break;
                 
             default:
@@ -184,10 +188,12 @@ int main(int argc, char *argv[])
         abort();
     }
     
+    //set TECdisplay_navigator path if not provided
     if (!TDHN_TECDnav_path[0]) {                            //if a path to TECdisplay_navigator wasn't provided
         strcpy(TDHN_TECDnav_path, "TECdisplay_navigator");  //set path to "TECdisplay_navigator"
     }
     
+    //set column id to aggregate if not provided
     if (!col_id[0]) {                                       //if a column id was not provided
         strcpy(col_id, TECdsply_clmn_hdrs[TDSPLY_FRC_HDR]); //set the column to aggregate as "fracBound"
     }
@@ -199,8 +205,8 @@ int main(int argc, char *argv[])
     mk_out_dir(out_dir_nm);        //make output directory
     chdir(out_dir_nm);             //change to output directory
     
-    print_constraint_metadata(layr_cnt, &cons_meta[0]);
-    valid8_constraint_compatiblity(layr_cnt, &cons_meta[0]);
+    print_constraint_metadata(layr_cnt, &cons_meta[0]);      //print constraint input files metadata to file
+    valid8_constraint_compatiblity(layr_cnt, &cons_meta[0]); //validate that all input constraints are compatible
     
     char * layr_list[MAX_LAYERS] = {NULL}; //array to store layer names for temp output directory name construction
     
@@ -210,6 +216,7 @@ int main(int argc, char *argv[])
     clean_up_output(layr_cnt, &cons_meta[0]);                                          //clean up output directories
     aggregate_output(vals_cnt, &vals[0], layr_cnt, &cons_meta[0], out_prefix, col_id); //make aggregate output files
     
+    //TODO: move to function, print to file as well
     //print list of TECdisplay_navigator output files for each layer
     int i = 0; //general purpose index
     int j = 0; //general purpose indexs

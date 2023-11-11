@@ -26,12 +26,12 @@ int calc_output_files(int layr_cnt, constraint_metadata * cons_meta)
     int i = 0; //general purpose index
     int j = 0; //general purpose index
     
-    int f_cnt = 1;     //file count
+    int f_cnt = 1;     //file count, start at one because f_cnt will be multiplied by number of output file per layer
     int tot_files = 0; //total files that will be generated
     
-    char usr_resp[4] = {0};       //storage for user response
-    char discard[MAX_LINE] = {0}; //array for flushing stdin
-    int resp_provided = 0;        //flag that valid reponse was provided
+    char usr_resp[4] = {0};         //storage for user response
+    char discard[MAX_LINE+1] = {0}; //array for flushing stdin
+    int resp_provided = 0;          //flag that valid reponse was provided
     
     printf("the provided constraints will generate the following files:\n\n");
     
@@ -54,21 +54,21 @@ int calc_output_files(int layr_cnt, constraint_metadata * cons_meta)
     
     printf("in total, %d files will be generated.\n\n", tot_files); //print the total file count
     
-    printf("proceed? (yes/no)\n");
+    printf("proceed (yes/no)? ");
     
     while (!resp_provided) {
         scanf("%3s", usr_resp);
         
         if (!strcmp(usr_resp, "yes")) {
-            printf("proceeding with analysis\n");
+            printf("proceeding with analysis\n\n");
             resp_provided = 1;
             
         } else if (!strcmp(usr_resp, "no")) {
-            printf("aborting analysis\n");
+            printf("aborting analysis\n\n");
             abort();
             
         } else {
-            printf("invalid response. please enter \"yes\" or \"no\"\n");
+            printf("invalid response. please enter \"yes\" or \"no\".\n");
             get_line(discard, stdin);
             
         }

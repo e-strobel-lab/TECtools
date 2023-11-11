@@ -23,9 +23,9 @@
 /* constraint_metadata: storage for constraint file information*/
 typedef struct constraint_metadata {
     FILE * fp;                               //pointer to constraint file
-    char fn[MAX_NAME];                       //constraint filename
-    char sn[MAX_NAME];                       //constraint sample name (no file suffix)
-    char * cn[MAX_CONSTRAINTS];              //constraint names
+    char fn[MAX_NAME+1];                     //constraint filename
+    char sn[MAX_NAME+1];                     //constraint sample name (no file suffix)
+    char * cn[MAX_CONSTRAINTS];              //pointer to constraint names in constraints struct
     char typ;                                //constraint type: c = included constraint, x = excluded constraint
     wt_source wt;                            //wt source sequence
     basemap bmap;                            //basemap of variant library
