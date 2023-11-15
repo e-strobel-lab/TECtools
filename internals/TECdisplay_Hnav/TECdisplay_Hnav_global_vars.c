@@ -18,6 +18,6 @@
 #include "TECdisplay_Hnav_global_vars.h"
 
 //global variables
-char TDHN_TECDnav_path[MAX_LINE] = {0};            //TECdisplay_navigator path
+char TDHN_TECDnav_path[MAX_LINE+1] = {0};            //TECdisplay_navigator path
 char TDHN_merged_out_nm[15] = {"merged_out.txt"};  //merged_output filename
 output_file_names out_fns[MAX_LAYERS] = {0};       //storage for output file names of each layer

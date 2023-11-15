@@ -73,7 +73,7 @@ void aggregate_output(int vals_cnt, values_input * vals, int layr_cnt, constrain
     
     char layr_dir[MAX_NAME+1] = {0};   //array for generating layer directory name
     char out_suffix[MAX_LINE+1] = {0}; //array for storing output file name, used to build output names across loop iterations
-    char val_out_nm[MAX_LINE+1] = {0}; //array for generating output file names for each values file
+    char agg_out_nm[MAX_LINE+1] = {0}; //array for generating aggregated output file names for each values file
     char tmp_str[MAX_LINE+1] = {0};    //array for temporary string storage
     
     int EOF_tot = 0;                 //total EOFs reached
@@ -127,14 +127,14 @@ void aggregate_output(int vals_cnt, values_input * vals, int layr_cnt, constrain
         for (j = 0; j < vals_cnt; j++) {
             
             //generate file name by appending out_suffix to the values file name
-            if ((snprintf(val_out_nm, MAX_LINE, "%s_%s.txt", vals[j].nm, out_suffix)) >= MAX_LINE) {
-                printf("aggregate_output: error - output file name exceeded buffer. aborting...\n");
+            if ((snprintf(agg_out_nm, MAX_LINE, "%s_%s.txt", vals[j].nm, out_suffix)) >= MAX_LINE) {
+                printf("aggregate_output: error - aggregate output file name exceeded buffer. aborting...\n");
                 abort();
             }
             
             //open the aggregated output file
-            if ((ofp[j] = fopen(val_out_nm, "w")) == NULL) {
-                printf("aggregate_output: error - could not open output file. Aborting program...\n");
+            if ((ofp[j] = fopen(agg_out_nm, "w")) == NULL) {
+                printf("aggregate_output: error - could not open aggregate output file. Aborting program...\n");
                 abort();
             }
         }
@@ -219,6 +219,7 @@ void read_output_hdrs(int vals_cnt, char * col_id, int crnt_layr, FILE ** TECDna
                     
                     if ((p_col_id = strstr(tmp_val, col_id)) != NULL) { //if the column header contains the target column id
                         
+                        //TODO: consider being more flexible about requirements for non standard col ids?
                         if (p_col_id[-1] == '_' && !p_col_id[strlen(p_col_id)]) { //check that the col id is at the header end
                             
                             if (v >= vals_cnt) { //check that number of included columns will not exceed number of vals files
@@ -227,7 +228,7 @@ void read_output_hdrs(int vals_cnt, char * col_id, int crnt_layr, FILE ** TECDna
                             }
 
                             if (!i) {                //if reading the first file of the current layer
-                                cols2incld[v] = col; //store the number of included column at the current vals file index
+                                cols2incld[v] = col; //store the number of the included column at the current vals file index
                                 incldd_cols++;       //increment the number of included columns
                                 fprintf(ofp[v++], "%s", tmp_val); //print the header to the current vals file and
                                                                   //increment the values file index
@@ -248,11 +249,13 @@ void read_output_hdrs(int vals_cnt, char * col_id, int crnt_layr, FILE ** TECDna
             }
         } else {
             //TODO: add file name to message
-            printf("read_output_hdrs: error - output file did not contain any headers. aborting...\n");
+            printf("read_output_hdrs: error - TECdisplay_navigator output file %s did not contain any headers. aborting...\n", out_fns[crnt_layr].fn[i]);
+            abort();
         }
         
         if (v != vals_cnt) { //check that number of included columns matches values file count
             printf("read_output_hdrs: error - number of included columns (%d) does not match the number of values files (%d). aborting...\n", v, vals_cnt);
+            abort();
         }
     }
     
@@ -263,7 +266,7 @@ void read_output_hdrs(int vals_cnt, char * col_id, int crnt_layr, FILE ** TECDna
 }
 
 /* read_data_line: read data lines from TECdisplay_navigator output files and
- print the included columns to the relevant aggregated data output file*/
+ print the included columns to the relevant aggregated data output file */
 void read_data_line(int vals_cnt, int crnt_layr, FILE ** TECDnav_out, int * cols2incld, int * EOF_rchd, int * EOF_tot, FILE ** ofp)
 {
     extern output_file_names out_fns[MAX_LAYERS]; //storage for output file names of each layer
@@ -277,8 +280,8 @@ void read_data_line(int vals_cnt, int crnt_layr, FILE ** TECDnav_out, int * cols
     int col = 0;      //current column number
     int line_end = 0; //flag that the end of the line was reached
         
-    char line[MAX_LINE] = {0};    //array to store line
-    char tmp_val[MAX_LINE] = {0}; //array to store value strings
+    char line[MAX_LINE+1] = {0};    //array to store line
+    char tmp_val[MAX_LINE+1] = {0}; //array to store value strings
     
     char * p_col_id = NULL; //pointer to column id in value string
     
@@ -346,6 +349,7 @@ void read_data_line(int vals_cnt, int crnt_layr, FILE ** TECDnav_out, int * cols
         
         if (v != vals_cnt) { //check that number of included columns matches values file count
             printf("read_output_hdrs: error - number of included columns (%d) does not match the number of values files (%d). aborting...\n", v, vals_cnt);
+            abort();
         }
     }
     

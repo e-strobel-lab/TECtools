@@ -61,6 +61,8 @@ int main(int argc, char *argv[])
     
     char out_dir_nm[MAX_NAME+1] = {0};         //array to store output directory name
     char out_prefix[MAX_NAME+1] = {0};         //array to store output prefix
+    
+    int aggregate = 0;                         //flag to aggregate fracBound columns
         
     constraint_metadata cons_meta[MAX_LAYERS] = {{0}}; //storage for constraint file metadata
     
@@ -78,10 +80,11 @@ int main(int argc, char *argv[])
             {"out-name",      required_argument,  0,  'o'},  //set output directory name
             {"out-prefix",    required_argument,  0,  'f'},  //set output file prefix
             {"path",          required_argument,  0,  'p'},  //set TECdisplay_navigator path
+            {"aggregate",     no_argument,        0,  'a'},  //aggregate fracBound columns
             {0, 0, 0, 0}
         };
         
-        c = getopt_long(argc, argv, "v:c:x:d:o:f:p:", long_options, &option_index);
+        c = getopt_long(argc, argv, "v:c:x:d:o:f:p:a", long_options, &option_index);
         
         if (c == -1) {
             break;
@@ -164,6 +167,10 @@ int main(int argc, char *argv[])
                 }
                 break;
                 
+            case 'a': //turn on aggregation
+                aggregate = 1;
+                break;
+                
             default:
                 printf("error: unrecognized option. Aborting program...\n");
                 abort();
@@ -214,7 +221,11 @@ int main(int argc, char *argv[])
     merge_values_files(&vals[0], vals_cnt, TDHN_merged_out_nm, nonstandard);           //merge input values files into 1 file
     Hfilter(&cons_meta[0], out_prefix, 0, layr_cnt, NULL, layr_list);                  //hierarchically filter the data
     clean_up_output(layr_cnt, &cons_meta[0]);                                          //clean up output directories
-    aggregate_output(vals_cnt, &vals[0], layr_cnt, &cons_meta[0], out_prefix, col_id); //make aggregate output files
+    
+    if (aggregate) {
+        aggregate_output(vals_cnt, &vals[0], layr_cnt, &cons_meta[0], out_prefix, col_id); //make aggregate output files
+    }
+    
     
     //TODO: move to function, print to file as well
     //print list of TECdisplay_navigator output files for each layer
