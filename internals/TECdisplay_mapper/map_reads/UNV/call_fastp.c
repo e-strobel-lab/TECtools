@@ -34,9 +34,20 @@ int call_fastp(names * nm, fastp_params prms)
     char unmerged_out2[256] = {0}; //array to store read 2 output option
     
     //construct output file options
-    sprintf(merged_out, "--merged_out ./processed/%s.fq.gz", nm->mrg);
-    sprintf(unmerged_out1, "--out1 ./processed/%s_unmerged.fq.gz", nm->smpl[READ1]);
-    sprintf(unmerged_out2, "--out2 ./processed/%s_unmerged.fq.gz", nm->smpl[READ2]);
+    if ((snprintf(merged_out, 256, "--merged_out ./processed/%s.fq.gz", nm->mrg)) >= 256) {
+        printf("call_fastp: error - merged_out name exceeded buffer. aborting...\n");
+        abort();
+    }
+    
+    if ((snprintf(unmerged_out1, 256, "--out1 ./processed/%s_unmerged.fq.gz", nm->smpl[READ1])) >= 256) {
+        printf("call_fastp: error - unmerged_out1 name exceeded buffer. aborting...\n");
+        abort();
+    }
+    
+    if ((snprintf(unmerged_out2, 256, "--out2 ./processed/%s_unmerged.fq.gz", nm->smpl[READ2])) >= 256) {
+        printf("call_fastp: error - unmerged_out2 name exceeded buffer. aborting...\n");
+        abort();
+    }
     
     char command[(MAX_LINE*4)]; //array for fastp command. array size exceeds max possible string length
     char lmt[64] = {0};         //read processing limit for debugging purposes

@@ -31,9 +31,14 @@ int mk_test_data(names * nm, target *refs, target *trgts, target_params *trg_prm
     
     srand(time(NULL)); //seed pseudorandom number generator
     
-    char out_dir[MAX_LINE] = {0};                      //array to store output directory
-    sprintf(out_dir, "%s_test_data", nm->trgs_prefix); //construct output directory name
-    mk_out_dir(out_dir);                               //make output directory
+    char out_dir[MAX_LINE] = {0}; //array to store output directory
+    
+    //construct output directory name
+    if ((snprintf(out_dir, MAX_LINE, "%s_test_data", nm->trgs_prefix)) >= MAX_LINE) {
+        printf("mk_test_data: error - output directory name exceeded buffer. aborting...\n");
+        abort();
+    }
+    mk_out_dir(out_dir); //make output directory
     
     FILE * out_rd1 = NULL;    //read 1 file pointer
     FILE * out_rd2 = NULL;    //read 2 file pointer

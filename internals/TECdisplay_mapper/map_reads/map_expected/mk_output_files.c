@@ -71,7 +71,10 @@ void print_output(target * trgts, target_params * trg_prms, names * nm)
     
     //construct output file name
     if (nm->out_nm[0]) {
-        sprintf(out_nm, "%s_out.txt", nm->out_nm);
+        if ((snprintf(out_nm, 256, "%s_out.txt", nm->out_nm)) >= 256) {
+            printf("print_output: error - output file name string exceeded buffer. aborting...\n");
+            abort();
+        }
     } else {
         sprintf(out_nm, "out.txt");
     }
@@ -158,21 +161,36 @@ void print_metrics(target * trgts, target_params * trg_prms, metrics * met, name
     sprintf(out_str, "input files\n");
     printf2_scrn_n_fl(out_fp, out_str);
     
-    sprintf(out_str, "read 1:  %s\n", nm->file[READ1]);
+    if ((snprintf(out_str, MAX_LINE, "read 1:  %s\n", nm->file[READ1])) >= MAX_LINE) {
+        printf("print_metrics: error - read 1 name string exceeded buffer. aborting...\n");
+        abort();
+    }
     printf2_scrn_n_fl(out_fp, out_str);
     
-    sprintf(out_str, "read 2:  %s\n", nm->file[READ2]);
+    if ((snprintf(out_str, MAX_LINE, "read 2:  %s\n", nm->file[READ2])) >= MAX_LINE) {
+        printf("print_metrics: error - read 2 name string exceeded buffer. aborting...\n");
+        abort();
+    }
     printf2_scrn_n_fl(out_fp, out_str);
     
-    sprintf(out_str, "targets: %s\n", nm->trgs);
+    if ((snprintf(out_str, MAX_LINE, "targets: %s\n", nm->trgs)) >= MAX_LINE) {
+        printf("print_metrics: error - targets name string exceeded buffer. aborting...\n");
+        abort();
+    }
     printf2_scrn_n_fl(out_fp, out_str);
     
     //print merged sample name
-    sprintf(out_str, "\nmerged sample name:\n%s\n", nm->mrg);
+    if ((snprintf(out_str, MAX_LINE, "\nmerged sample name:\n%s\n", nm->mrg)) >= MAX_LINE) {
+        printf("print_metrics: error - merged name string exceeded buffer. aborting...\n");
+        abort();
+    }
     printf2_scrn_n_fl(out_fp, out_str);
     
     if (nm->out_nm[0]) {
-        sprintf(out_str, "\noutput name:\n%s\n", nm->out_nm);
+        if ((snprintf(out_str, MAX_LINE, "\noutput name:\n%s\n", nm->out_nm)) >= MAX_LINE) {
+            printf("print_metrics: error - output name string exceeded buffer. aborting...\n");
+            abort();
+        }
         printf2_scrn_n_fl(out_fp, out_str);
     }
     

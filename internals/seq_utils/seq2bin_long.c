@@ -195,7 +195,7 @@ void print_bin_seq(char * ipt)
     seq2bin_long(ipt, &bin_seq, MAX_BLOCKS);
     
     for (i = 0; i < bin_seq.mx; i++) {
-        printf("%llu", bin_seq.sq[i]);
+        printf("%llu", (long long unsigned int)(bin_seq.sq[i]));
         if (i+1 == bin_seq.mx) {
             printf("\n");
         } else {
@@ -214,7 +214,7 @@ void fprint_bin_seq(FILE * out_fp, char * ipt)
     seq2bin_long(ipt, &bin_seq, MAX_BLOCKS);
     
     for (i = 0; i < bin_seq.mx; i++) {
-        fprintf(out_fp, "%llu", bin_seq.sq[i]);
+        fprintf(out_fp, "%llu", (long long unsigned int)(bin_seq.sq[i]));
         if (i+1 == bin_seq.mx) {
             fprintf(out_fp, "\n");
         } else {

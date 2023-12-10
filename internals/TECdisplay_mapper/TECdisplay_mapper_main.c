@@ -111,7 +111,7 @@ int main(int argc, char *argv[])
                 
             /* get output filename */
             case 'o':
-                strcpy(nm.out_nm, argv[optind-1]);    //store read 2 filename
+                strcpy(nm.out_nm, argv[optind-1]);    //store output filename
                 break;
                 
             /* set path to fastp executable */

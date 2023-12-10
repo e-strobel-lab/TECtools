@@ -114,10 +114,19 @@ int map_reads (names * nm, FILE * fp_trgs, char * minQ, fastp_params fastp_prms,
     char processed_file[MAX_LINE]; //array for storing fastp-processed file name
     char gunzip[MAX_LINE];         //array for storing gunzip command
     
-    sprintf(processed_file, "./processed/%s.fq", nm->mrg); //construct merged read file name
+    //construct merged read file name
+    if ((snprintf(processed_file, MAX_LINE, "./processed/%s.fq", nm->mrg)) >= MAX_LINE) {
+        printf("map_reads: error - processed merged read file name exceeded buffer. aborting...\n");
+        abort();
+    }
     
-    sprintf(gunzip, "gunzip %s", processed_file); //construct gunzip command
-    system(gunzip);                               //gunzip merged reads file
+    //construct gunzip command
+    if ((snprintf(gunzip, MAX_LINE, "gunzip %s", processed_file)) >= MAX_LINE) {
+        printf("map_reads: error - gunzip command exceeded buffer. aborting...\n");
+        abort();
+    }
+    
+    system(gunzip); //gunzip merged reads file
     
     //open merged read file
     if ((ifp = fopen(processed_file, "r")) == NULL) { //open merged reads file
@@ -147,9 +156,13 @@ int map_reads (names * nm, FILE * fp_trgs, char * minQ, fastp_params fastp_prms,
     }
     
     //compress merged fastq file
-    char gzip[MAX_LINE];                       //array to store gzip command
-    sprintf(gzip, "gzip %s", processed_file);  //construct gzip command
-    system(gzip);                              //gzip merged read file
+    char gzip[MAX_LINE]; //array to store gzip command
+    
+    if ((snprintf(gzip, MAX_LINE, "gzip %s", processed_file)) >= MAX_LINE) { //construct gzip command
+        printf("map_reads: error - gzip command exceeded buffer. aborting...\n");
+        abort();
+    }
+    system(gzip); //gzip merged read file
     /*********** end of print metrics clean up ***********/
     
     //free memory

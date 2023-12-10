@@ -132,12 +132,21 @@ int main(int argc, char *argv[])
     /* ******* end of options parsing ******* */
     
     /* ******* make output directory ******* */
-    char out_dir[512] = {0};             //array to store output directory name
-    sprintf(out_dir, "%s_out", nm.vTmp); //construct output directory name
-    mk_out_dir(out_dir);                 //make output directory
+    char out_dir[MAX_LINE] = {0}; //array to store output directory name
+    
+    //construct output directory name
+    if ((snprintf(out_dir, MAX_LINE, "%s_out", nm.vTmp)) >= MAX_LINE) {
+        printf("variant_maker: error - output directory name exceeded buffer. aborting...\n");
+        abort();
+    }
+    mk_out_dir(out_dir); //make output directory
     
     //generate input details file
-    sprintf(prcs_out_nm, "./%s/%s_processing.txt", out_dir, nm.vTmp);
+    if ((snprintf(prcs_out_nm, MAX_LINE, "./%s/%s_processing.txt", out_dir, nm.vTmp)) >= MAX_LINE) {
+        printf("variant_maker: error - processing messages file name exceeded buffer. aborting...\n");
+        abort();
+    }
+    
     if ((prcs_ofp = fopen(prcs_out_nm, "w")) == NULL) {
         printf("main: ERROR - could not open processing messages file. Aborting program...\n");
         abort();
@@ -218,9 +227,14 @@ int main(int argc, char *argv[])
  variant generation and print input file information to file*/
 void check_input(names * nm, int varFile_supplied, int brcdFile_supplied, int append_barcode, char * out_dir)
 {
-    FILE * out_fp = NULL;                                       //output file pointer
-    char out_nm[512] = {0};                                     //output file name
-    sprintf(out_nm, "./%s/%s_input.txt", out_dir, nm->vTmp);    //construct input details file name
+    FILE * out_fp = NULL;         //output file pointer
+    char out_nm[MAX_LINE] = {0};  //output file name
+    
+    //construct input details file name
+    if ((snprintf(out_nm, MAX_LINE, "./%s/%s_input.txt", out_dir, nm->vTmp)) >= MAX_LINE) {
+        printf("check_input: error - input details file name exceeded buffer. aborting...\n");
+        abort();
+    }
     
     //generate input details file
     if ((out_fp = fopen(out_nm, "w")) == NULL) {
@@ -270,9 +284,14 @@ void print_output(names * nm, basemap * bmap, int vTmpCnt, int varCnt, char * ou
         filtered_tot += bmap[i].cnt[FILTERED];
     }
     
-    FILE * out_fp = NULL;                                       //output file pointer
-    char out_nm[512] = {0};                                     //output file name
-    sprintf(out_nm, "./%s/%s_variants.txt", out_dir, nm->vTmp); //construct variant output file name
+    FILE * out_fp = NULL;        //output file pointer
+    char out_nm[MAX_LINE] = {0}; //output file name
+    
+    //construct variant output file name
+    if ((snprintf(out_nm, MAX_LINE, "./%s/%s_variants.txt", out_dir, nm->vTmp)) >= MAX_LINE) {
+        printf("print_output: error - variant output file name exceeded buffer. aborting...\n");
+        abort();
+    }
     
     char checkname[MAX_LINE] = {0};
     
