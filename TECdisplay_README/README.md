@@ -15,9 +15,72 @@
 
 ## Generating variant targets using variant_maker
 
-text here
+`variant_maker` generates a file containing user-defined sequence variants that is used as a targets file by TECdisplay_mapper.
 
+### variant_maker inputs and options
 
+```
+-v/--mk-variants <variant_tempate_file>   File containing template for variant sequence construction. 
+```
+
+### Basic usage of variant_maker
+
+1. Write a variant template text file that contains the following lines:
+
+```
+/name<tab><name_of_sequence>      Name of sequence
+/wtsq<tab><wild-type_sequence>    Wild-type sequence
+/sxxx<tab><variant_template_seq>  Variant template sequence, 'xxx' is a numerical id
+/pxxx<tab><pairing_constraint>    Base pair constraint, 'xxx' must match that of /s line; can supply multiple
+#                                 End of variant template indicater
+```
+
+The `name` and `wtsq` lines are provided once for the entire file. Each variant template comprises:
+
+- A variant template sequence line specified by `/sxxx`, where `xxx` is a numerical id. The variant template sequence       may use any IUPAC DNA base to specify positions that should be randomized.
+     
+- One or more pair constraint lines specified by `/pxxx`, where `xxx` is the same numerical id that was provided for the variant template sequence. Valid characters are `.` (no pair), `(` (1st pair partner), and `)` (2nd pair partner). If multiple pairs are supplied in one line, the pairs will close from the inside out. A variant template sequence must match all of its associated pairing constraints to be included in the output file.
+    
+- A `#` character that indicates the end of the variant template.
+
+Multiple variant templates can be provided in a single file. The output file will contain sequences for every variant template that was specified. Redundant variant sequences that were specified by more than one variant template are not filtered at this stage and are excluded later when the variant template is used by TECdisplay_mapper.
+
+2. Run the command:
+`variant_maker -v <variant_templates_file>`
+
+This generates a directory that contains the files:
+
+- <variant_template_name>_input.txt, which contains the name of the variant templates input file
+
+- <variant_template_name>_processing.txt, which contains a record of all processing messages
+
+- <variant_template_name>_variants.txt, which contains a list of all variant sequences in the following format:
+
+  header:
+  ```
+  variants:<number_of_variants>          number of variant sequences in file
+  WT:<sequence_name><tab><wt_sequence>   wild-type name and sequence
+  ```
+
+  for each variant template:
+  ```
+  REF:<variant_template_name>|TPR:<number_of_variants>|VBS:<list_of_variable_bases>|const:<list_of_constant_indels>
+  <variant_id><tab><variant_sequence>   line containing variant id and sequence for each variant of the current template
+  ```
+
+Variant ids comprise a list of underscore-delimited variable bases using with the following format specifications:
+```
+  - non-insertion variable base: <position><base>
+
+  - insertion variable base:     <position_of_preceding_non-insertion_nt>i<consecutive_insertion_number><base>
+```
+
+Variant ids exclude constant insertions and deletions, which are recorded in the reference line of each variant template unders the specifier `const:`. Constant indels uses the following format:
+```
+  - constant deletion:  d<position><base>
+
+  - constant insertion: c<position_of_preceding_non-insertion_nt>i<consecutive_insertion_number><base>
+```
 
 ## Processing TECdisplay data using TECdisplay_mapper
 
