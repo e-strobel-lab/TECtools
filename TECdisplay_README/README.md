@@ -20,7 +20,7 @@
 ### variant_maker inputs and options
 
 ```
--v/--mk-variants <variant_tempate_file>   File containing template for variant sequence construction. 
+-v/--mk-variants <variant_template_file>   File containing template for variant sequence construction. 
 ```
 
 ### Basic usage of variant_maker
@@ -31,15 +31,15 @@
 /name<tab><name_of_sequence>      Name of sequence
 /wtsq<tab><wild-type_sequence>    Wild-type sequence
 /sxxx<tab><variant_template_seq>  Variant template sequence, 'xxx' is a numerical id
-/pxxx<tab><pairing_constraint>    Base pair constraint, 'xxx' must match that of /s line; can supply multiple
+/pxxx<tab><pairing_constraint>    Base pair constraint, 'xxx' must match that of /s line; can supply multiple pairing constraints
 #                                 End of variant template indicater
 ```
 
 The `name` and `wtsq` lines are provided once for the entire file. Each variant template comprises:
 
-- A variant template sequence line specified by `/sxxx`, where `xxx` is a numerical id. The variant template sequence       may use any IUPAC DNA base to specify positions that should be randomized.
+- A variant template sequence line specified by `/sxxx`, where `xxx` is a numerical id. The variant template sequence may use any IUPAC DNA base to specify positions that should be randomized and `-` to specify constant deletions. **The variant template sequence must align with with the wild-type sequence specified by `/wtsq`.** Insertions in the variant template sequence can be accommodated by including corresponding `.` characters in the wild-type sequence.
      
-- One or more pair constraint lines specified by `/pxxx`, where `xxx` is the same numerical id that was provided for the variant template sequence. Valid characters are `.` (no pair), `(` (1st pair partner), and `)` (2nd pair partner). If multiple pairs are supplied in one line, the pairs will close from the inside out. A variant template sequence must match all of its associated pairing constraints to be included in the output file.
+- One or more pairing constraint lines specified by `/pxxx`, where `xxx` is the same numerical id that was provided for the associated variant template sequence. Valid characters are `.` (no pair), `(` (1st pair partner), and `)` (2nd pair partner). If multiple pairs are supplied in one line, the pairs will close from the inside out. A variant template sequence must match all of its associated pairing constraints to be included in the output file.
     
 - A `#` character that indicates the end of the variant template.
 
@@ -70,17 +70,24 @@ This generates a directory that contains the files:
 
 Variant ids comprise a list of underscore-delimited variable bases using with the following format specifications:
 ```
-  - non-insertion variable base: <position><base>
+  - variable non-insertion:        <position><base>
 
-  - insertion variable base:     <position_of_preceding_non-insertion_nt>i<consecutive_insertion_number><base>
+  - variable insertion (pos >= 1): <position_of_preceding_non-insertion_nt>i<consecutive_insertion_number><base>
+
+  - variable insertion (pos < 1):  <position><base>
 ```
 
 Variant ids exclude constant insertions and deletions, which are recorded in the reference line of each variant template unders the specifier `const:`. Constant indels uses the following format:
 ```
-  - constant deletion:  d<position><base>
+  - constant deletion:             d<position><base>
 
-  - constant insertion: c<position_of_preceding_non-insertion_nt>i<consecutive_insertion_number><base>
+  - constant insertion (pos >= 1): c<position_of_preceding_non-insertion_nt>i<consecutive_insertion_number><base>
+
+  - constant insertion (pos < 1):  c<position><base>
+
 ```
+
+
 
 ## Processing TECdisplay data using TECdisplay_mapper
 
