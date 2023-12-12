@@ -2,11 +2,11 @@
 
 TECtools is a suite of tools for processing data from Transcription Elongation Complex RNA structure probing (TECprobe) data including:
 
-**cotrans_preprocessor** - Performs sequencing read preprocessing to prepare data for analysis by ShapeMapper2 (https://github.com/Weeks-UNC/shapemapper2)
+[**cotrans_preprocessor**](#processing-tecprobe-data-using-cotrans_preprocessor) - Performs sequencing read preprocessing to prepare data for analysis by ShapeMapper2 (https://github.com/Weeks-UNC/shapemapper2)
 
-**mkmtrx** - Assembles data into matrix and other useful formats, reports alignment rates, and can be used to generate rdat files
+[**mkmtrx**](#assembling-tecprobe-ml-data-using-mkmtrx) - Assembles data into matrix and other useful formats, reports alignment rates, and can be used to generate rdat files
 
-**mtrx2cols** - Extracts reactivity trajectories for specific nucleotides from a reactivity matrix
+[**mtrx2cols**](#extract-reactivity-trajectories-using-mtrx2cols) - Extracts reactivity trajectories for specific nucleotides from a reactivity matrix
 
 
 
