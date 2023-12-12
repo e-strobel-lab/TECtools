@@ -1,82 +1,10 @@
-# TECtools
-
-TECtools is a suite of tools for processing data from Transcription Elongation Complex Display (TECdisplay) and Transcription Elongation Complex RNA structure probing (TECprobe) experiments.
-
-### TECdisplay tools:
-
-[**variant_maker**]() - Generates a targets file for user-specified sequence variants.
-
-[**TECdisplay_mapper**]() - Processes and maps sequencing reads to targets.
-
-[**merge_TECdisplay_replicates**]() - Merges data from replicate experiments.
-
-[**TECdisplay_navigator**]() - Filters data for variants that match user-specified constraints.
-
-[**TECdisplay_Hnav**]() - Hierarchically filters data for variants that match a series of user-specified constraints.
-
-[**id2variant**]() - Reconstructs complete variant sequence from variant id.
-
-
-### TECprobe tools:
+# TECtools - TECprobe tools
 
 [**cotrans_preprocessor**](#processing-tecprobe-data-using-cotrans_preprocessor) - Performs sequencing read preprocessing to prepare data for analysis by ShapeMapper2 (https://github.com/Weeks-UNC/shapemapper2)
 
 [**mkmtrx**](#assembling-tecprobe-ml-data-using-mkmtrx) - Assembles data into matrix and other useful formats, reports alignment rates, and can be used to generate rdat files
 
 [**mtrx2cols**](#extract-reactivity-trajectories-using-mtrx2cols) - Extracts reactivity trajectories for specific nucleotides from a reactivity matrix
-
-
-
-## Compiling TECtools scripts
-
-**TECtools will only run on Linux and MacOS systems. Windows is not currently supported**
-
-The `cotrans_preprocessor`, `mkmtrx`, and `mtrx2cols` scripts can be compiled using the following commands:
-
-```
-cd ./TECtools-1.0.0/build_TECprobe
-
-sh ./build_TECprobe.sh
-```
-
-This will generate the executables `cotrans_preprocessor`, `mkmtrx`, and `mtrx2cols` in the build_TECprobe directory.
-
-
-
-## Generating variant targets using variant_maker
-
-text here
-
-
-
-## Processing TECdisplay data using TECdisplay_mapper
-
-text here
-
-
-
-## Combining TECdisplay replicate data using merge_TECdisplay_replicates
-
-text here
-
-
-
-## Filtering TECdisplay data using TECdisplay_navigator
-
-text here
-
-
-
-## Hierarchically filtering TECdisplay data using TECdisplay_Hnav
-
-text here
-
-
-
-## Reconstructing a sequence from a variant id using id2variant
-
-text here
-
 
 
 ## Processing TECprobe data using cotrans_preprocessor
