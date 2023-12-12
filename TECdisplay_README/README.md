@@ -79,12 +79,11 @@ Variant ids comprise a list of underscore-delimited variable bases using with th
 
 Variant ids exclude constant insertions and deletions, which are recorded in the reference line of each variant template unders the specifier `const:`. Constant indels uses the following format:
 ```
-  - constant deletion:             d<position><base>
-
   - constant insertion (pos >= 1): c<position_of_preceding_non-insertion_nt>i<consecutive_insertion_number><base>
 
   - constant insertion (pos < 1):  c<position><base>
 
+  - constant deletion:             d<position><base>
 ```
 
 
@@ -185,6 +184,57 @@ text here
 
 -n/--non-standard                          Flag that input files are a non-standard format. Non-standard values files must be a
                                            tab-delimited file in which the first line contains column headears and the first column                                              contains variant ids in the format used by variant_maker.
+```
+
+`TECdisplay_mapper` generates a template constraint file that can be found in the directory `navigator_templates` in the `TECdisplay_mapper` output directory. 
+
+Constraints files specify variable and constant bases in the format described above for variant_maker, which is provided here for convenience:
+
+```
+  - variable non-insertion:        <position><base>
+  - constant non-insertion:        c<position><base>
+  - variable insertion (pos >= 1): <position_of_preceding_non-insertion_nt>i<consecutive_insertion_number><base>
+  - variable insertion (pos < 1):  <position><base>
+  - constant insertion (pos >= 1): c<position_of_preceding_non-insertion_nt>i<consecutive_insertion_number><base>
+  - constant insertion (pos < 1):  c<position><base>
+  - constant deletion:             d<position><base>
+```
+
+All constraints files contain a header that links them to the targets that were used by TECdisplay_mapper to map the reads:
+
+```
+/seq<tab><wild_type_sequence>
+/vbs<tab><variant_template_sequence>
+/constant_indels:<list_of_constant_indels>
+```
+
+Following this header, a series of filters can be supplied using the format:
+
+```
+<filter_name>
+base<tab><variable_base>     //Every variable base in the sequence is listed using the specifier
+base<tab><variable_base>     //'base' and a variable base in the format defined above. By default,
+base<tab><variable_base>     //each 'base' line contains the variable base that was specified in the
+base<tab><variable_base>     //variant template sequence. The nucleotide identity of each base can be
+base<tab><variable_base>     //changed to filter for variants that match the specified base.
+base<tab><variable_base>     
+pair<tab><base1>,<base2><tab><pair_type> //Pair constraints are optional. Each base in the pair must be
+pair<tab><base1>,<base2><tab><pair_type> //provided in the format defined above. If the base is variable,
+pair<tab><base1>,<base2><tab><pair_type> //it must match the corresponding base constraint in the lines
+pair<tab><base1>,<base2><tab><pair_type> //above. All valid pair_type specifiers are defined below.
+```
+
+The following `pair_type` specifiers are valid:
+
+```
+ANY_PAIR      GC, AU, GU
+WC_PAIR       GC, AU  
+STRONG        GC
+WEAK          AU, GU
+WEAK_AU       AU
+WEAK_GU       GU    
+MISMATCH      Must be mismatch     
+NO_CONSTRAINT Pair is not constrained (used as placeholder)
 ```
 
 
