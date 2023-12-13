@@ -209,7 +209,7 @@ This will generate the files:
                                            contains variant ids in the format used by variant_maker.
 ```
 
-`TECdisplay_mapper` generates a template constraint file that can be found in the directory `navigator_templates` in the `TECdisplay_mapper` output directory. The format constraints files is described below, and an example constraint file is provided in the `example_files` directory.
+`TECdisplay_mapper` generates a template constraint file that can be found in the directory `navigator_templates` in the `TECdisplay_mapper` output directory. The format of constraints files is described below, and an example constraint file is provided in the `example_files` directory.
 
 Constraints files specify variable and constant bases in the format described above for variant_maker, which is provided here for convenience:
 
