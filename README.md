@@ -14,7 +14,7 @@ TECtools is a suite of tools for processing data from Transcription Elongation C
 
 **TECdisplay_Hnav** - Hierarchically filters data for variants that match a series of user-specified constraints.
 
-**id2variant** - Reconstructs complete variant sequence from variant id.
+**id2variant** - Reconstructs complete variant sequences from variant ids.
 
 
 
@@ -37,7 +37,7 @@ TECtools is a suite of tools for processing data from Transcription Elongation C
 The `variant_maker`, `TECdisplay_mapper`, `merge_TECdisplay_replicates`, `TECdisplay_navigator`, `TECdisplay_Hnav`, and `id2variant` executables can be compiled using the following commands:
 
 ```
-cd ./TECtools-1.0.0/build_TECdisplay
+cd ./TECtools-1.1.0/build_TECdisplay
 
 sh ./build_TECdisplay.sh
 ```
@@ -51,7 +51,7 @@ This will generate the executables `variant_maker`, `TECdisplay_mapper`, `merge_
 The `cotrans_preprocessor`, `mkmtrx`, and `mtrx2cols` executables can be compiled using the following commands:
 
 ```
-cd ./TECtools-1.0.0/build_TECprobe
+cd ./TECtools-1.1.0/build_TECprobe
 
 sh ./build_TECprobe.sh
 ```
