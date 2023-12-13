@@ -4,24 +4,26 @@
 
 [**TECdisplay_mapper**](#processing-tecdisplay-data-using-tecdisplay_mapper) - Processes and maps sequencing reads to targets.
 
-[**merge_TECdisplay_replicates**](#combining-tecdisplay-replicate-data-using-merge_tecdisplay_replicates) - Merges data from replicate experiments.
+[**merge_TECdisplay_replicates**](#combining-tecdisplay-replicate-data-using-merge_tecdisplay_replicates) - Merges data from replicate TECdisplay experiments.
 
 [**TECdisplay_navigator**](#filtering-tecdisplay-data-using-tecdisplay_navigator) - Filters data for variants that match user-specified constraints.
 
 [**TECdisplay_Hnav**](#hierarchically-filtering-tecdisplay-data-using-tecdisplay_hnav) - Hierarchically filters data for variants that match a series of user-specified constraints.
 
-[**id2variant**](#reconstructing-a-sequence-from-a-variant-id-using-id2variant) - Reconstructs complete variant sequence from variant id.
+[**id2variant**](#reconstructing-a-sequence-from-a-variant-id-using-id2variant) - Reconstructs complete variant sequences from variant ids.
 
 
 ## Generating variant targets using variant_maker
 
-`variant_maker` generates a file containing user-defined sequence variants that is used as a targets file by TECdisplay_mapper.
+`variant_maker` generates a file containing user-defined sequence variants that is used as a targets file by `TECdisplay_mapper`.
 
 ### variant_maker inputs and options
 
 ```
--v/--mk-variants <variant_template_file>   File containing template for variant sequence construction. 
+-v/--mk-variants <variant_template_file>   File containing template for variant sequence construction (required). 
 ```
+
+The format of variant template files is described below, and an example variant template file is provided in the `example_files` directory.
 
 ### Basic usage of variant_maker
 
@@ -31,19 +33,19 @@
 /name<tab><name_of_sequence>      Name of sequence
 /wtsq<tab><wild-type_sequence>    Wild-type sequence
 /sxxx<tab><variant_template_seq>  Variant template sequence, 'xxx' is a numerical id
-/pxxx<tab><pairing_constraint>    Base pair constraint, 'xxx' must match that of /s line; can supply multiple pairing constraints
+/pxxx<tab><pairing_constraint>    Base pair constraint, 'xxx' must match that of the /s line; can supply multiple pairing constraints
 #                                 End of variant template indicater
 ```
 
 The `name` and `wtsq` lines are provided once for the entire file. Each variant template comprises:
 
-- A variant template sequence line specified by `/sxxx`, where `xxx` is a numerical id. The variant template sequence may use any IUPAC DNA base to specify positions that should be randomized and `-` to specify constant deletions. **The variant template sequence must align with with the wild-type sequence specified by `/wtsq`.** Insertions in the variant template sequence can be accommodated by including corresponding `.` characters in the wild-type sequence.
+- A variant template sequence line specified by `/sxxx`, where `xxx` is a numerical id. The variant template sequence may use any IUPAC DNA base to specify positions that should be randomized and `-` to specify constant deletions. **The variant template sequence must align with the wild-type sequence specified by `/wtsq`.** Insertions in the variant template sequence can be accommodated by including corresponding `.` characters in the wild-type sequence.
      
 - One or more pairing constraint lines specified by `/pxxx`, where `xxx` is the same numerical id that was provided for the associated variant template sequence. Valid characters are `.` (no pair), `(` (1st pair partner), and `)` (2nd pair partner). If multiple pairs are supplied in one line, the pairs will close from the inside out. A variant template sequence must match all of its associated pairing constraints to be included in the output file.
     
 - A `#` character that indicates the end of the variant template.
 
-Multiple variant templates can be provided in a single file. The output file will contain sequences for every variant template that was specified. Redundant variant sequences that were specified by more than one variant template are not filtered at this stage and are excluded later when the variant template is used by TECdisplay_mapper.
+Multiple variant templates can be provided in a single file. The output file will contain sequences for every variant template that was specified. Redundant variant sequences that were specified by more than one variant template are not filtered at this stage and are excluded later when the variant template is used by `TECdisplay_mapper`.
 
 2. Run the command:
 `variant_maker -v <variant_templates_file>`
@@ -90,14 +92,14 @@ Variant ids exclude constant insertions and deletions, which are recorded in the
 
 ## Processing TECdisplay data using TECdisplay_mapper
 
-`TECdisplay_mapper` coordinates sequencing read processing by `fastp` and maps sequencing reads to targets that were generated by `variant_maker`.  The expected run time is variable depending on the size of the  data set. A TECprobe-VL data set with a typical sequencing depth (200-300M paired end reads) will typically take 30-60 minutes to process.
+`TECdisplay_mapper` coordinates sequencing read processing by `fastp` and maps sequencing reads to targets that were generated by `variant_maker`.  The expected run time is variable depending on the size of the  data set. A TECdisplay data set with a typical sequencing depth (200-300M paired end reads) will typically take 30-60 minutes to process.
 
 **`TECdisplay_mapper` requires that `fastp` (https://github.com/OpenGene/fastp) is installed**
 
 ### TECdisplay_mapper inputs and options
 
 ```
--m/--mode <run_mode_specifier>     set run mode using one of following run mode specifiers:
+-m/--mode <run_mode_specifier>     set run mode (required) using one of following run mode specifiers:
                                    MAP_SEQ_READS  Process and map sequencing reads from a TECdisplay experiment.
                                    MAP_TEST_DATA  Generate and map test data for an input targets file.
 
@@ -105,7 +107,7 @@ Variant ids exclude constant insertions and deletions, which are recorded in the
                                    Required for MAP_SEQ_READS mode.
                                    Must not be provided in MAP_TEST_DATA mode.
 
--i/--read2 <read_2_fastq_file>     Read 2 FASTQ file input.
+-I/--read2 <read_2_fastq_file>     Read 2 FASTQ file input.
                                    Required for MAP_SEQ_READS mode.
                                    Must not be provided in MAP_TEST_DATA mode.
 
@@ -147,7 +149,7 @@ In both `MAP_SEQ_READS` and `MAP_TEST_DATA` mode, the following files/directorie
 
 In `MAP_TEST_DATA` mode, the following additional files will be generated:
 
-- test_data_analysis.tx, test data analysis metrics
+- test_data_analysis.txt, test data analysis metrics
 
 - <targets_file_name>_test_data, which contains the test_data fastq files that were used for the test data analysis. 
 
@@ -174,7 +176,7 @@ This will generate the files:
 
 - <output_file_name>_merged.txt, which contains the merged TECdisplay data.
   
-- <output_file_name>_merged_replicated_merge_record.txt, which records the names of the merged input files and the output file.
+- <output_file_name>_merged_replicate_merge_record.txt, which records the names of the merged input files and the output file.
 
 
 ## Filtering TECdisplay data using TECdisplay_navigator
@@ -187,7 +189,8 @@ This will generate the files:
 -v/--values <values_file_input>            Input values file (required). Multiple input values files can be supplied by
                                            providing the -v option more than once. Values files are typically the output
                                            of TECdisplay_mapper, but can be any tab-delimited file in which the first line
-                                           contains column headears and the first column contains variant ids in the format                                                      used by variant_maker as long as the -n/--non-standard option is used.
+                                           contains column names and the first column contains variant ids in the format
+                                           used by variant_maker as long as the -n/--non-standard option is used.
 
 -c/--constraints <constraints_file_input>  Constraints file (required), containing one or more constraints (format described below)
                                            that will be used to filter the TECdisplay data. When filtering for matches to the
@@ -202,10 +205,11 @@ This will generate the files:
 -f/--out-prefix <output_file_prefix>       Output file prefix (required). Prefix to append to all output files.
 
 -n/--non-standard                          Flag that input files are a non-standard format. Non-standard values files must be a
-                                           tab-delimited file in which the first line contains column headears and the first column                                              contains variant ids in the format used by variant_maker.
+                                           tab-delimited file in which the first line contains column names and the first column
+                                           contains variant ids in the format used by variant_maker.
 ```
 
-`TECdisplay_mapper` generates a template constraint file that can be found in the directory `navigator_templates` in the `TECdisplay_mapper` output directory. 
+`TECdisplay_mapper` generates a template constraint file that can be found in the directory `navigator_templates` in the `TECdisplay_mapper` output directory. The format constraints files is described below, and an example constraint file is provided in the `example_files` directory.
 
 Constraints files specify variable and constant bases in the format described above for variant_maker, which is provided here for convenience:
 
@@ -235,8 +239,9 @@ base<tab><variable_base>     //Every variable base in the sequence is listed usi
 base<tab><variable_base>     //'base' and a variable base in the format defined above. By default,
 base<tab><variable_base>     //each 'base' line contains the variable base that was specified in the
 base<tab><variable_base>     //variant template sequence. The nucleotide identity of each base can be
-base<tab><variable_base>     //changed to filter for variants that match the specified base.
-base<tab><variable_base>     
+base<tab><variable_base>     //changed to filter for variants that match the specified base. All variable
+base<tab><variable_base>     //bases must be listed as base constraints even if they are not being constrained.
+base<tab><variable_base>
 pair<tab><base1>,<base2><tab><pair_type> //Pair constraints are optional. Each base in the pair must be
 pair<tab><base1>,<base2><tab><pair_type> //provided in the format defined above. If the base is variable,
 pair<tab><base1>,<base2><tab><pair_type> //it must match the corresponding base constraint in the lines
@@ -246,6 +251,7 @@ pair<tab><base1>,<base2><tab><pair_type> //above. All valid pair_type specifiers
 The following `pair_type` specifiers are valid:
 
 ```
+Specifier     Allowed base pairs
 ANY_PAIR      GC, AU, GU
 WC_PAIR       GC, AU  
 STRONG        GC
@@ -262,9 +268,9 @@ If filtering for matches to the supplied constraints, run `TECdisplay_navigator`
 
 `TECdisplay_navigator -v <input_values_file> -c <constraints_file> -o <output_directory_name> -f <output_file_prefix>`
 
-If filtering to variants that do not match the supplied constraints, run `TECdisplay_navigator` using the command:
+If filtering for variants that do not match the supplied constraints, run `TECdisplay_navigator` using the command:
 
-`TECdisplay_navigator -v <input_values_file> -x <constraints_file> -o <output_directory_name> -f <output_file_prefix>`
+`TECdisplay_navigator -v <input_values_file> -c <constraints_file> -x -o <output_directory_name> -f <output_file_prefix>`
 
 
 ## Hierarchically filtering TECdisplay data using TECdisplay_Hnav
@@ -277,17 +283,19 @@ If filtering to variants that do not match the supplied constraints, run `TECdis
 -v/--values <values_file_input>            Input values file (required). Multiple input values files can be supplied by
                                            providing the -v option more than once. Values files are typically the output
                                            of TECdisplay_mapper, but can be any tab-delimited file in which the first line
-                                           contains column headears and the first column contains variant ids in the format                                                               used by variant_maker as long as the -n/--non-standard option is used.
+                                           contains column names and the first column contains variant ids in the format
+                                           used by variant_maker as long as the -n/--non-standard option is used.
 
--c/--constraints <constraints_file_input>  Inclusion constraints file input, containing one or more constraints (format                                                                   described above for TECdisplay_navigator). Constraints files supplied using the -c 
-                                           option will be used for filter to matches for each constraint. As for TECdisplay_navigator
+-c/--constraints <constraints_file_input>  Inclusion constraints file input, containing one or more constraints (format
+                                           described above for TECdisplay_navigator). Constraints files supplied using the -c 
+                                           option will be used to filter for matches to each constraint. As for TECdisplay_navigator
                                            each constraint is handled separately and one output file, which contains matches,
                                            is generated for each constraint. Multiple constraints files can be supplied. Data
                                            will be filtered by the constraints files in the order that they are supplied.
 
 -x/--exclude <constraints_file_input>      Exclusion constraints file input, containing one or more constraints. Constraints
-                                           files supplied using the -x option will be used to filter for variants that do not match                                                       any of the constraints in the exclusion constraitls file.
-                                           
+                                           files supplied using the -x option will be used to filter for variants that do not match
+                                           any of the constraints in the exclusion constraints file.
 
 -o/--out-name <output_directory_name>      Output directory name (required).
 
@@ -297,18 +305,18 @@ If filtering to variants that do not match the supplied constraints, run `TECdis
                                            has not been added to PATH.
 
 -a/--aggregate                             Generate file in which the fraction bound columns of filtered variant output files are
-                                           aggregated into a single file. This option can only be used when standard TECdisplay_mapper 
-                                           output files are used as the input values files.
+                                           aggregated into a single file (optional). This option can only be used when standard
+                                           TECdisplay_mapper output files are used as the input values files.
   
 ```
 
-### Basic usage of TECdisplay_navigator
+### Basic usage of TECdisplay_Hnav
 
 To hierarchically filter TECdisplay data using `TECdisplay_Hnav`, run the command:
 
 `TECdisplay_Hnav -v <input_values_file> -c <constraints_file_1> -c <constraints_file_2> -c <constraints_file_3> -o <output_directory_name> -f <output_file_prefix>`
 
-The command above will filter the input values file by each of the three constraints sequentially in the order that they are supplied. In each layer of filtering, every output file from the layer is filtered by the current constraint.  The output of each filtering layer is stored in a separate directory. **This can potentially lead to the generation of large numbers of files**. To safeguard against unintentionally generating large numbers of files, a prompt will indicate the number of files that will be created and ask if this is acceptable. Answering 'yes' will allow the analysis to proceed.
+The command above will filter the input values file by each of the three constraints sequentially in the order that they are supplied. In each layer of filtering, every output file from the previous layer is filtered by the current constraint.  The output of each filtering layer is stored in a separate directory. **This can potentially lead to the generation of large numbers of files**. To safeguard against unintentionally generating large numbers of files, a prompt will indicate the number of files that will be created and ask if this is acceptable. Answering 'yes' will allow the analysis to proceed.
 
 ## Reconstructing a sequence from a variant id using id2variant
 
@@ -317,7 +325,7 @@ The command above will filter the input values file by each of the three constra
 ### id2variant inputs and options
 
 ```
--v/--variants <variants_input file>    Variants input file (required). Format defined below.
+-v/--variants <variants_input_file>    Variants input file (required). Format defined below.
 
 -o/--out-name <output_directory_name>  Output directory name (required).
 
@@ -326,7 +334,7 @@ The command above will filter the input values file by each of the three constra
 -x/--max_nucleotide <value>            Maximum nucleotide to print (optional).
 ```
 
-The variants input file must contain the following header, which can be copied from the `TECdisplay_navigator` constraint template that is generated by `TECdisplay_mapper`:
+An example variants input file is provided in the directory `example_files`.The variants input file must contain the following header, which can be copied from the `TECdisplay_navigator` constraint template that is generated by `TECdisplay_mapper`:
 
 ```
 /seq<tab><wild_type_sequence>
@@ -334,7 +342,7 @@ The variants input file must contain the following header, which can be copied f
 /constant_indels:<list_of_constant_indels>
 ```
 
-Following this header, the variant ids to be reconstructed are supplied on separate lines. If desired, it is possible to include alias for each variant to simplify their identification by using the format:
+Following this header, the variant ids to be reconstructed are supplied on separate lines. If desired, it is possible to include an alias for each variant to simplify their identification by using the format:
 
 `<variant_id><tab><alias>`
 
@@ -344,5 +352,5 @@ To reconstruct variant sequences from variant ids using `id2variant`, run the co
 
 `id2variant -v <variants_input_file> -o <output_directory_name>`
 
-This will generate a directory that contains both an individual FASTA file for each variant and an aggregate FASTA file that contains every variant.
+This will generate a directory that contains both individual FASTA files for each variant and an aggregate FASTA file that contains every variant.
 
