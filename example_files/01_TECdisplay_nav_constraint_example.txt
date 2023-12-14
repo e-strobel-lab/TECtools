@@ -1,0 +1,51 @@
+/seq	ATTAGATATTAGTCATATGACTGACGGAAGTGGAGTTACCACATGAAGTATGACTAGGCATATTATCTTATATGCCACAAAAAGCCGACCGTCTGGGCAAAAAAAGCCTGGATTGCGTCGGC
+/vbs	ATTAGATATTAGTCAyryrACTGrCGrAAGTGGAGTTACCACrrGrAGyrTGACTAGGCATATTATCTTATATGCCACAAAAAGCCGAyCGyCTGGGCAAAAAAAGCCTGGrTTGCrTCGGC
+/constant_indels:none
+P1_PK_T_ANY
+base	     16Y
+base	     17R
+base	     18Y
+base	     19R
+base	     24R
+base	     27R
+base	     43R
+base	     44R
+base	     46R
+base	     49Y
+base	     50R
+base	     89Y
+base	     92Y
+base	    112R
+base	    117R
+pair	16Y,50R	ANY_PAIR
+pair	17R,49Y	ANY_PAIR
+pair	18Y,c48G	ANY_PAIR
+pair	24R,92Y	ANY_PAIR
+pair	27R,89Y	ANY_PAIR
+pair	89Y,117R	ANY_PAIR
+pair	92Y,112R	ANY_PAIR
+#
+P1_ANY_PK_T_WC
+base	     16Y
+base	     17R
+base	     18Y
+base	     19R
+base	     24R
+base	     27R
+base	     43R
+base	     44R
+base	     46R
+base	     49Y
+base	     50R
+base	     89Y
+base	     92Y
+base	    112R
+base	    117R
+pair	16Y,50R	ANY_PAIR
+pair	17R,49Y	ANY_PAIR
+pair	18Y,c48G	ANY_PAIR
+pair	24R,92Y	WC_PAIR
+pair	27R,89Y	WC_PAIR
+pair	89Y,117R	WC_PAIR
+pair	92Y,112R	WC_PAIR
+#
