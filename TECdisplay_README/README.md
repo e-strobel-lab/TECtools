@@ -301,8 +301,9 @@ If filtering for variants that do not match the supplied constraints, run `TECdi
 
 -f/--out-prefix <output_file_prefix>       Output file prefix (required). Prefix to append to all output files.
 
--p/--path <TECdisplay_navigator_path>      Path to TECdisplay_navigator executable (optional). Only needed if TECdisplay_navigator
-                                           has not been added to PATH.
+-p/--path <TECdisplay_navigator_path>      Absolute path to TECdisplay_navigator executable (optional). This must be the absolute
+                                           path; a relative path is not valid. Only needed if TECdisplay_navigator has not been
+                                           added to PATH. 
 
 -a/--aggregate                             Generate file in which the fraction bound columns of filtered variant output files are
                                            aggregated into a single file (optional). This option can only be used when standard
