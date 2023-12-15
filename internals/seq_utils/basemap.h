@@ -64,17 +64,17 @@ static struct varbase {  //stores information for variable positions
     char not;            //IUPAC notation
     char alt[5];         //alternate bases at variable position
 } vb_tbl[11] = {
-    0, 'N', "ATGC", //0
-    0, 'R', "AG",   //1
-    0, 'Y', "TC",   //2
-    0, 'M', "AC",   //3
-    0, 'K', "GT",   //4
-    0, 'S', "GC",   //5
-    0, 'W', "AT",   //6
-    0, 'B', "TGC",  //7
-    0, 'D', "ATG",  //8
-    0, 'H', "ATC",  //9
-    0, 'V', "ACG"   //10
+    {0, 'N', "ATGC"}, //0
+    {0, 'R', "AG"},   //1
+    {0, 'Y', "TC"},   //2
+    {0, 'M', "AC"},   //3
+    {0, 'K', "GT"},   //4
+    {0, 'S', "GC"},   //5
+    {0, 'W', "AT"},   //6
+    {0, 'B', "TGC"},  //7
+    {0, 'D', "ATG"},  //8
+    {0, 'H', "ATC"},  //9
+    {0, 'V', "ACG"}   //10
     
 };
 

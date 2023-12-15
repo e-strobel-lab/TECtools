@@ -75,6 +75,7 @@ void set_wt_seq(wt_source * wt, char * nm, char * sq)
             abort();
         }
     }
+    wt->sq[i] = '\0'; //terminate wild-type sequence string
     
     //check that wt sequence does not exceed maximum sequence length
     if (i == MAXLEN && sq[i]) {
