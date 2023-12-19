@@ -34,7 +34,7 @@ TECtools is a suite of tools for processing data from Transcription Elongation C
 
 ### TECdisplay:
 
-The `variant_maker`, `TECdisplay_mapper`, `merge_TECdisplay_replicates`, `TECdisplay_navigator`, `TECdisplay_Hnav`, and `id2variant` executables can be compiled using the following commands:
+TECtools executables for TECdisplay data processing and analysis can be compiled using the following commands:
 
 ```
 cd ./TECtools-1.1.0/build_TECdisplay
@@ -48,7 +48,7 @@ This will generate the executables `variant_maker`, `TECdisplay_mapper`, `merge_
 
 ### TECprobe:
 
-The `cotrans_preprocessor`, `mkmtrx`, and `mtrx2cols` executables can be compiled using the following commands:
+TECtools executables for TECprobe data processing and analysis can be compiled using the following commands:
 
 ```
 cd ./TECtools-1.1.0/build_TECprobe
