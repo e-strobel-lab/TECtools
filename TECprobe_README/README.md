@@ -195,7 +195,7 @@ Required:
  
 `mkmtrx` assembles data into matrix and other useful formats, reports alignment rates, and can be used to generate rdat files.
   
-###mkmtrx inputs and options
+### mkmtrx inputs and options
   
 Required:
 ```
