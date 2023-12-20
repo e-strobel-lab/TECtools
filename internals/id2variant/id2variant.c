@@ -314,6 +314,16 @@ void print_variants(variant_id * varID, int id_cnt, basemap * bmap, char * out_d
         abort();
     }
     
+    if (min_nt < 1 || max_nt < 1) { //if min_nt or max_nt is negative, throw error and abort
+        printf("printf_variants: error - min/max nucleotides cannot be negative. aborting\n");
+        abort();
+    }
+    
+    if (min_nt > strlen(bmap->rS) || max_nt > strlen(bmap->rS)) { //if min_nt or max_nt exceeds array bounds, throw error and abort
+        printf("printf_variants: error - min/max nucleotides cannot exceed sequence length. aborting\n");
+        abort();
+    }
+    
     for (i = 0; i < id_cnt; i++) {  //for every variant id
         
         strcpy(bmap->rS, ref_src);  //restore the base map reference sequence
