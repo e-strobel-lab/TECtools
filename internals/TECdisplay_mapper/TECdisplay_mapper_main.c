@@ -181,7 +181,7 @@ int main(int argc, char *argv[])
         map_reads(&nm, fp_trgs, min_qscore, fastp_prms, &testdata, MAP_TEST_DATA   ); //map test data reads to target
         
     } else {
-        printf("TECDisplay_mapper_main: error - unrecognized run mode. aborting...");
+        printf("TECDisplay_mapper_main: error - unrecognized run mode. aborting...\n");
         abort();
     }
 }
