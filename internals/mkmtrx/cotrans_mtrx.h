@@ -9,10 +9,18 @@
 #define cotrans_mtrx_h
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <ctype.h>
 
-#define MAX_NAME 128     //max array size for cotrans_matrix name
+#include "../global/global_defs.h"
+#include "../utils/io_management.h"
+
+#define MAX_NAME 256     //max array size for cotrans_matrix name
+#define MAX_FIELD 64     //max array size for storing value from csv file
 #define MAX_ROW 512      //max number of rows in cotrans_matrix
 #define MAX_COL 512      //max number of columns in cotrans_matrix
+#define MIN_ROW 2
+#define MIN_COL 2
 #define MIN 0            //array index for transcript length window minimum
 #define MAX 1            //array index for transcript length window maximum
 
@@ -39,5 +47,8 @@ typedef struct cotrans_matrix {     //struct for storing cotranscriptional RNA s
     int alias;                      //flag that alias was applied to matrix name
     struct cotrans_matrix * nxt;    //pointer to next matrix in linked list
 } cotrans_matrix;
+
+/* function declarations */
+int store_mtrx(FILE * ifp, cotrans_matrix * mtrx); //read input matrix file and store data in cotrans_matrix struct
 
 #endif /* cotrans_mtrx_h */

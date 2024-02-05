@@ -13,10 +13,10 @@ gcc -Wall -o cotrans_preprocessor ../internals/cotrans_preprocessor/cotrans_prep
 #
 #
 #build mkmtrx
-gcc -Wall -o mkmtrx ../internals/mkmtrx/mkmtrx.c ../internals/mkmtrx/get_smpl_nm.c ../internals/mkmtrx/find_nxt_dir_entry.c ../internals/mkmtrx/get_fastp_out.c ../internals/mkmtrx/get_profiles.c ../internals/mkmtrx/parse_log.c ../internals/mkmtrx/mk_output_files.c ../internals/utils/io_management.c ../internals/utils/gen_utils.c ../internals/mkmtrx/mk_rdat.c
+gcc -Wall -o mkmtrx ../internals/mkmtrx/mkmtrx.c ../internals/mkmtrx/cotrans_mtrx.c ../internals/mkmtrx/get_smpl_nm.c ../internals/mkmtrx/find_nxt_dir_entry.c ../internals/mkmtrx/get_fastp_out.c ../internals/mkmtrx/get_profiles.c ../internals/mkmtrx/parse_log.c ../internals/mkmtrx/mk_output_files.c ../internals/utils/io_management.c ../internals/utils/gen_utils.c ../internals/mkmtrx/mk_rdat.c
 #
 #
 #
 #
 #build mtrx2cols
-gcc -Wall -o mtrx2cols ../internals/mtrx2cols/mtrx2cols.c ../internals/utils/io_management.c
+gcc -Wall -o mtrx2cols ../internals/mtrx2cols/mtrx2cols.c ../internals/utils/io_management.c ../internals/mkmtrx/cotrans_mtrx.c

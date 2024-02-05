@@ -154,9 +154,14 @@ int parse_MLT_config(FILE *ifp, configuration_MLT * config_MLT)
                 } else if (!strcmp(setting, "runID")) {
                     if (strcmp(val, "NULL")) { //if value is not NULL
                         if (config_MLT->run_count < MAX_RUNS) {
-                            strcpy(config_MLT->runID[config_MLT->run_count++], val);
+                            if (strstr(val, "_") == NULL) {
+                                strcpy(config_MLT->runID[config_MLT->run_count++], val);
+                            } else {
+                                printf("parse_MLT_config: error - runID cannot contain an underscore character. aborting...\n");
+                                abort();
+                            }
                         } else {
-                            printf("parse_MLT_config: error - runID count exceeds 8. aborting...\n");
+                            printf("parse_MLT_config: error - runID count exceeds %d. aborting...\n", MAX_RUNS);
                             abort();
                         }
                     }

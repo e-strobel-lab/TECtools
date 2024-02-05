@@ -11,6 +11,7 @@
 #include <stdio.h>
 
 #include "../global/global_defs.h"
+#include "./cotrans_mtrx.h"
 #include "./mkmtrx_defs.h"
 
 #define NUCLEOTIDE 0          //position of nucleotide column in shapemapper output file
