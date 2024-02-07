@@ -195,11 +195,16 @@ int main(int argc, char *argv[])
         }
     }
     
+    
+    //parse input sample names and generate merged sample name
+    //an auto-generated sample name is always constructed because
+    //sample metadata is validated during this process
+    generate_sample_name(&sn);
+                    
     //print sample names to screen
     printf("\nuser-specified sample name: %s\n", (sn.usr[0]) ? sn.usr : "not provided");
-    printf("auto-generated sample name: ");
-    generate_sample_name(&sn); //an auto-generated sample name is always constructed because
-                               //sample metadata is validated during this process
+    printf("auto-generated sample name: %s\n\n", sn.mrg);
+
     make_output_directories(&an_dir[0], &outfiles, &sn); //make output directories/open output files
     print_merge_record(&sn, &outfiles, &profiles_opened[0], &an_dir[0]); //generate merge record
     merge_profiles(&an_dir[0], dir_count, &outfiles);    //generate merged SM2 files

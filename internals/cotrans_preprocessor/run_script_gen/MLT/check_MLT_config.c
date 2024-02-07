@@ -266,8 +266,13 @@ int check_MLT_config(configuration_MLT * config_MLT)
     
     //print field settings
     for (i = 0; i < config_MLT->field_count; i++) {
-        printf("field%d\t\t\t%s\n\n", i, config_MLT->field[i]);
-        fprintf(out_fp, "field%d\t\t\t%s\n\n", i, config_MLT->field[i]);
+        printf("field%d\t\t\t%s\n", i, config_MLT->field[i]);
+        fprintf(out_fp, "field%d\t\t\t%s\n", i, config_MLT->field[i]);
+    }
+    
+    if (i) { //printed field settings
+        printf("\n");
+        fprintf(out_fp, "\n");
     }
     
     //close output file

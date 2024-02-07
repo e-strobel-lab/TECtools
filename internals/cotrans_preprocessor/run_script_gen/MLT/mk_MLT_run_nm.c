@@ -60,9 +60,13 @@ int mk_MLT_run_nm(char *sample_name, configuration_MLT * config_MLT)
         strcat(sample_name, "_");
     }
     
-    //6.  append 'CAT' if reads were concatenated from multiple sequencing runs
+    //6.  append 'CAT<run count>_' if reads were concatenated from multiple sequencing runs
+    //    max run count is 8, so <run count> will always be a single digit >=2
+    char cat_str[64] = {0};
+    
     if (config_MLT->concatenated) {
-        strcat(sample_name, "CAT_");
+        sprintf(cat_str, "CAT%d_", config_MLT->run_count);
+        strcat(sample_name, cat_str);
     }
     
     //7a. append runID; there will always be at least 1 runID
@@ -84,8 +88,6 @@ int mk_MLT_run_nm(char *sample_name, configuration_MLT * config_MLT)
     if (config_MLT->smoothing) {
         strcat(sample_name, "_SM");
     }
-    
-    printf("%s\n\n", sample_name);	//print final sample name
     
     return 1;
 }

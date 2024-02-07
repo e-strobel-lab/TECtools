@@ -45,6 +45,8 @@ int mk_MLT_run_script(FILE * fp_config_MLT)
     mk_MLT_run_nm(sample_name, &config_MLT);		//construct sample name for shapemapper2
     print_MLT_SM2_script(sample_name, &config_MLT); //generate shapemapper2 run script
     
+    printf("%s\n\n", sample_name);    //print final sample name
+    
     return 1;
 }
 

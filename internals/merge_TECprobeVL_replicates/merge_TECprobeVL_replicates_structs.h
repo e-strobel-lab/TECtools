@@ -46,17 +46,4 @@ typedef struct sample_names {
     configuration_MLT mrgd_cfg;      //stores merged name info for automated sample name construction
 } sample_names;
 
-/* parsed_sample_name: pointers to sample name sub-strings generated when parsing the sample_name string */
-typedef struct parsed_sample_name {
-    char *anchr; //pointer to initial anchor ('_CoTxn_' or '_Equil_') used to parse sample name
-    char *rna;   //pointer to rna name string
-    char *fld;   //pointer to folding condition string
-    char *prb;   //pointer to probe string
-    char *lig;   //pointer to ligand string
-    char *conc;  //pointer to ligand concentration string
-    char *runID; //pointer to run ID string
-    char *SM;    //pointer to smoothing flag string
-    char *rst;   //pointer to the rest of the sample name (optional fields)
-} parsed_sample_name;
-
 #endif /* merge_replicate_SM2_out_structs_h */

@@ -152,15 +152,15 @@ int parse_MLT_config(FILE *ifp, configuration_MLT * config_MLT)
                     
                 //set runID values
                 } else if (!strcmp(setting, "runID")) {
-                    if (strcmp(val, "NULL")) { //if value is not NULL
-                        if (config_MLT->run_count < MAX_RUNS) {
-                            if (strstr(val, "_") == NULL) {
-                                strcpy(config_MLT->runID[config_MLT->run_count++], val);
-                            } else {
+                    if (strcmp(val, "NULL")) {                  //if value is not NULL
+                        if (config_MLT->run_count < MAX_RUNS) { //and if MAX_RUNS has not yet been reached
+                            if (strstr(val, "_") == NULL) {     //and if the runID does not contain an underscore
+                                strcpy(config_MLT->runID[config_MLT->run_count++], val); //store runID value
+                            } else { //underscore detected, abort
                                 printf("parse_MLT_config: error - runID cannot contain an underscore character. aborting...\n");
                                 abort();
                             }
-                        } else {
+                        } else { //too many runIDs, abort
                             printf("parse_MLT_config: error - runID count exceeds %d. aborting...\n", MAX_RUNS);
                             abort();
                         }
@@ -180,10 +180,15 @@ int parse_MLT_config(FILE *ifp, configuration_MLT * config_MLT)
                     
                 //set optional custom field values
                 } else if (!strcmp(setting, "field")) {
-                    if (strcmp(val, "NULL")) { //if value is not NULL
-                        if (config_MLT->field_count < MAX_FIELDS) {
-                            strcpy(config_MLT->field[config_MLT->field_count++], val);
-                        } else {
+                    if (strcmp(val, "NULL")) {                      //if value is not NULL
+                        if (config_MLT->field_count < MAX_FIELDS) { //and if MAX_FIELDS has not yet been reached
+                            if (strstr(val, "_") == NULL) {         //and if the field does not contain a uscore
+                                strcpy(config_MLT->field[config_MLT->field_count++], val);
+                            } else { //underscore was detected, abort
+                                printf("parse_MLT_config: error - custom field values cannot contain an underscore character. aborting...\n");
+                                abort();
+                            }
+                        } else { //too many fields, abort
                             printf("parse_MLT_config: error - field count exceeds 8. aborting...\n");
                             abort();
                         }
