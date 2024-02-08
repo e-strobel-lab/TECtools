@@ -36,7 +36,7 @@ int main(int argc, char *argv[])
         
     int dir_count = 0; //flag that input directory was supplied
     
-    sample_names sn = {{0}}; //structure for storing input sample names and constructing merged name
+    sample_names sn = {{{0}}}; //structure for storing input sample names and constructing merged name
     output_files outfiles;   //structure for storing output file pointers and names
     
     char out_dir_sffx[20] = {"merged_SM2_profiles"};
@@ -200,7 +200,7 @@ int main(int argc, char *argv[])
     //an auto-generated sample name is always constructed because
     //sample metadata is validated during this process
     generate_sample_name(&sn);
-                    
+    
     //print sample names to screen
     printf("\nuser-specified sample name: %s\n", (sn.usr[0]) ? sn.usr : "not provided");
     printf("auto-generated sample name: %s\n\n", sn.mrg);
@@ -271,8 +271,6 @@ void print_merge_record(sample_names * sn, output_files * outfiles, int * profil
         printf("print_merge_record: error - failed to close merge record file. Aborting program...\n");
         abort();
     }
-    
-    
 }
 
 

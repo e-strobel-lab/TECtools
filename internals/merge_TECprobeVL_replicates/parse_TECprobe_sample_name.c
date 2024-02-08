@@ -5,6 +5,9 @@
 //  Created by Eric Strobel on 2/5/24.
 //
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdint.h>
 #include <ctype.h>
 
 #include "../global/global_defs.h"
@@ -265,34 +268,27 @@ void parse_TECprobe_sample_name(char * ipt_nm, configuration_MLT * cfg)
         }
         
         /*** record parsed substring attributes in config structure ***/
-        
         //store RNA name in config
-        if (snprintf(cfg->input_name, MAX_LINE, "%s", prsd_sn.rna) >= MAX_LINE) {
-            printf("parse_sample_name: error - RNA name exceeded buffer. aborting...");
-            abort();
-        }
+        set_cfg_string(&cfg->input_name, prsd_sn.rna, 0);
         
         //store folding condition in config
         if (!strcmp(prsd_sn.fld, "CoTxn")) {
-            cfg->cotranscriptional = 1;
+            set_TF_value("TRUE", "cotranscriptional", &cfg->cotranscriptional);
         } else if (!strcmp(prsd_sn.fld, "Equil")) {
-            cfg->cotranscriptional = 0;
+            set_TF_value("FALSE", "cotranscriptional", &cfg->cotranscriptional);
         } else {
             printf("parse_sample_name: error - how did we get here?\n");
             abort();
         }
         
         //store chemical probe in config
-        if (snprintf(cfg->chemical_probe, MAX_LINE, "%s", prsd_sn.prb) >= MAX_LINE) {
-            printf("parse_sample_name: error - chemical probe name exceeded buffer. aborting...");
-            abort();
-        }
+        set_cfg_string(&cfg->chemical_probe, prsd_sn.prb, 0);
         
         //store run ID in config
         if (prsd_sn.run_cnt_I == 1) {       //one runID, set flag that sample is not concatenated
-            cfg->concatenated = 0;
+            set_TF_value("FALSE", "concatenated", &cfg->concatenated);
         } else if (prsd_sn.run_cnt_I > 1) { //more than one runID, set flag that sample is concatenated
-            cfg->concatenated = 1;
+            set_TF_value("TRUE", "concatenated", &cfg->concatenated);
         } else {                            //should be unreachable
             printf("parse_TECprobe_sample_name: run ID count is less than 1. this should not be possible. aborting...\n");
         }
@@ -300,41 +296,29 @@ void parse_TECprobe_sample_name(char * ipt_nm, configuration_MLT * cfg)
         cfg->run_count = prsd_sn.run_cnt_I; //set run count
         
         for (i = 0; i < prsd_sn.run_cnt_I; i++) { //copy runIDs to config struct
-            if (snprintf(cfg->runID[i], MAX_LINE, "%s", prsd_sn.runID[i]) >= MAX_LINE) {
-                printf("parse_sample_name: error - run_id exceeded buffer. aborting...");
-                abort();
-            }
+            set_cfg_string(&cfg->runID[i], prsd_sn.runID[i], 0);
         }
         
         //store smoothing flag in config
         if (prsd_sn.SM != NULL) {
-            cfg->smoothing = 1;
+            set_TF_value("TRUE", "smoothing", &cfg->smoothing);
         } else {
-            cfg->smoothing = 0;
+            set_TF_value("FALSE", "smoothing", &cfg->smoothing);
         }
-        
+                
         //store ligand name in config
-        if (snprintf(cfg->ligand_name, MAX_LINE, "%s", prsd_sn.lig) >= MAX_LINE) {
-            printf("parse_sample_name: error - ligand name exceeded buffer. aborting...");
-            abort();
-        }
-        
+        set_cfg_string(&cfg->ligand_name, prsd_sn.lig, 0);
+                
         //store ligand concentration in config
-        if (snprintf(cfg->ligand_conc, MAX_LINE, "%s", prsd_sn.conc) >= MAX_LINE) {
-            printf("parse_sample_name: error - ligand concentration exceeded buffer. aborting...");
-            abort();
-        }
-        
+        set_cfg_string(&cfg->ligand_conc, prsd_sn.conc, 0);
+                
         //store custom fields in config
         cfg->field_count = prsd_sn.field_cnt;
         for (i = 0; i < prsd_sn.field_cnt; i++) {
-            if (snprintf(cfg->field[i], MAX_LINE, "%s", prsd_sn.field[i]) >= MAX_LINE) {
-                printf("parse_sample_name: error - custom value field exceeded buffer. aborting...");
-                abort();
-            }
+            set_cfg_string(&cfg->field[i], prsd_sn.field[i], 0);
         }
-        
-        //print_parsed_fields(ipt_nm, cfg); //print parsed fields from config values
+                
+        print_parsed_fields(ipt_nm, cfg); //print parsed fields from config values
     }
 }
 

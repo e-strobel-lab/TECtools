@@ -52,15 +52,15 @@ void merge_sample_names(sample_names *sn)
     //directory. comparisons with configs from all other input
     //directories are then performed below
     
-    strcpy(sn->mrgd_cfg.input_name, sn->cfg[0].input_name);         //set RNA name
-    sn->mrgd_cfg.cotranscriptional = sn->cfg[0].cotranscriptional;  //set folding type
-    strcpy(sn->mrgd_cfg.chemical_probe, sn->cfg[0].chemical_probe); //set chemical probe
-    sn->mrgd_cfg.concatenated = 1;                                  //set concatenated flag to TRUE
-    sn->mrgd_cfg.run_count = sn->cfg[0].run_count;                  //set run count (will be incremented below)
-    strcpy(sn->mrgd_cfg.runID[0], sn->cfg[0].runID[0]);             //set first run ID
-    sn->mrgd_cfg.smoothing = sn->cfg[0].smoothing;                  //set smoothing flag
-    strcpy(sn->mrgd_cfg.ligand_name, sn->cfg[0].ligand_name);       //set ligand name
-    strcpy(sn->mrgd_cfg.ligand_conc, sn->cfg[0].ligand_conc);       //set ligand concentration
+    set_cfg_string(&sn->mrgd_cfg.input_name, sn->cfg[0].input_name, 0);   //set RNA name
+    sn->mrgd_cfg.cotranscriptional = sn->cfg[0].cotranscriptional;        //set folding type
+    set_cfg_string(&sn->mrgd_cfg.chemical_probe, sn->cfg[0].chemical_probe, 0); //set chemical probe
+    sn->mrgd_cfg.concatenated = 1;                                        //set concatenated flag to TRUE
+    sn->mrgd_cfg.run_count = sn->cfg[0].run_count;                        //set intial run count val
+    set_cfg_string(&sn->mrgd_cfg.runID[0], sn->cfg[0].runID[0], 0);       //set first run ID
+    sn->mrgd_cfg.smoothing = sn->cfg[0].smoothing;                        //set smoothing flag
+    set_cfg_string(&sn->mrgd_cfg.ligand_name, sn->cfg[0].ligand_name, 0); //set ligand name
+    set_cfg_string(&sn->mrgd_cfg.ligand_conc, sn->cfg[0].ligand_conc, 0); //set ligand concentration
     
     //compare attributes of the first input directory (now in the merged config)
     //to attributes of all other input directories. during this process, the
@@ -93,9 +93,7 @@ void merge_sample_names(sample_names *sn)
             printf("merge_sample_names: error - input directory count exceeds the maximum allowed number (%d). aborting...\n", MAX_RUNS);
             abort();
         } else {
-            strcpy(sn->mrgd_cfg.runID[sn->mrgd_cfg.run_count], sn->cfg[i].runID[0]);
-            sn->mrgd_cfg.run_count++;
-            
+            set_cfg_string(&sn->mrgd_cfg.runID[sn->mrgd_cfg.run_count++], sn->cfg[i].runID[0], 0);
         }
         
         //check that the smoothing flag is identical

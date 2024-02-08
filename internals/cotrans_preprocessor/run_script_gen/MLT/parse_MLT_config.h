@@ -25,7 +25,4 @@
 /* parse_MLT_config: set config_MLT structure variables to config file settings */
 int parse_MLT_config(FILE * ifp, configuration_MLT * config_MLT);
 
-/* set_TF_value: set true or false value as 1 and 0, respectively */
-void set_TF_value(char * tf, char * setting_name, int * config_val);
-
 #endif /* parse_MLT_config_h */

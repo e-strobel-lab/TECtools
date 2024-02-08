@@ -9,6 +9,8 @@
 #define parse_TECprobe_sample_name_h
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <stdint.h>
 #include <ctype.h>
 
 #include "../global/global_defs.h"

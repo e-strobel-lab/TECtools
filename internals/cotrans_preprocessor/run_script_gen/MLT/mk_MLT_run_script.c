@@ -30,7 +30,7 @@ int mk_MLT_run_script(FILE * fp_config_MLT)
 {
     //declare and initialize config_MLT structure
     //some config_MLT variables are initialized to -1
-    configuration_MLT config_MLT = {{0}};
+    configuration_MLT config_MLT = {0};
     config_MLT.min_target_length = -1;
     config_MLT.max_target_length = -1;
     config_MLT.concatenated = -1;

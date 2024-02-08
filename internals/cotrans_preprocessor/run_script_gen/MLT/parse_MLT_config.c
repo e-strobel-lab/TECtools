@@ -89,42 +89,42 @@ int parse_MLT_config(FILE *ifp, configuration_MLT * config_MLT)
                 
                 //set path to shapemapper2 executable
                 if (!strcmp(setting, "shapemapper2_path")) {
-                    strcpy(config_MLT->shpmppr2_path, val);
+                    set_cfg_string(&config_MLT->shpmppr2_path, val, 0);
                     
                 //set path to input files
                 } else if (!strcmp(setting, "input_file_location")) {
-                    strcpy(config_MLT->ipt_file_loc, val);
+                    set_cfg_string(&config_MLT->ipt_file_loc, val, 1);
                     chk_filepath_frmt(config_MLT->ipt_file_loc);
                     
                 //set path to output file location
                 } else if (!strcmp(setting, "output_file_location")) {
-                    strcpy(config_MLT->out_file_loc, val);
+                    set_cfg_string(&config_MLT->out_file_loc, val, 1);
                     chk_filepath_frmt(config_MLT->out_file_loc);
                     
                 //set prefix for untreated read 1 files
                 } else if (!strcmp(setting, "untreated_read1_prefix")) {
-                    strcpy(config_MLT->untreated_read1_prefix, val);
+                    set_cfg_string(&config_MLT->untreated_read1_prefix, val, 0);
                     
                 //set prefix for untreated read 2 files
                 } else if (!strcmp(setting, "untreated_read2_prefix")) {
-                    strcpy(config_MLT->untreated_read2_prefix, val);
+                    set_cfg_string(&config_MLT->untreated_read2_prefix, val, 0);
                     
                 //set prefix for modified read 1 files
                 } else if (!strcmp(setting, "modified_read1_prefix")) {
-                    strcpy(config_MLT->modified_read1_prefix, val);
+                    set_cfg_string(&config_MLT->modified_read1_prefix, val, 0);
                     
                 //set prefix for modified read 2 files
                 } else if (!strcmp(setting, "modified_read2_prefix")) {
-                    strcpy(config_MLT->modified_read2_prefix, val);
+                    set_cfg_string(&config_MLT->modified_read2_prefix, val, 0);
                     
                 //set path to target files
                 } else if (!strcmp(setting, "target_files_location")) {
-                    strcpy(config_MLT->trg_files_loc, val);
+                    set_cfg_string(&config_MLT->trg_files_loc, val, 1);
                     chk_filepath_frmt(config_MLT->trg_files_loc);
                     
                 //set target file prefix
                 } else if (!strcmp(setting, "target_files_prefix")) {
-                    strcpy(config_MLT->trg_files_prfx, val);
+                    set_cfg_string(&config_MLT->trg_files_prfx, val, 0);
                     
                 //set minimum observed target length
                 } else if (!strcmp(setting, "min_target_length")) {
@@ -136,7 +136,7 @@ int parse_MLT_config(FILE *ifp, configuration_MLT * config_MLT)
                     
                 //set input name
                 } else if (!strcmp(setting, "name")) {
-                    strcpy(config_MLT->input_name, val);
+                    set_cfg_string(&config_MLT->input_name, val, 0);
                     
                 //set cotranscriptional flag
                 } else if (!strcmp(setting, "cotranscriptional")) {
@@ -144,7 +144,7 @@ int parse_MLT_config(FILE *ifp, configuration_MLT * config_MLT)
 
                 //set chemical probe identity
                 } else if (!strcmp(setting, "chemical_probe")) {
-                    strcpy(config_MLT->chemical_probe, val);
+                    set_cfg_string(&config_MLT->chemical_probe, val, 0);
                     
                 //set concatenated flag
                 } else if (!strcmp(setting, "concatenated")) {
@@ -155,7 +155,7 @@ int parse_MLT_config(FILE *ifp, configuration_MLT * config_MLT)
                     if (strcmp(val, "NULL")) {                  //if value is not NULL
                         if (config_MLT->run_count < MAX_RUNS) { //and if MAX_RUNS has not yet been reached
                             if (strstr(val, "_") == NULL) {     //and if the runID does not contain an underscore
-                                strcpy(config_MLT->runID[config_MLT->run_count++], val); //store runID value
+                                set_cfg_string(&config_MLT->runID[config_MLT->run_count++], val, 0);
                             } else { //underscore detected, abort
                                 printf("parse_MLT_config: error - runID cannot contain an underscore character. aborting...\n");
                                 abort();
@@ -172,18 +172,18 @@ int parse_MLT_config(FILE *ifp, configuration_MLT * config_MLT)
                     
                 //set ligand name (if ligand was used)
                 } else if (!strcmp(setting, "ligand_name")) {
-                    strcpy(config_MLT->ligand_name, val);
+                    set_cfg_string(&config_MLT->ligand_name, val, 0);
                     
                 //set ligand concentration (if ligand was used)
                 } else if (!strcmp(setting, "ligand_conc")) {
-                    strcpy(config_MLT->ligand_conc, val);
+                    set_cfg_string(&config_MLT->ligand_conc, val, 0);
                     
                 //set optional custom field values
                 } else if (!strcmp(setting, "field")) {
                     if (strcmp(val, "NULL")) {                      //if value is not NULL
                         if (config_MLT->field_count < MAX_FIELDS) { //and if MAX_FIELDS has not yet been reached
                             if (strstr(val, "_") == NULL) {         //and if the field does not contain a uscore
-                                strcpy(config_MLT->field[config_MLT->field_count++], val);
+                                set_cfg_string(&config_MLT->field[config_MLT->field_count++], val, 0);
                             } else { //underscore was detected, abort
                                 printf("parse_MLT_config: error - custom field values cannot contain an underscore character. aborting...\n");
                                 abort();
@@ -207,19 +207,6 @@ int parse_MLT_config(FILE *ifp, configuration_MLT * config_MLT)
     }
 
     return 1;
-}
-
-/* set_TF_value: set true or false value as 1 and 0, respectively */
-void set_TF_value(char * tf, char * setting_name, int * config_val)
-{
-    if (!strcmp(tf, "FALSE")) {
-        *config_val = 0;
-    } else if (!strcmp(tf, "TRUE")) {
-        *config_val = 1;
-    } else {
-        printf("parse_MLT_config: error - unexpected value for %s setting. set to FALSE, or TRUE. aborting...\n", setting_name);
-        abort();
-    }
 }
 
 
