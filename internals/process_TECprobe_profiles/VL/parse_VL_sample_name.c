@@ -1,5 +1,5 @@
 //
-//  parse_TECprobe_sample_name.c
+//  parse_VL_sample_name.c
 //  
 //
 //  Created by Eric Strobel on 2/5/24.
@@ -10,31 +10,31 @@
 #include <stdint.h>
 #include <ctype.h>
 
-#include "../global/global_defs.h"
-#include "../utils/io_management.h"
+#include "../../global/global_defs.h"
+#include "../../utils/debug.h"
+#include "../../utils/io_management.h"
 
-#include "../cotrans_preprocessor/run_script_gen/MLT/config_MLT_struct.h"
-#include "../cotrans_preprocessor/run_script_gen/MLT/mk_MLT_run_nm.h"
+#include "../../cotrans_preprocessor/run_script_gen/MLT/config_MLT_struct.h"
+#include "../../cotrans_preprocessor/run_script_gen/MLT/mk_MLT_run_nm.h"
 
-#include "../mkmtrx/cotrans_mtrx.h"
-#include "../mkmtrx/mkmtrx_defs.h"
+#include "../../mkmtrx/cotrans_mtrx.h"
+#include "../../mkmtrx/mkmtrx_defs.h"
 
-#include "./merge_TECprobeVL_replicates_defs.h"
-#include "./merge_TECprobeVL_replicates_structs.h"
+#include "./process_TECprobeVL_profiles_defs.h"
+#include "./process_TECprobeVL_profiles_structs.h"
 
-#include "parse_TECprobe_sample_name.h"
+#include "parse_VL_sample_name.h"
 
-/* parse_TECprobe_sample_name: parse sample name for attributes that were specified in the TECprobe analysis config */
-void parse_TECprobe_sample_name(char * ipt_nm, configuration_MLT * cfg)
+/* parse_VL_sample_name: parse sample name for attributes that were specified in the TECprobe analysis config */
+void parse_VL_sample_name(char * ipt_nm, configuration_MLT * cfg)
 {
+    extern int debug;
+    
     int i = 0; //general purpose index
     int u = 0; //counts underscores during runID parsing
     
     char snm[MAX_LINE] = {0};            //copy of the sample name to be parsed
     parsed_sample_name prsd_sn = {NULL}; //storage for parsed sample name sub-strings
-    
-    char out_sffx[5] = {"_out"}; //pointer to output directory suffix string
-    char * p_out_sffx = NULL;    //pointer to the output directory suffix string
     
     char CoTxn[8] = {"_CoTxn_"}; //cotranscriptional folding type indicator, used as parsing anchor
     char Equil[8] = {"_Equil_"}; //equilibrium folding type indicator, used as parsing anchor
@@ -50,35 +50,11 @@ void parse_TECprobe_sample_name(char * ipt_nm, configuration_MLT * cfg)
     
     char str1[2] = {"1"};        //string for setting runCT pointer when in non-concatenated data sets
     
+    int found_conc_start = 0;    //flag that start of concentration string was found
+    
     //copy sample name to snm array for parsing into sub-strings
     if (snprintf(snm, MAX_LINE, "%s", ipt_nm) >= MAX_LINE) {
         printf("parse_sample_name: sample name exceeded buffer. aborting...\n");
-        abort();
-    }
-    
-    //remove '_out' suffix and preceding transcript length value from sample name
-    if ((p_out_sffx = strstr(snm, out_sffx)) != NULL) { //search sample name for '_out' suffix
-        
-        if ((((uint64_t)(p_out_sffx)) - ((uint64_t)(snm))) > 4) { //check that characters precede suffix
-            if (p_out_sffx[-4] == '_'  &&  //check for three-digit transcript length
-                isdigit(p_out_sffx[-3]) && //value and for an underscore that
-                isdigit(p_out_sffx[-2]) && //precedes the transcript length value
-                isdigit(p_out_sffx[-1])) {
-                
-                p_out_sffx[-4] = '\0'; //truncatetranscript length value and '_out' suffix
-                
-            } else { //'_out' suffix must be preceded by'_<3-digit transcript length>'
-                printf("parse_sample_name: error - unexpected format for out suffix. aborting...\n");
-                abort();
-            }
-            
-        } else { //'_out' suffix must be preceded by'_<3-digit transcript length>'
-            printf("parse_sample_name: error - expected >4 characters to preceded '_out' string in directory name. aborting...\n");
-            abort();
-        }
-        
-    } else { //suffix not found, throw error and abort
-        printf("parse_sample_name: error - could not detect out suffix. aborting...\n");
         abort();
     }
     
@@ -157,7 +133,33 @@ void parse_TECprobe_sample_name(char * ipt_nm, configuration_MLT * cfg)
         }
         
         //if concentration unit substring was found and is preceeded by characters
-        if (prsd_sn.conc != NULL && (((uint64_t)(prsd_sn.conc)) - ((uint64_t)(prsd_sn.rst))) > 4) {
+        if (prsd_sn.conc != NULL && (((uint64_t)(prsd_sn.conc)) - ((uint64_t)(prsd_sn.rst))) > 0) {
+            
+            for (i = -1, found_conc_start = 0; ((uint64_t)(&prsd_sn.conc[i])) != ((uint64_t)(prsd_sn.rst)) && !found_conc_start; i--) {
+                
+                if (!isdigit(prsd_sn.conc[i]) && prsd_sn.conc[i] != '_') {
+                    printf("parse_VL_sample_name: error - found non-digit character %c in ligand concentration string. aborting...\n", prsd_sn.conc[i]);
+                    abort();
+                } else if (prsd_sn.conc[i] == '_') {
+                    
+                    prsd_sn.lig = prsd_sn.rst;  //set ligand ptr to the start of the 'rest' ptr
+                    
+                    if (prsd_sn.conc[3]) {      //if characters follow the conc unit substring
+                        prsd_sn.rst = &prsd_sn.conc[3]; //set 'rest' ptr to start of unparsed string
+                        
+                    } else { //missing information in sample name, abort
+                        printf("parse_sample_name: error - expected run ID to follow ligand concentration in sample name. aborting...\n");
+                        abort();
+                    }
+                    
+                    prsd_sn.conc[2] = '\0'; //terminate conc substring by replacing uscore w/ '/0'
+                    prsd_sn.conc[i] = '\0'; //terminate ligand substring by replacing uscore w/ '/0'
+                    tmp_ptr = prsd_sn.conc;       //set tmp ptr to conc pointer
+                    prsd_sn.conc = &tmp_ptr[i+1]; //set conc pointer to start of conc substring
+                    found_conc_start = 1;         //set flag that concentratio nstart was found
+                }
+            }
+            /*
             if (prsd_sn.conc[-4] == '_'   && //check that the concentration unit
                 isdigit(prsd_sn.conc[-3]) && //substring is preceded by a three-digit,
                 isdigit(prsd_sn.conc[-2]) && //which is preceded by an underscore
@@ -180,11 +182,12 @@ void parse_TECprobe_sample_name(char * ipt_nm, configuration_MLT * cfg)
             } else { //unexpected formating for concentration substring
                 printf("parse_sample_name: error - expected string of three digits at start of ligand concentration. aborting...\n");
                 abort();
-            }
+            } */
         } else {
             printf("parse_sample_name: error - expected string of three digits at start of ligand concentration. aborting...\n");
             abort();
         }
+        
         
         //parse run ID
         if (prsd_sn.rst[0] == 'C' && prsd_sn.rst[1] == 'A' && prsd_sn.rst[2] == 'T') { //test for CAT string
@@ -215,7 +218,7 @@ void parse_TECprobe_sample_name(char * ipt_nm, configuration_MLT * cfg)
             prsd_sn.run_cnt_S = &str1[0]; //set run_cnt_S pointer to "1" string
             prsd_sn.run_cnt_I = 1;        //set run_cnt_I value to 1
         }
-                
+                        
         //parse runID strings
         for (u = 0, parse_complete = 0; u < prsd_sn.run_cnt_I && !parse_complete; u++) {
             
@@ -235,10 +238,10 @@ void parse_TECprobe_sample_name(char * ipt_nm, configuration_MLT * cfg)
         }
                 
         if (u != prsd_sn.run_cnt_I) { //parsed expected number of runIDs
-            printf("parse_TECprobe_sample_name: error - expected %d run IDs but detected %d. aborting...\n", prsd_sn.run_cnt_I, u);
+            printf("parse_VL_sample_name: error - expected %d run IDs but detected %d. aborting...\n", prsd_sn.run_cnt_I, u);
             abort();
         }
-                
+                    
         //parse custom value fields
         if (!parse_complete) { //if parse is incomplete, the remaining string should be custom value fields
             
@@ -266,11 +269,11 @@ void parse_TECprobe_sample_name(char * ipt_nm, configuration_MLT * cfg)
                 abort();
             }
         }
-        
+                
         /*** record parsed substring attributes in config structure ***/
         //store RNA name in config
         set_cfg_string(&cfg->input_name, prsd_sn.rna, 0);
-        
+                
         //store folding condition in config
         if (!strcmp(prsd_sn.fld, "CoTxn")) {
             set_TF_value("TRUE", "cotranscriptional", &cfg->cotranscriptional);
@@ -280,45 +283,100 @@ void parse_TECprobe_sample_name(char * ipt_nm, configuration_MLT * cfg)
             printf("parse_sample_name: error - how did we get here?\n");
             abort();
         }
-        
+                
         //store chemical probe in config
         set_cfg_string(&cfg->chemical_probe, prsd_sn.prb, 0);
-        
+                
         //store run ID in config
         if (prsd_sn.run_cnt_I == 1) {       //one runID, set flag that sample is not concatenated
             set_TF_value("FALSE", "concatenated", &cfg->concatenated);
         } else if (prsd_sn.run_cnt_I > 1) { //more than one runID, set flag that sample is concatenated
             set_TF_value("TRUE", "concatenated", &cfg->concatenated);
         } else {                            //should be unreachable
-            printf("parse_TECprobe_sample_name: run ID count is less than 1. this should not be possible. aborting...\n");
+            printf("parse_VL_sample_name: run ID count is less than 1. this should not be possible. aborting...\n");
         }
-        
+                
         cfg->run_count = prsd_sn.run_cnt_I; //set run count
-        
+                
         for (i = 0; i < prsd_sn.run_cnt_I; i++) { //copy runIDs to config struct
             set_cfg_string(&cfg->runID[i], prsd_sn.runID[i], 0);
         }
-        
+                
         //store smoothing flag in config
         if (prsd_sn.SM != NULL) {
             set_TF_value("TRUE", "smoothing", &cfg->smoothing);
         } else {
             set_TF_value("FALSE", "smoothing", &cfg->smoothing);
         }
-                
+                    
         //store ligand name in config
         set_cfg_string(&cfg->ligand_name, prsd_sn.lig, 0);
-                
+                      
         //store ligand concentration in config
         set_cfg_string(&cfg->ligand_conc, prsd_sn.conc, 0);
-                
+                        
         //store custom fields in config
         cfg->field_count = prsd_sn.field_cnt;
         for (i = 0; i < prsd_sn.field_cnt; i++) {
             set_cfg_string(&cfg->field[i], prsd_sn.field[i], 0);
         }
+        
+        if (debug) {
+            print_parsed_fields(ipt_nm, cfg); //print parsed fields from config values
+        }
+    }
+}
+
+/* remove_out_suffix: remove "_out" suffix from sample name */
+void remove_out_suffix (char * snm)
+{
+    char out_sffx[5] = {"_out"}; //output directory suffix string
+    char * p_out_sffx = NULL;    //pointer to the output directory suffix string
+    
+    //remove '_out' suffix and preceding transcript length value from sample name
+    if ((p_out_sffx = strstr(snm, out_sffx)) != NULL) { //search sample name for '_out' suffix
+        
+        if ((((uint64_t)(p_out_sffx)) - ((uint64_t)(snm))) > 4) { //check that characters precede suffix
+            if (p_out_sffx[-4] == '_'  &&  //check for three-digit transcript length
+                isdigit(p_out_sffx[-3]) && //value and for an underscore that
+                isdigit(p_out_sffx[-2]) && //precedes the transcript length value
+                isdigit(p_out_sffx[-1])) {
                 
-        print_parsed_fields(ipt_nm, cfg); //print parsed fields from config values
+                p_out_sffx[-4] = '\0'; //truncatetranscript length value and '_out' suffix
+                
+            } else { //'_out' suffix must be preceded by'_<3-digit transcript length>'
+                printf("parse_sample_name: error - unexpected format for out suffix. aborting...\n");
+                abort();
+            }
+            
+        } else { //'_out' suffix must be preceded by'_<3-digit transcript length>'
+            printf("parse_sample_name: error - expected >4 characters to preceded '_out' string in directory name. aborting...\n");
+            abort();
+        }
+        
+    } else { //suffix not found, throw error and abort
+        printf("parse_sample_name: error - could not detect out suffix. aborting...\n");
+        abort();
+    }
+}
+
+/* remove_simple_suffix: remove a string of characters from the end of a TECprobe sample name */
+void remove_simple_suffix(char * sn, char * str2rmv)
+{
+    char * sffx_ptr = NULL;
+    
+    if ((sffx_ptr = strstr(sn, str2rmv)) != NULL) {
+        if (!sffx_ptr[strlen(str2rmv)]) {
+            printf("%s\n", sn);
+            sn[(uint64_t)(sffx_ptr) - (uint64_t)(sn)] = '\0';
+            printf("%s\n", sn);
+        } else {
+            printf("remove_simple_suffix: error - suffix string was found but was not at the end of the string. aborting...\n");
+            abort();
+        }
+    } else {
+        printf("remove_simple_suffix: error - input string did not contain suffix. aborting...\n");
+        abort();
     }
 }
 

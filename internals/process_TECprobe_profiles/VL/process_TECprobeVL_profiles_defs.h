@@ -1,21 +1,21 @@
 //
-//  merge_TECprobeVL_replicates_defs.h
+//  process_TECprobeVL_profiles_defs.h
 //  
 //
 //  Created by Eric Strobel on 1/25/24.
 //
 
-#ifndef merge_TECprobeVL_replicates_defs_h
-#define merge_TECprobeVL_replicates_defs_h
+#ifndef process_TECprobeVL_profiles_defs_h
+#define process_TECprobeVL_profiles_defs_h
 
 #include <stdio.h>
 
-#include "../global/global_defs.h"
-#include "../mkmtrx/mkmtrx_defs.h"
+#include "../../global/global_defs.h"
+#include "../../mkmtrx/mkmtrx_defs.h"
+#include "../global/store_SM2_profile.h"
 
 #define MAX_TL 512      //maximum transcript length
 
-#define PRFL_CLMNS 29   //number of columns in shapemapper 2 profile files
 #define COPY 0          //op code to copy field value to merged profile
 #define RSUM 1          //op code to sum field values in merged profile
 #define RATE 2          //op code to calculate mutation rate in merged profile
@@ -39,4 +39,4 @@
 
 #define RCT_PRFL 23     //index of Reactivity_profile column
 
-#endif /* merge_replicate_SM2_out_defs_h */
+#endif /* process_TECprobeVL_profiles_defs_h */

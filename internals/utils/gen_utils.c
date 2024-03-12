@@ -6,8 +6,10 @@
 //
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <math.h>
 #include <string.h>
+#include <ctype.h>
 
 #include "gen_utils.h"
 
@@ -39,5 +41,69 @@ void chk_filepath_frmt(char * path)
     if (path[last_char]  != '/') {
         path[last_char+1] = '/';
         path[last_char+2] = '\0';
+    }
+}
+
+/* check_int_str: check that string is composed of digits */
+int check_int_str(char * str, int action)
+{
+    int i = 0;
+    
+    int valid = 1;
+    
+    if (!strcmp(str, "nan")) {
+        valid = 1;
+    } else {
+        for (i = 0; str[i] && valid; i++) {
+            if (!isdigit(str[i])) {
+                valid = 0;
+            }
+        }
+    }
+    
+    if (action == RETURN_OUTCOME || valid) {
+        return valid;
+        
+    } else if (action == ABORT_FAILURE && !valid) {
+        printf("check_int_str: integer string '%s' contains the non-digit character '%c'. aborting...\n", str, str[i]);
+        abort();
+        
+    } else {
+        printf("check_int_str: unexpected action code. aborting...\n");
+        abort();
+    }
+}
+
+/* check_float_str: check that string is composed of valid float chars */
+int check_float_str(char * str, int action)
+{
+    int i = 0;
+    
+    int valid = 1;
+    
+    if (!strcmp(str, "nan")) {
+        valid = 1;
+    } else {
+        for (i = 0; str[i] && valid; i++) {
+            if (!isdigit(str[i]) &&
+                str[i] != '.'    &&
+                str[i] != '-'    &&
+                str[i] != 'e'    &&
+                str[i] != 'E') {
+                valid = 0;
+            }
+        }
+    }
+    
+    if (action == RETURN_OUTCOME || valid) {
+        return valid;
+        
+    } else if (action == ABORT_FAILURE && !valid) {
+        printf("check_float_str: float string '%s' contains the invalid character '%c'. aborting...\n", str, str[i]);
+        abort();
+        
+    } else {
+        printf("check_float_str: unexpected action code. aborting...\n");
+        abort();
     }
 }

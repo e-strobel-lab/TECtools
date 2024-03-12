@@ -10,10 +10,10 @@
 
 #include <stdio.h>
 
-/* isbase: test whether character c is a specified DNA base (ATGC/atgc)
+/* isDNAbase: test whether character c is a specified DNA base (ATGC/atgc)
  
  ***arguments***
- char c: character that will tested
+ char c: character that will be tested
  */
 int isDNAbase(char c);
 

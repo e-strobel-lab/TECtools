@@ -1,24 +1,23 @@
 //
-//  isDNAbase.c
+//  isRNAbase.c
 //  
 //
-//  Created by Eric Strobel on 3/17/22.
+//  Created by Eric Strobel on 2/13/24.
 //
 
 #include <stdio.h>
 
-#include "isDNAbase.h"
+#include "isRNAbase.h"
 
-/* isDNAbase: test whether character c is a specified DNA base (ATGC/atgc) */
-int isDNAbase(char c)
+int isRNAbase(char c)
 {
     switch (c) {
         case 'A': return 1; break;
-        case 'T': return 1; break;
+        case 'U': return 1; break;
         case 'G': return 1; break;
         case 'C': return 1; break;
         case 'a': return 1; break;
-        case 't': return 1; break;
+        case 'u': return 1; break;
         case 'g': return 1; break;
         case 'c': return 1; break;
         default: break;

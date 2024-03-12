@@ -1,5 +1,5 @@
 //
-//  generate_sample_name.c
+//  generate_VL_sample_name.c
 //  
 //
 //  Created by Eric Strobel on 1/26/24.
@@ -8,32 +8,40 @@
 #include <stdio.h>
 #include <ctype.h>
 
-#include "../global/global_defs.h"
-#include "../utils/io_management.h"
+#include "../../global/global_defs.h"
+#include "../../utils/io_management.h"
 
-#include "../cotrans_preprocessor/run_script_gen/MLT/config_MLT_struct.h"
-#include "../cotrans_preprocessor/run_script_gen/MLT/mk_MLT_run_nm.h"
+#include "../../cotrans_preprocessor/run_script_gen/MLT/config_MLT_struct.h"
+#include "../../cotrans_preprocessor/run_script_gen/MLT/mk_MLT_run_nm.h"
 
-#include "parse_TECprobe_sample_name.h"
+#include "../../mkmtrx/cotrans_mtrx.h"
+#include "../../mkmtrx/mkmtrx_defs.h"
 
-#include "../mkmtrx/cotrans_mtrx.h"
-#include "../mkmtrx/mkmtrx_defs.h"
+#include "./process_TECprobeVL_profiles_defs.h"
+#include "./process_TECprobeVL_profiles_structs.h"
 
-#include "./merge_TECprobeVL_replicates_defs.h"
-#include "./merge_TECprobeVL_replicates_structs.h"
+#include "./parse_VL_sample_name.h"
 
-#include "generate_sample_name.h"
+#include "generate_VL_sample_name.h"
 
-/* generate_sample_name: manages sample name parsing and generation*/
-void generate_sample_name (sample_names * sn)
+/* generate_VL_sample_name: manages sample name parsing and generation */
+void generate_VL_sample_name (sample_names * sn)
 {
     int i = 0; //general purpose index
+    char tmp_sn[MAX_LINE] = {0};
     
     //parse each sample name
     for (i = 0; i < sn->cnt; i++) {
-        parse_TECprobe_sample_name(&sn->ipt[i][0], &sn->cfg[i]);
+        if (snprintf(tmp_sn, MAX_LINE, "%s", &sn->ipt[i][0]) == MAX_LINE) {
+            printf("generate_VL_sample_name: error - input sample name exceeded buffer. aborting...\n");
+            abort();
+        }
+        
+        remove_out_suffix(tmp_sn); //remove SM2 output directory suffix from sample name
+        parse_VL_sample_name(tmp_sn, &sn->cfg[i]); //parse sample name
+        
         if (sn->cfg[i].run_count != 1) {
-            printf("generate_sample_name: error - expected directory to contain data that was not concatenated prior to analysis. aborting...\n");
+            printf("generate_VL_sample_name: error - expected directory to contain data that was not concatenated prior to analysis. aborting...\n");
             abort();
         }
     }

@@ -1,5 +1,5 @@
 //
-//  read_analysis_directories.c
+//  read_VL_analysis_directories.c
 //  
 //
 //  Created by Eric Strobel on 1/25/24.
@@ -9,12 +9,12 @@
 #include <stdlib.h>
 #include <dirent.h>
 
-#include "../global/global_defs.h"
-#include "../mkmtrx/mkmtrx_defs.h"
-#include "./merge_TECprobeVL_replicates_defs.h"
-#include "./merge_TECprobeVL_replicates_structs.h"
+#include "../../global/global_defs.h"
+#include "../../mkmtrx/mkmtrx_defs.h"
+#include "./process_TECprobeVL_profiles_defs.h"
+#include "./process_TECprobeVL_profiles_structs.h"
 
-#include "read_analysis_directories.h"
+#include "read_VL_analysis_directories.h"
 
 /* read_prnt_directory: read parent shapemapper 2 analysis directory and identify transcript length analysis sub-folders*/
 int read_prnt_directory(SM2_analysis_directory * an_dir, int dir_num, sample_names * sn)
@@ -161,6 +161,14 @@ int read_SM2out_directory(SM2_analysis_directory * an_dir, int crnt_tl, char * o
     }
     
     if (profile_cnt == 1) { //if a single reactivity profile was found
+        
+        //allocate memory for profile relative file path
+        if (((an_dir->loc[crnt_tl]) = malloc((strlen(profile_nm)+1) * sizeof(*(an_dir->loc[crnt_tl])))) == NULL) {
+            printf("read_SM2out_directory: error - memory allocation for profile relative filepath storage failed. aborting...\n");
+            abort();
+        }
+        strcpy(an_dir->loc[crnt_tl], profile_nm);
+        //printf("%s\n%s\n\n", profile_nm, an_dir->loc[crnt_tl]);
         
         //open the reactivity prifle
         if ((an_dir->prf[crnt_tl] = fopen(profile_nm, "r")) == NULL) {

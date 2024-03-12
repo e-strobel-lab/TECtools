@@ -1,5 +1,5 @@
 //
-//  make_output_directories.c
+//  make_VL_output_directories.c
 //  
 //
 //  Created by Eric Strobel on 1/25/24.
@@ -9,15 +9,15 @@
 #include <stdlib.h>
 #include <dirent.h>
 
-#include "../global/global_defs.h"
-#include "../mkmtrx/mkmtrx_defs.h"
-#include "./merge_TECprobeVL_replicates_defs.h"
-#include "./merge_TECprobeVL_replicates_structs.h"
+#include "../../global/global_defs.h"
+#include "../../mkmtrx/mkmtrx_defs.h"
+#include "./process_TECprobeVL_profiles_defs.h"
+#include "./process_TECprobeVL_profiles_structs.h"
 
-#include "make_output_directories.h"
+#include "make_VL_output_directories.h"
 
-/* make_output_directories: generate output directories and files */
-void make_output_directories(SM2_analysis_directory * an_dir, output_files * outfiles, sample_names * sn)
+/* make_VL_output_directories: generate output directories and files */
+void make_VL_output_directories(SM2_analysis_directory * an_dir, output_files * outfiles, sample_names * sn)
 {
     int i = 0; //general purpose index
     

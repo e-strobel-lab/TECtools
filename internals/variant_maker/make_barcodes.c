@@ -103,7 +103,7 @@ int init_brcd_tmplts(wt_source * brcd_src, basemap * brcd_bmap)
     int i = 0; //general purpose index
     int j = 0; //general purpose index
     
-    int vars = 0; //total numbe of variants encoded by barcode templates
+    int vars = 0; //total number of variants encoded by barcode templates
     
     const char brcd_nm[17] = {"barcode_template"}; //name placeholder for barcode variant templates
     const char brcd_sq[BARCODE_TEMPLATES][43] ={   //barcode variant template sequences

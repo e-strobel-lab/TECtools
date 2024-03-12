@@ -1,21 +1,22 @@
 //
-//  merge_TECprobeVL_replicates_structs.h
+//  process_TECprobeVL_profiles_structs.h
 //  
 //
 //  Created by Eric Strobel on 1/25/24.
 //
 
-#ifndef merge_TECprobeVL_replicates_structs_h
-#define merge_TECprobeVL_replicates_structs_h
+#ifndef process_TECprobeVL_profiles_structs_h
+#define process_TECprobeVL_profiles_structs_h
 
 #include <stdio.h>
 #include <dirent.h>
 
-#include "../global/global_defs.h"
-#include "../mkmtrx/mkmtrx_defs.h"
-#include "../cotrans_preprocessor/run_script_gen/MLT/config_MLT_struct.h"
+#include "../../global/global_defs.h"
+#include "../../mkmtrx/mkmtrx_defs.h"
+#include "../../cotrans_preprocessor/run_script_gen/MLT/config_MLT_struct.h"
+#include "../global/store_SM2_profile.h"
 
-#include "./merge_TECprobeVL_replicates_defs.h"
+#include "./process_TECprobeVL_profiles_defs.h"
 
 /* SM2_analysis_directory: pointers to all relevant directories and files of a TECprobe-ML data set */
 typedef struct SM2_analysis_directory {
@@ -24,8 +25,15 @@ typedef struct SM2_analysis_directory {
     DIR * tl[MAX_ROW];            //pointer to transcript length directory
     DIR * out[MAX_ROW];           //pointer to SM2 output directory
     FILE * prf[MAX_ROW];          //pointer to profile file
+    char * loc[MAX_ROW];          //relative filepaths of profiles
+    SM2_profile data[MAX_ROW];    //SM2 profile data
+    channel_tracker chnls;        //struct to track what channels are present
+    int prfs_opnd;                //number of profiles opened
+    int trgt_start;               //target RNA start index
     int min_tl;                   //minimum transcript length
     int max_tl;                   //maximum transcript length
+    int trg_rct_cnt;              //target nucleotide reactivity count
+    double cnf;                   //calculated normalization factor
 } SM2_analysis_directory;
 
 /* output_files: pointers and file names for merged output files */
@@ -46,4 +54,4 @@ typedef struct sample_names {
     configuration_MLT mrgd_cfg;      //stores merged name info for automated sample name construction
 } sample_names;
 
-#endif /* merge_replicate_SM2_out_structs_h */
+#endif /* process_TECprobeVL_profiles_structs_h */
