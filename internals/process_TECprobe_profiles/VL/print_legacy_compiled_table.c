@@ -20,11 +20,11 @@
 
 #include "print_legacy_compiled_table.h"
 
-/* print_legacy_compiled_table: print aggregate TECprobe-VL profiles in the format used by Courtney's scripts */
-void print_legacy_compiled_table(SM2_analysis_directory * an_dir, output_files * outfiles)
+/* print_legacy_compiled_table: print aggregate TECprobe-VL profiles in the format used by Courtney's visualization tools */
+void print_legacy_compiled_table(SM2_analysis_directory * an_dir, output_files * outfiles, sample_names * sn)
 {
-    
-    char hdrs[PRFL_CLMNS+1][MAX_NAME] = {
+    //headers used in legacy compiled table
+    char hdrs[PRFL_CLMNS+2][MAX_NAME] = {
         "Denatured_effective_depth",
         "Denatured_low_mapq_mapped_depth",
         "Denatured_mapped_depth",
@@ -44,6 +44,7 @@ void print_legacy_compiled_table(SM2_analysis_directory * an_dir, output_files *
         "Modified_rate",
         "Modified_read_depth",
         "Norm_calc_profile",
+        "Norm_stderr",
         "Nucleotide",
         "Reactivity_profile",
         "Sequence",
@@ -58,14 +59,14 @@ void print_legacy_compiled_table(SM2_analysis_directory * an_dir, output_files *
     };
     
     int col = 0;  //general purpose index
-    int tl = 0;  //general purpose index
-    int nt = 0; //nucleotide index
+    int tl = 0;   //general purpose index
+    int nt = 0;   //nucleotide index
     
     FILE * p_lgcy_tbl = NULL;         //legacy table file pointer
     char lgcy_tbl_nm[MAX_LINE] = {0}; //legacy table record file name
     
     //generate legacy table file name
-    if (snprintf(lgcy_tbl_nm, MAX_LINE, "./%s/000_full_table.csv", outfiles->out_dir) >= MAX_LINE) {
+    if (snprintf(lgcy_tbl_nm, MAX_LINE, "./%s/%s_full_table.csv", outfiles->out_dir, sn->mrg) >= MAX_LINE) {
         printf("print_processing_record: error - legacy compiled table file name exceeded buffer. aborting...\n");
         abort();
     }
@@ -76,17 +77,26 @@ void print_legacy_compiled_table(SM2_analysis_directory * an_dir, output_files *
         abort();
     }
     
-    fprintf(p_lgcy_tbl, "Nucleotide_Position");
-    for (col = 0; col < PRFL_CLMNS+1; col++) {
+    //print colun headers
+    fprintf(p_lgcy_tbl, "Transcript Length");
+    for (col = 0; col < PRFL_CLMNS+2; col++) {
         for (tl = an_dir->min_tl; tl <= an_dir->max_tl; tl++) {
             fprintf(p_lgcy_tbl, ",%s_%03d", hdrs[col], tl);
         }
     }
     fprintf(p_lgcy_tbl, "\n");
         
+    //for each nt in the target RNA, print all shapemapper2 output file
+    //values plus whole dataset normalized reactivity values in matrix
+    //format. as in the original compiled shapemapper2 file format used
+    //in Courtney's visualization tools, the values are in alphabetical
+    //order and NAN values are masked as 0
     for (nt = an_dir->trgt_start; nt < (an_dir->max_tl + an_dir->trgt_start); nt++) {
+        
+        //print the current nucleotide number
         fprintf(p_lgcy_tbl, "%d", nt+1-an_dir->trgt_start);
         
+        //print denatured effective read depth
         for (tl = an_dir->min_tl; tl <= an_dir->max_tl; tl++) {
             if ((nt + 1 - an_dir->trgt_start) > tl) {
                 fprintf(p_lgcy_tbl, ",");
@@ -95,6 +105,7 @@ void print_legacy_compiled_table(SM2_analysis_directory * an_dir, output_files *
             }
         }
         
+        //print denatured low mapq depth
         for (tl = an_dir->min_tl; tl <= an_dir->max_tl; tl++) {
             if ((nt + 1 - an_dir->trgt_start) > tl) {
                 fprintf(p_lgcy_tbl, ",");
@@ -103,6 +114,7 @@ void print_legacy_compiled_table(SM2_analysis_directory * an_dir, output_files *
             }
         }
         
+        //print denatured mapped depth
         for (tl = an_dir->min_tl; tl <= an_dir->max_tl; tl++) {
             if ((nt + 1 - an_dir->trgt_start) > tl) {
                 fprintf(p_lgcy_tbl, ",");
@@ -111,6 +123,7 @@ void print_legacy_compiled_table(SM2_analysis_directory * an_dir, output_files *
             }
         }
         
+        //print denatured mutation count
         for (tl = an_dir->min_tl; tl <= an_dir->max_tl; tl++) {
             if ((nt + 1 - an_dir->trgt_start) > tl) {
                 fprintf(p_lgcy_tbl, ",");
@@ -119,6 +132,7 @@ void print_legacy_compiled_table(SM2_analysis_directory * an_dir, output_files *
             }
         }
         
+        //print denatured off target depth
         for (tl = an_dir->min_tl; tl <= an_dir->max_tl; tl++) {
             if ((nt + 1 - an_dir->trgt_start) > tl) {
                 fprintf(p_lgcy_tbl, ",");
@@ -127,14 +141,16 @@ void print_legacy_compiled_table(SM2_analysis_directory * an_dir, output_files *
             }
         }
         
+        //print denatured mutation rate
         for (tl = an_dir->min_tl; tl <= an_dir->max_tl; tl++) {
             if ((nt + 1 - an_dir->trgt_start) > tl) {
                 fprintf(p_lgcy_tbl, ",");
             } else {
-                fprintf(p_lgcy_tbl, ",%.6f", an_dir->data[tl].den_rate[nt]);
+                fprintf(p_lgcy_tbl, ",%.6f", (!isnan(an_dir->data[tl].den_rate[nt])) ? an_dir->data[tl].den_rate[nt] : 0);
             }
         }
         
+        //print denatured read depth
         for (tl = an_dir->min_tl; tl <= an_dir->max_tl; tl++) {
             if ((nt + 1 - an_dir->trgt_start) > tl) {
                 fprintf(p_lgcy_tbl, ",");
@@ -143,38 +159,43 @@ void print_legacy_compiled_table(SM2_analysis_directory * an_dir, output_files *
             }
         }
         
+        //print hq reactivity profile
         for (tl = an_dir->min_tl; tl <= an_dir->max_tl; tl++) {
             if ((nt + 1 - an_dir->trgt_start) > tl) {
                 fprintf(p_lgcy_tbl, ",");
             } else {
-                fprintf(p_lgcy_tbl, ",%.6f", an_dir->data[tl].hq_profile[nt]);
+                fprintf(p_lgcy_tbl, ",%.6f", (!isnan(an_dir->data[tl].hq_profile[nt])) ? an_dir->data[tl].hq_profile[nt] : 0);
             }
         }
         
+        //print hq profile standard error
         for (tl = an_dir->min_tl; tl <= an_dir->max_tl; tl++) {
             if ((nt + 1 - an_dir->trgt_start) > tl) {
                 fprintf(p_lgcy_tbl, ",");
             } else {
-                fprintf(p_lgcy_tbl, ",%.6f", an_dir->data[tl].hq_stderr[nt]);
+                fprintf(p_lgcy_tbl, ",%.6f", (!isnan(an_dir->data[tl].hq_stderr[nt])) ? an_dir->data[tl].hq_stderr[nt] : 0);
             }
         }
         
+        //print individual transcript length normalized reactivity profile
         for (tl = an_dir->min_tl; tl <= an_dir->max_tl; tl++) {
             if ((nt + 1 - an_dir->trgt_start) > tl) {
                 fprintf(p_lgcy_tbl, ",");
             } else {
-                fprintf(p_lgcy_tbl, ",%.6f", an_dir->data[tl].norm_profile[nt]);
+                fprintf(p_lgcy_tbl, ",%.6f", (!isnan(an_dir->data[tl].norm_profile[nt])) ? an_dir->data[tl].norm_profile[nt] : 0);
             }
         }
         
+        //print individual transcrip length profile standard error
         for (tl = an_dir->min_tl; tl <= an_dir->max_tl; tl++) {
             if ((nt + 1 - an_dir->trgt_start) > tl) {
                 fprintf(p_lgcy_tbl, ",");
             } else {
-                fprintf(p_lgcy_tbl, ",%.6f", an_dir->data[tl].norm_stderr[nt]);
+                fprintf(p_lgcy_tbl, ",%.6f", (!isnan(an_dir->data[tl].norm_stderr[nt])) ? an_dir->data[tl].norm_stderr[nt] : 0);
             }
         }
         
+        //print modified effective depth
         for (tl = an_dir->min_tl; tl <= an_dir->max_tl; tl++) {
             if ((nt + 1 - an_dir->trgt_start) > tl) {
                 fprintf(p_lgcy_tbl, ",");
@@ -183,6 +204,7 @@ void print_legacy_compiled_table(SM2_analysis_directory * an_dir, output_files *
             }
         }
         
+        //print modified low mapq depth
         for (tl = an_dir->min_tl; tl <= an_dir->max_tl; tl++) {
             if ((nt + 1 - an_dir->trgt_start) > tl) {
                 fprintf(p_lgcy_tbl, ",");
@@ -191,6 +213,7 @@ void print_legacy_compiled_table(SM2_analysis_directory * an_dir, output_files *
             }
         }
         
+        //print modified mapped depth
         for (tl = an_dir->min_tl; tl <= an_dir->max_tl; tl++) {
             if ((nt + 1 - an_dir->trgt_start) > tl) {
                 fprintf(p_lgcy_tbl, ",");
@@ -199,6 +222,7 @@ void print_legacy_compiled_table(SM2_analysis_directory * an_dir, output_files *
             }
         }
         
+        //print modified mutation count
         for (tl = an_dir->min_tl; tl <= an_dir->max_tl; tl++) {
             if ((nt + 1 - an_dir->trgt_start) > tl) {
                 fprintf(p_lgcy_tbl, ",");
@@ -207,6 +231,7 @@ void print_legacy_compiled_table(SM2_analysis_directory * an_dir, output_files *
             }
         }
         
+        //print modified off target depth
         for (tl = an_dir->min_tl; tl <= an_dir->max_tl; tl++) {
             if ((nt + 1 - an_dir->trgt_start) > tl) {
                 fprintf(p_lgcy_tbl, ",");
@@ -215,14 +240,16 @@ void print_legacy_compiled_table(SM2_analysis_directory * an_dir, output_files *
             }
         }
         
+        //print modified mutation rate
         for (tl = an_dir->min_tl; tl <= an_dir->max_tl; tl++) {
             if ((nt + 1 - an_dir->trgt_start) > tl) {
                 fprintf(p_lgcy_tbl, ",");
             } else {
-                fprintf(p_lgcy_tbl, ",%.6f", an_dir->data[tl].mod_rate[nt]);
+                fprintf(p_lgcy_tbl, ",%.6f", (!isnan(an_dir->data[tl].mod_rate[nt])) ? an_dir->data[tl].mod_rate[nt] : 0);
             }
         }
         
+        //print modified read depth
         for (tl = an_dir->min_tl; tl <= an_dir->max_tl; tl++) {
             if ((nt + 1 - an_dir->trgt_start) > tl) {
                 fprintf(p_lgcy_tbl, ",");
@@ -231,14 +258,25 @@ void print_legacy_compiled_table(SM2_analysis_directory * an_dir, output_files *
             }
         }
         
+        //print dataset normalized reactivity profile
         for (tl = an_dir->min_tl; tl <= an_dir->max_tl; tl++) {
             if ((nt + 1 - an_dir->trgt_start) > tl) {
                 fprintf(p_lgcy_tbl, ",");
             } else {
-                fprintf(p_lgcy_tbl, ",%.6f", an_dir->data[tl].dataset_norm_profile[nt]);
+                fprintf(p_lgcy_tbl, ",%.6f", (!isnan(an_dir->data[tl].dataset_norm_profile[nt])) ? an_dir->data[tl].dataset_norm_profile[nt] : 0);
             }
         }
         
+        //print dataset normalized profile standard error
+        for (tl = an_dir->min_tl; tl <= an_dir->max_tl; tl++) {
+            if ((nt + 1 - an_dir->trgt_start) > tl) {
+                fprintf(p_lgcy_tbl, ",");
+            } else {
+                fprintf(p_lgcy_tbl, ",%.6f", (!isnan(an_dir->data[tl].dataset_norm_stderr[nt])) ? an_dir->data[tl].dataset_norm_stderr[nt] : 0);
+            }
+        }
+        
+        //print nucleotide number
         for (tl = an_dir->min_tl; tl <= an_dir->max_tl; tl++) {
             if ((nt + 1 - an_dir->trgt_start) > tl) {
                 fprintf(p_lgcy_tbl, ",");
@@ -247,14 +285,16 @@ void print_legacy_compiled_table(SM2_analysis_directory * an_dir, output_files *
             }
         }
         
+        //print (non-normalized) reactivity profile
         for (tl = an_dir->min_tl; tl <= an_dir->max_tl; tl++) {
             if ((nt + 1 - an_dir->trgt_start) > tl) {
                 fprintf(p_lgcy_tbl, ",");
             } else {
-                fprintf(p_lgcy_tbl, ",%.6f", an_dir->data[tl].reactivity_profile[nt]);
+                fprintf(p_lgcy_tbl, ",%.6f", (!isnan(an_dir->data[tl].reactivity_profile[nt])) ? an_dir->data[tl].reactivity_profile[nt] : 0);
             }
         }
         
+        //print sequence
         for (tl = an_dir->min_tl; tl <= an_dir->max_tl; tl++) {
             if ((nt + 1 - an_dir->trgt_start) > tl) {
                 fprintf(p_lgcy_tbl, ",");
@@ -263,14 +303,16 @@ void print_legacy_compiled_table(SM2_analysis_directory * an_dir, output_files *
             }
         }
         
+        //print (non-normalized) profile standard error
         for (tl = an_dir->min_tl; tl <= an_dir->max_tl; tl++) {
             if ((nt + 1 - an_dir->trgt_start) > tl) {
                 fprintf(p_lgcy_tbl, ",");
             } else {
-                fprintf(p_lgcy_tbl, ",%.6f", an_dir->data[tl].std_err[nt]);
+                fprintf(p_lgcy_tbl, ",%.6f", (!isnan(an_dir->data[tl].std_err[nt])) ? an_dir->data[tl].std_err[nt] : 0);
             }
         }
         
+        //print untreated effective depth
         for (tl = an_dir->min_tl; tl <= an_dir->max_tl; tl++) {
             if ((nt + 1 - an_dir->trgt_start) > tl) {
                 fprintf(p_lgcy_tbl, ",");
@@ -279,6 +321,7 @@ void print_legacy_compiled_table(SM2_analysis_directory * an_dir, output_files *
             }
         }
         
+        //print untreated low mapq depth
         for (tl = an_dir->min_tl; tl <= an_dir->max_tl; tl++) {
             if ((nt + 1 - an_dir->trgt_start) > tl) {
                 fprintf(p_lgcy_tbl, ",");
@@ -287,6 +330,7 @@ void print_legacy_compiled_table(SM2_analysis_directory * an_dir, output_files *
             }
         }
         
+        //print untreated mapped depth
         for (tl = an_dir->min_tl; tl <= an_dir->max_tl; tl++) {
             if ((nt + 1 - an_dir->trgt_start) > tl) {
                 fprintf(p_lgcy_tbl, ",");
@@ -295,6 +339,7 @@ void print_legacy_compiled_table(SM2_analysis_directory * an_dir, output_files *
             }
         }
         
+        //print untreated mutation count
         for (tl = an_dir->min_tl; tl <= an_dir->max_tl; tl++) {
             if ((nt + 1 - an_dir->trgt_start) > tl) {
                 fprintf(p_lgcy_tbl, ",");
@@ -303,6 +348,7 @@ void print_legacy_compiled_table(SM2_analysis_directory * an_dir, output_files *
             }
         }
         
+        //print untreated off target depth
         for (tl = an_dir->min_tl; tl <= an_dir->max_tl; tl++) {
             if ((nt + 1 - an_dir->trgt_start) > tl) {
                 fprintf(p_lgcy_tbl, ",");
@@ -311,14 +357,16 @@ void print_legacy_compiled_table(SM2_analysis_directory * an_dir, output_files *
             }
         }
         
+        //print untreated mutation rate
         for (tl = an_dir->min_tl; tl <= an_dir->max_tl; tl++) {
             if ((nt + 1 - an_dir->trgt_start) > tl) {
                 fprintf(p_lgcy_tbl, ",");
             } else {
-                fprintf(p_lgcy_tbl, ",%.6f", an_dir->data[tl].unt_rate[nt]);
+                fprintf(p_lgcy_tbl, ",%.6f", (!isnan(an_dir->data[tl].unt_rate[nt])) ? an_dir->data[tl].unt_rate[nt] : 0);
             }
         }
         
+        //print untreated read depth
         for (tl = an_dir->min_tl; tl <= an_dir->max_tl; tl++) {
             if ((nt + 1 - an_dir->trgt_start) > tl) {
                 fprintf(p_lgcy_tbl, ",");
@@ -327,7 +375,7 @@ void print_legacy_compiled_table(SM2_analysis_directory * an_dir, output_files *
             }
         }
 
-        fprintf(p_lgcy_tbl, "\n");
+        fprintf(p_lgcy_tbl, "\n"); //terminate line with newline char
     }
     
     //close legacy table record file

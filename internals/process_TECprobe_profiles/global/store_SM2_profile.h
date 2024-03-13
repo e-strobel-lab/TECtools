@@ -89,6 +89,7 @@ typedef struct SM2_profile {
     double * norm_stderr;
     double * recalc_norm_profile;
     double * dataset_norm_profile;
+    double * dataset_norm_stderr;
     int trgt_start;
     int trg_nt_cnt;
     int tot_nt_cnt;
@@ -105,7 +106,7 @@ int get_line_local(char *line, FILE *ifp);
 /* validate_header: confirm that column headers match expectations */
 void validate_header(char * hdr);
 
-/* allocate_SM2_profile_memory: */
+/* allocate_SM2_profile_memory: allocate memory for SM2_profile struct */
 void allocate_SM2_profile_memory(struct SM2_profile * prf, int data_lines);
 
 /* check_seq_str: check that sequence string is an RNA base and only a single character */

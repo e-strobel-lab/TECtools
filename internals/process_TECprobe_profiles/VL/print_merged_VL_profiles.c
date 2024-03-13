@@ -20,8 +20,10 @@
 
 #include "print_merged_VL_profiles.h"
 
+/* print_merged_VL_profiles: generated merged shapemapper2 output files */
 void print_merged_VL_profiles(SM2_analysis_directory * mrg, output_files * outfiles)
 {
+    //list of headers used in shapemapper2 output files
     char hdrs[PRFL_CLMNS][MAX_NAME] = {
         "Nucleotide",
         "Sequence",
@@ -54,21 +56,23 @@ void print_merged_VL_profiles(SM2_analysis_directory * mrg, output_files * outfi
         "Norm_stderr"
     };
     
-    int tl = 0;
-    int col = 0;
-    int i = 0;
+    int tl = 0;  //transcript length index
+    int col = 0; //column index
+    int i = 0;   //general purpose index
     
-    for (tl = mrg->min_tl; tl < mrg->max_tl; tl++) {
-        for (col = 0; col < PRFL_CLMNS; col++) {
-            if (!col) {
-                fprintf(outfiles->ofp[tl], "%s", hdrs[col]);
-            } else {
-                fprintf(outfiles->ofp[tl], "\t%s", hdrs[col]);
+    for (tl = mrg->min_tl; tl <= mrg->max_tl; tl++) {           //for each transcript length
+        
+        //print header line
+        for (col = 0; col < PRFL_CLMNS; col++) {                //for each column
+            if (!col) {                                         //if printing the first column
+                fprintf(outfiles->ofp[tl], "%s", hdrs[col]);    //omit leading tab
+            } else {                                            //otherwise
+                fprintf(outfiles->ofp[tl], "\t%s", hdrs[col]);  //include leading tab
             }
         }
-        fprintf(outfiles->ofp[tl], "\n");
+        fprintf(outfiles->ofp[tl], "\n"); //print terminal newline
         
-        //printf("%d\n", mrg->data[tl].tot_nt_cnt);
+        //print data line for each nucleotide
         for (i = 0; i < mrg->data[tl].tot_nt_cnt; i++) {
             fprintf(outfiles->ofp[tl], "%d\t", mrg->data[tl].nucleotide[i]);
             fprintf(outfiles->ofp[tl], "%c\t", mrg->data[tl].sequence[i]);
@@ -98,7 +102,7 @@ void print_merged_VL_profiles(SM2_analysis_directory * mrg, output_files * outfi
             fprintf(outfiles->ofp[tl], "%.6f\t", mrg->data[tl].hq_profile[i]);
             fprintf(outfiles->ofp[tl], "%.6f\t", mrg->data[tl].hq_stderr[i]);
             fprintf(outfiles->ofp[tl], "%.6f\t", mrg->data[tl].dataset_norm_profile[i]);
-            fprintf(outfiles->ofp[tl], "%.6f", mrg->data[tl].norm_stderr[i]);
+            fprintf(outfiles->ofp[tl], "%.6f", mrg->data[tl].dataset_norm_stderr[i]);
             fprintf(outfiles->ofp[tl],"%c", (i+1 == mrg->data[tl].tot_nt_cnt) ?  '\0' : '\n');
         }
     }

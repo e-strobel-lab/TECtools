@@ -26,7 +26,7 @@
 #include "./process_TECprobeVL_profiles_defs.h"
 #include "./process_TECprobeVL_profiles_structs.h"
 
-
+/* normalize_VL_reactivities: generate normalization factor using whole data set and normalize reactivity values */
 void normalize_VL_reactivities(SM2_analysis_directory * an_dir, int min_depth, double max_bkg, int verify);
 
 #endif /* normalize_VL_reactivities_h */

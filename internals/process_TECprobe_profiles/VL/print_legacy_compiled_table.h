@@ -21,7 +21,7 @@
 
 #include "../global/store_SM2_profile.h"
 
-/* print_legacy_compiled_table: print aggregate TECprobe-VL profiles in the format used by Courtney's scripts */
-void print_legacy_compiled_table(SM2_analysis_directory * an_dir, output_files * outfiles);
+/* print_legacy_compiled_table: print aggregate TECprobe-VL profiles in the format used by Courtney's visualization tools */
+void print_legacy_compiled_table(SM2_analysis_directory * an_dir, output_files * outfiles, sample_names * sn);
 
 #endif /* print_legacy_compiled_table_h */

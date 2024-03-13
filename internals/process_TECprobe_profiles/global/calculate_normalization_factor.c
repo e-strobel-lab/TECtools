@@ -78,12 +78,8 @@ double calculate_normalization_factor(double * reactivity_list, int len, int pct
     //to find the upper threshold index
     for (i = 0; i < len && reactivity_list[i] < limit; i++) {;}
     
-    //set upper threshold index and check that the loop above did not terminate
-    //by exceeding the final index of the past filter reactivity array
-    if ((upr_thresh_ix = i) == len) {
-        printf("calculate_normalization_factor: error - reactivity threshold not set correctly. aborting...\n%d\t%d\n", upr_thresh_ix, i);
-        abort();
-    }
+    //set upper threshold index
+    upr_thresh_ix = i;
     
     //set lower threshold index as the 90th percentile
     //reactivity relative to the upper threshold index

@@ -15,11 +15,8 @@
 #include "../../cotrans_preprocessor/cotrans_preprocessor_defs.h"
 #include "../../cotrans_preprocessor/run_script_gen/MLT/config_MLT_struct.h"
 
-
-
 #include "./process_TECprobeVL_profiles_defs.h"
 #include "./process_TECprobeVL_profiles_structs.h"
-#include "../global/store_SM2_profile.h" //TODO: temporary to allow compiling before revision of the function
 #include "../global/calculate_normalization_factor.h"
 
 #include "merge_VL_profiles.h"

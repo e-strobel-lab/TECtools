@@ -406,7 +406,7 @@ void validate_header(char * hdr)
     }
 }
 
-
+/* allocate_SM2_profile_memory: allocate memory for SM2_profile struct */
 void allocate_SM2_profile_memory(struct SM2_profile * prf, int data_lines)
 {
     int fail = 0;
@@ -532,6 +532,10 @@ void allocate_SM2_profile_memory(struct SM2_profile * prf, int data_lines)
     }
         
     if ((prf->dataset_norm_profile = calloc(data_lines, sizeof(*prf->dataset_norm_profile))) == NULL) {
+        fail = 1;
+    }
+    
+    if ((prf->dataset_norm_stderr = calloc(data_lines, sizeof(*prf->dataset_norm_stderr))) == NULL) {
         fail = 1;
     }
         

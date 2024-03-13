@@ -40,7 +40,7 @@ void print_processing_record(sample_names * sn, output_files * outfiles, SM2_ana
 
 int main(int argc, char *argv[])
 {
-    extern int debug;
+    extern int debug; //debug mode flag
     
     char * prnt_dir_nm[MAX_RUNS] = {NULL}; //list of parent directories
     
@@ -117,7 +117,6 @@ int main(int argc, char *argv[])
                     printf("process_TECprobeVL_profiles: error - sample name exceeds buffer. aborting...\n");
                     abort();
                 }
-                
                 break;
             
             case 'd': //turn on debug mode
@@ -265,21 +264,22 @@ int main(int argc, char *argv[])
 
     make_VL_output_directories(&an_dir[0], &outfiles, &sn);  //make output directories/files
     
-    SM2_analysis_directory mrg = {{0}}; //storage for merged replicate data
-    SM2_analysis_directory * data2output = NULL;
+    SM2_analysis_directory mrg = {{0}};          //storage for merged replicate data
+    SM2_analysis_directory * data2output = NULL; //pointer to data set to use for output
     
-    if (dir_count == 1) {
-        data2output = an_dir;
-    } else {
+    if (dir_count == 1) {     //if there is only one input directory
+        normalize_VL_reactivities(&an_dir[0], min_depth, max_bkg, 0); //normalize input data
+        data2output = &an_dir[0];                                     //output that input directory
+        
+    } else { //if there is more than one input directory
         merge_VL_profiles(&an_dir[0], dir_count, &mrg, min_depth, max_bkg); //merge SM2 profiles
-        normalize_VL_reactivities(&mrg, min_depth, max_bkg, 0);          //normalize merged data
+        normalize_VL_reactivities(&mrg, min_depth, max_bkg, 0);             //normalize merged data
         data2output = &mrg;
     }
     
-    
     print_processing_record(&sn, &outfiles, &an_dir[0], &mrg); //print processing record
     print_merged_VL_profiles(data2output, &outfiles);          //print profile output
-    print_legacy_compiled_table(data2output, &outfiles);      //print legacy compiled table
+    print_legacy_compiled_table(data2output, &outfiles, &sn);  //print legacy compiled table
     
     //close output files
     for (i = an_dir[0].min_tl; i <= an_dir[0].max_tl; i++) {
@@ -308,6 +308,9 @@ void print_processing_record(sample_names * sn, output_files * outfiles, SM2_ana
     
     FILE * p_prcs_rcrd = NULL;         //processing record file pointer
     char prcs_rcrd_nm[MAX_LINE] = {0}; //processing record file name
+    char tmp_sn[MAX_LINE] = {0};       //temp sample name
+    char out_sffx[5] = "_out";
+    char * out_str_ptr = NULL;
     
     //generate processing record file name
     if (snprintf(prcs_rcrd_nm, MAX_LINE, "./%s/000_processing_record.txt", outfiles->out_dir) >= MAX_LINE) {
@@ -327,10 +330,30 @@ void print_processing_record(sample_names * sn, output_files * outfiles, SM2_ana
     fprintf(p_prcs_rcrd, "input directories\n");
     
     for (i = 0; i < sn->cnt; i++) {
-        printf("input %d: %s\n", i+1, sn->ipt[i]);
-        fprintf(p_prcs_rcrd, "input %d: %s\n", i+1, sn->ipt[i]);
+        strcpy(tmp_sn, sn->ipt[i]);             //copy iput file name to tmp_sn array
+        out_str_ptr = strstr(tmp_sn, out_sffx); //find "_out" string in sample name
+        
+        //check that "_out" string is preceded by transcript length digits
+        //and followed by a terminating null
+        if ((uint64_t)(&tmp_sn[0]) - (uint64_t)(&out_sffx[0]) > 4) {
+            if (!out_str_ptr[strlen(out_sffx)] &&
+                isdigit(out_str_ptr[-1])       &&
+                isdigit(out_str_ptr[-2])       &&
+                isdigit(out_str_ptr[-3])       &&
+                out_str_ptr[-4] == '_') {
+                out_str_ptr[-4] = '\0';
+            } else {
+                printf("print_processing_record: error - unexpected input file name format. aborting...\n");
+                abort();
+            }
+        }
+        
+        //print input sample name to file and screen
+        printf("input %d: %s\n", i+1, tmp_sn);
+        fprintf(p_prcs_rcrd, "input %d: %s\n", i+1, tmp_sn);
     }
     
+    //if more than one input was provided, print merged sample name
     if (sn->cnt > 1) {
         printf("merged:  %s\n", sn->sn2use);
         fprintf(p_prcs_rcrd, "merged:  %s\n", sn->sn2use);
@@ -349,6 +372,7 @@ void print_processing_record(sample_names * sn, output_files * outfiles, SM2_ana
     fprintf(p_prcs_rcrd, "minimum transcript length: %d\n", an_dir[0].min_tl);
     fprintf(p_prcs_rcrd, "maximum transcript length: %d\n\n", an_dir[0].max_tl);
     
+    //print normalization factors
     printf("normalization factors:\n");
     fprintf(p_prcs_rcrd, "normalization factors\n");
     

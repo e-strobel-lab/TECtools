@@ -26,7 +26,7 @@
 
 #include "normalize_VL_reactivities.h"
 
-
+/* normalize_VL_reactivities: generate normalization factor using whole data set and normalize reactivity values */
 void normalize_VL_reactivities(SM2_analysis_directory * an_dir, int min_depth, double max_bkg, int verify)
 {
     extern int debug; //flag to run debug mode
@@ -137,9 +137,15 @@ void normalize_VL_reactivities(SM2_analysis_directory * an_dir, int min_depth, d
         }
     }
     
+    //if more reactivity values were present in transcripts >= 100,
+    //use 90th percentile, otherwise use 95th percental
     pct2use = (tl_gtoe_100 >= tl_lt_100) ? PCT90TH : PCT95TH;
+    
+    //calculate whole data set normalization factor
     an_dir->cnf = calculate_normalization_factor(&reactivity_list[0], tot_rct_pf, pct2use);
     
+    //if running debug mode, print information about reactivity counts and
+    //print the whole data set normalization factor
     if (debug) {
         printf("%d reactivities copied\n", tot_rct_pf);
         printf("%d reactivities from tl <100\n", tl_lt_100);
@@ -150,11 +156,17 @@ void normalize_VL_reactivities(SM2_analysis_directory * an_dir, int min_depth, d
     //apply whole dataset normalization factor
     for (i = an_dir->min_tl; i <= an_dir->max_tl; i++) {
         for (j = 0; j < an_dir->data[i].tot_nt_cnt; j++) {
+            
+            //only apply normalization factor to high-quality nucleotides
+            //low quality nucleotides are masked as NAN
             if (isHQnuc(&an_dir->data[i], j, min_depth, max_bkg)) {
                 an_dir->data[i].dataset_norm_profile[j] = an_dir->data[i].reactivity_profile[j]/an_dir->cnf;
             } else {
                 an_dir->data[i].dataset_norm_profile[j] = NAN;
             }
+            
+            //set all dataset_norm_stderr values to NAN, since it is not calculated
+            an_dir->data[i].dataset_norm_stderr[j] = NAN;
         }
     }
     

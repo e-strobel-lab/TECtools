@@ -21,6 +21,7 @@
 
 #include "../global/store_SM2_profile.h"
 
+/* print_merged_VL_profiles: generated merged shapemapper2 output files */
 void print_merged_VL_profiles(SM2_analysis_directory * mrg, output_files * outfiles);
 
 #endif /* print_merged_VL_profiles_h */

@@ -31,13 +31,13 @@ void validate_VL_an_dir_contiguity(SM2_analysis_directory * an_dir)
         
         //check that all transript lengths are within the min_tl/max_tl bounds
         if (an_dir->prf[i] != NULL && (i < an_dir->min_tl || i > an_dir->max_tl)) {
-            printf("merge_replicate_SM2_out: error - out of bounds transcript length in %s data set. aborting...\n", an_dir->prnt_dir_nm);
+            printf("validate_VL_an_dir_contiguity: error - out of bounds transcript length in %s data set. aborting...\n", an_dir->prnt_dir_nm);
             abort();
         }
         
         //check that all transcript lengths within the min_tl/max_tl bounds have an associated profile
         if (an_dir->prf[i] == NULL && (i >= an_dir->min_tl && i <= an_dir->max_tl)) {
-            printf("merge_replicate_SM2_out: error - missing transcript length %d  in %s data set. aborting...\n", i, an_dir->prnt_dir_nm);
+            printf("validate_VL_an_dir_contiguity: error - missing transcript length %d  in %s data set. aborting...\n", i, an_dir->prnt_dir_nm);
             abort();
         }
     }
@@ -59,19 +59,19 @@ void validate_VL_an_dir_compatibility(SM2_analysis_directory * an_dir, int dir_c
             
             //check that the number of profiles opened matches that of the first parent directory
             if (an_dir[i].prfs_opnd != an_dir[0].prfs_opnd) {
-                printf("merge_replicate_SM2_out: error - the number of reactivity profiles opened is not the same for all input directories. aborting...\n");
+                printf("validate_VL_an_dir_compatibility: error - the number of reactivity profiles opened is not the same for all input directories (first = %d, current = %d). aborting...\n", an_dir[0].prfs_opnd, an_dir[i].prfs_opnd);
                 abort();
             }
             
             //check that the minimum transcript length matches that of the first parent directory
             if (an_dir[i].min_tl != an_dir[0].min_tl) {
-                printf("merge_replicate_SM2_out: error - the minimum transcript length is not the same for all input directories. aborting...\n");
+                printf("validate_VL_an_dir_compatibility: error - the minimum transcript length is not the same for all input directories. aborting...\n");
                 abort();
             }
             
             //check that the maximum transcript length matches that of the first parent directory
             if (an_dir[i].max_tl != an_dir[0].max_tl) {
-                printf("merge_replicate_SM2_out: error - the maximum transcript length is not the same for all input directories. aborting...\n");
+                printf("validate_VL_an_dir_compatibility: error - the maximum transcript length is not the same for all input directories. aborting...\n");
                 abort();
             }
         }
@@ -137,7 +137,7 @@ void validate_int_start_ix_compatibility(SM2_analysis_directory * an_dir)
 void validate_ext_start_ix_compatibility(int ix1, int ix2)
 {
     if (ix1 != ix2) {
-        printf("validate_ext_start_ix_compatibility: start index is not the same for all input directories. aborting...\n");
+        printf("validate_ext_start_ix_compatibility: start index is not the same for all input directories (%d vs. %d). aborting...\n", ix1, ix2);
         abort();
     }
     
