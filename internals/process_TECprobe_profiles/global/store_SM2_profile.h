@@ -104,7 +104,7 @@ void store_SM2_profile(struct SM2_profile * prf, char * filepath);
 int get_line_local(char *line, FILE *ifp);
 
 /* validate_header: confirm that column headers match expectations */
-void validate_header(char * hdr);
+int validate_header(char * hdr);
 
 /* allocate_SM2_profile_memory: allocate memory for SM2_profile struct */
 void allocate_SM2_profile_memory(struct SM2_profile * prf, int data_lines);

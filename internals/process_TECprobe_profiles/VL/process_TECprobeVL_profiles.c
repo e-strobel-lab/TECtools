@@ -46,15 +46,16 @@ int main(int argc, char *argv[])
     
     int dir_count = 0; //flag that input directory was supplied
     
-    int min_depth = 5000;  //minimum effective read depth
+    int min_depth = 1000;  //minimum effective read depth
                            //NOTE: SM2 docs say default 5000, but 1000 is used in code
     double max_bkg = 0.05; //maximum untreated mutation rate
     
     int min_depth_provided = 0; //flag that minimum depth option was provided
     int max_bkg_provided = 0;   //flag that maximum background option was provided
+    int verify_norm = 0;        //flag to verify normalization against SM2 calculations
     
-    sample_names sn = {{{0}}}; //structure for sample name storage/merged name construction
-    output_files outfiles;   //structure for storing output file pointers and names
+    sample_names sn = {{{0}}};  //structure for sample name storage/merged name construction
+    output_files outfiles;      //structure for storing output file pointers and names
     
     char dflt_out_dir_nm[20] = {"dataset_norm_out"};
     
@@ -71,10 +72,11 @@ int main(int argc, char *argv[])
             {"debug",          no_argument,       0, 'd'}, //debug flag
             {"min-depth",      required_argument, 0, 'e'}, //min effective depth
             {"max-background", required_argument, 0, 'b'}, //max background
+            {"verify_norm",    no_argument,       0, 'y'}, //verify normalization
             {0, 0, 0, 0}
         };
         
-        c = getopt_long(argc, argv, "i:o:n:de:b:", long_options, &option_index);
+        c = getopt_long(argc, argv, "i:o:n:de:b:y", long_options, &option_index);
         
         if (c == -1) {
             break;
@@ -144,6 +146,10 @@ int main(int argc, char *argv[])
                     abort();
                 }
                 
+                break;
+                
+            case 'y': //turn on normalization verification
+                verify_norm = 1;
                 break;
             
             default: printf("error: unrecognized option. Aborting program...\n"); abort();
@@ -219,7 +225,7 @@ int main(int argc, char *argv[])
     for (i = 0; i < dir_count; i++) {   //for each input analysis directory
         
         for (j = an_dir[i].min_tl; j <= an_dir[i].max_tl; j++) { //for each transcript length
-            
+
             //store the shapemapper2 profile and add the number of
             //target RNA nucleotide reactivity values to the total
             store_SM2_profile(&an_dir[i].data[j], an_dir[i].loc[j]);
@@ -254,8 +260,8 @@ int main(int argc, char *argv[])
         //counted for all input data sets
         validate_trg_rct_cnt(an_dir[i].trg_rct_cnt, an_dir[0].trg_rct_cnt);
         
-        //calculate normalized reactivity values using the entire dataset
-        normalize_VL_reactivities(&an_dir[i], min_depth, max_bkg, 1);
+        //recalculate individual normalized reactivity values
+        normalize_VL_reactivities(&an_dir[i], min_depth, max_bkg, verify_norm);
     }
     
     //print sample names to screen

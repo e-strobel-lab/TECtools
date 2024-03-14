@@ -29,6 +29,7 @@ void generate_VL_sample_name (sample_names * sn)
 {
     int i = 0; //general purpose index
     char tmp_sn[MAX_LINE] = {0};
+    char first_sn[MAX_LINE] = {0};
     
     //parse each sample name
     for (i = 0; i < sn->cnt; i++) {
@@ -38,6 +39,14 @@ void generate_VL_sample_name (sample_names * sn)
         }
         
         remove_out_suffix(tmp_sn); //remove SM2 output directory suffix from sample name
+        if (!i) {
+            strcpy(first_sn, tmp_sn);
+            
+        } else if (!strcmp(tmp_sn, first_sn)) {
+            printf("generate_VL_sample_name: error - detected duplicate input for sample name %s. aborting...", first_sn);
+            abort();
+        }
+        
         parse_VL_sample_name(tmp_sn, &sn->cfg[i]); //parse sample name
         
         if (sn->cfg[i].run_count != 1) {

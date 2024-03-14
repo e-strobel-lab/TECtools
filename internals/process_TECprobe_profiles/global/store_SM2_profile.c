@@ -25,6 +25,7 @@ void store_SM2_profile(struct SM2_profile * prf, char * filepath)
     FILE * fp = NULL;          //file pointer for opening profile file
     char line[MAX_LINE] = {0}; //storage for file lines
     int file_lines = 0;        //file line count
+    int col_cnt = 0;           //column count, can be 29 or 27
     
     int EOF_reached = 0;     //flag that EOF was reached
     int found_trgt_start = 0; //flag that the start of the target RNA (unmasked sequence) was found
@@ -76,14 +77,14 @@ void store_SM2_profile(struct SM2_profile * prf, char * filepath)
             EOF_reached = 1;
         }
                 
-        if (line[0]) {                  //if line contains data, process line
-            if (!i) {                   //if reading first line of file...
-                validate_header(line);  //...validate the header line
-            } else {                    //otherwise, process data line
+        if (line[0]) {                           //if line contains data, process line
+            if (!i) {                            //if reading first line of file...
+                col_cnt = validate_header(line); //...validate the header line and set col_cnt
+            } else {                             //otherwise, process data line
                 
                 //parse each field from the data line and store
                 //the information the SM2 profile structure
-                for (j = 0, field = 0; field < PRFL_CLMNS; field++, j++) {
+                for (j = 0, field = 0; field < col_cnt; field++, j++) {
                     
                     //parse field string
                     for (k = 0, tmp_str[0] = '\0'; line[j] != '\t' && line[j]; k++) {
@@ -317,7 +318,7 @@ int get_line_local(char *line, FILE *ifp)
 
 
 /* validate_header: confirm that column headers match expectations */
-void validate_header(char * hdr)
+int validate_header(char * hdr)
 {
     //list of expected headers
     char xpctd_hdrs[PRFL_CLMNS][MAX_NAME] = {
@@ -391,7 +392,7 @@ void validate_header(char * hdr)
         crrnt_hdr[j] = '\0';  //terminate the input values string
         
         if (strcmp(crrnt_hdr, xpctd_hdrs[col])) { //if last column header does not match expected header, abort
-            printf("validate header: error - header does not match expected value.\ncurrent  header: %s\nexpected header: %s\naborting...\n", crrnt_hdr, xpctd_hdrs[col]);
+            printf("validate_header: error - header does not match expected value.\ncurrent  header: %s\nexpected header: %s\naborting...\n", crrnt_hdr, xpctd_hdrs[col]);
             abort();
         } else {
             mtchs++; //increment match count
@@ -400,10 +401,17 @@ void validate_header(char * hdr)
         col++; //increment column index
     }
         
-    if (mtchs != PRFL_CLMNS) { //test whether column count matches expected number
-        printf("merge_profiles: error - unexpected column number (%d). aborting...\n", col);
+    //test whether column count matches expected number. the expected number is either
+    //29 (PRFL_CLMNS) if normalization was possible or 27 (PRFL_CLMNS-2) if normalization
+    //was not possible. A value of 27 implicitly tests that the omitted columns are Norm_profile
+    //and Norm_stderr, since these are the last two columns and header verification would fail if
+    //preceding columns were missing
+    if (mtchs != PRFL_CLMNS && mtchs != PRFL_CLMNS-2) {
+        printf("validate_header: error - unexpected column number (%d). expected %d or %d columns aborting...\n", col, PRFL_CLMNS, PRFL_CLMNS-2);
         abort();
     }
+    
+    return mtchs; //return the number of columns
 }
 
 /* allocate_SM2_profile_memory: allocate memory for SM2_profile struct */
