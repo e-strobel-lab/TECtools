@@ -53,7 +53,7 @@ int main(int argc, char *argv[])
     while (1) {
         static struct option long_options[] =
         {
-            {"mode",       required_argument,  0,  'm'}, //run mode (REACTIVITY or LENGTH_DISTRIBUTION)
+            {"mode",       required_argument,  0,  'm'}, //run mode (REACTIVITY or LEN_DIST)
             {"enriched1",  required_argument,  0,  'a'}, //enriched length for sample 1
             {"enriched2",  required_argument,  0,  'b'}, //enriched length for sample 2
             {"enriched3",  required_argument,  0,  'c'}, //enriched length for sample 3
@@ -78,13 +78,13 @@ int main(int argc, char *argv[])
                     printf("assemble_TECprobeLMP_data: error - more than one mode argument was provided. aborting...\n");
                     abort();
                 } else {
-                    if (!strcmp(argv[optind-1], "REACTIVITY")) {                  //REATIVITY mode
+                    if (!strcmp(argv[optind-1], "REACTIVITY")) {                  //REACTIVITY mode
                         mode_params.mod = REACTIVITY;                             //set mode to REACTIVITY
                         mode_params.dlm = ',';                                    //set delimiter to comma
                         mode_params.offset = 1;                                   //set offset to 1
                         strcpy(mode_params.hdr, "Norm_calc_profile_");            //set target header to "Norm_calc_profile_"
-                    } else if (!strcmp(argv[optind-1], "LENGTH_DISTRIBUTION")) {  //LENGTH_DISTRIBUTION mode
-                        mode_params.mod = LENGTH_DISTRIBUTION;                    //set mode to LENGTH_DISTRIBUTION
+                    } else if (!strcmp(argv[optind-1], "LEN_DIST")) {  //LEN_DIST mode
+                        mode_params.mod = LEN_DIST;                    //set mode to LEN_DIST
                         mode_params.dlm = '\t';                                   //set delimiter to tab
                         //NOTE: offset is set later based on the minimum transcript length
                         strcpy(mode_params.hdr, "frac_algnd");                    //set target header to frac_algnd
@@ -183,7 +183,7 @@ int main(int argc, char *argv[])
     
     //check that mode was set
     if (mode_params.mod == -1) {
-        printf("assemble_TECprobeLMP_data: error - run mode was not set. set run mode to REACTIVITY or LENGTH_DISTRIBUTION depending on input file type. aborting...\n");
+        printf("assemble_TECprobeLMP_data: error - run mode was not set. set run mode to REACTIVITY or LEN_DIST depending on input file type. aborting...\n");
         abort();
     }
     
@@ -197,7 +197,7 @@ int main(int argc, char *argv[])
     } else {
         if (mode_params.mod == REACTIVITY) {
             sprintf(out_dir, "%s_reactivity", out_nm);
-        } else if (mode_params.mod == LENGTH_DISTRIBUTION) {
+        } else if (mode_params.mod == LEN_DIST) {
             sprintf(out_dir, "%s_lenDist", out_nm);
         } else {
             abort();
@@ -228,7 +228,7 @@ int main(int argc, char *argv[])
     int ipt0_term = 0; //terminating character of the current line in the first input file that was assessed
     int max_index = 0; //maximum index after parsing alignment rate file (== max transcript length - 1)
     
-    for (i = 0; i < MAX_TRANSCRIPT && (i < nrchd_len[S3] || mode_params.mod == LENGTH_DISTRIBUTION) && !found_end; i++) {
+    for (i = 0; i < MAX_TRANSCRIPT && (i < nrchd_len[S3] || mode_params.mod == LEN_DIST) && !found_end; i++) {
         //the loop is run until either:
         //1. MAX_TRANSCRIPT is reached
         //2. the maximum enriched length of sample 3 is reach (REACTIVITY mode only)
@@ -236,10 +236,10 @@ int main(int argc, char *argv[])
         
         for (j = 0; j < TOT_SAMPLES; j++) { //for each sample
             
-            if (i < nrchd_len[j] || mode_params.mod == LENGTH_DISTRIBUTION) {
+            if (i < nrchd_len[j] || mode_params.mod == LEN_DIST) {
                 //perform the operations below if either:
                 //1. i is less than the enriched length for the current sample (REACTIVITY mode only)
-                //2. LENGTH_DISTRIBUTION mode is being run
+                //2. LEN_DIST mode is being run
                 
                 //note: the reactivity of the last nt is always zero,
                 //but this zero is not in compiled matrix file
@@ -291,7 +291,7 @@ int main(int argc, char *argv[])
     if (mode_params.mod == REACTIVITY) { //if in reactivity mode, print reactivity output
         print_reactivity_output(out_dir, out_nm, &mode_params, ipt.cnt, nrchd_len, vals);
         
-    } else if (mode_params.mod == LENGTH_DISTRIBUTION) { //if in length_distribution mode, print length distribution output
+    } else if (mode_params.mod == LEN_DIST) { //if in LEN_DIST mode, print length distribution output
         max_index = i - 1; //set maximum data-containing line index
         print_length_dist_output(out_dir, out_nm, &mode_params, ipt.cnt, max_index, vals);
     }

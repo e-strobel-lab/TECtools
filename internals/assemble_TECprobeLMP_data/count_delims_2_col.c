@@ -58,7 +58,7 @@ int count_delims_2_col(FILE * ipt, mode_parameters * mode_params, int nrchd_len,
             //in REACTIVITY mode, check that the current column is a match to the current enriched length
             //in LENGTH_DISTRIBUTION mode, the match is already established so always proceed
             if ((mode_params->mod == REACTIVITY && atoi(trgt_len_strt) == nrchd_len) ||
-                (mode_params->mod == LENGTH_DISTRIBUTION)) {
+                (mode_params->mod == LEN_DIST)) {
                 
                 *delims2col = i; //set the number of delimiters that precede the target column
                 

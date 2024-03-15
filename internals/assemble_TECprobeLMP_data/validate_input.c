@@ -34,8 +34,8 @@ void validate_input (input_data * ipt)
     
     //char tmp_sn[MAX_NAME] = {0}; //temp sample name //TODO: commented out to temporarily silence warning while working on other things
     
-    char tbl_sffx[22] = {"_Normalized_Full_Table"};
-    char * tbl_sffx_ptr = NULL;
+    char tbl_sffx[22] = {"_full_table.csv"};
+    //char * tbl_sffx_ptr = NULL;
     
     for (sm = 0; sm < TOT_SAMPLES; sm++) {
         for (i = 0; i < ipt_cnt; i++) {
@@ -46,15 +46,17 @@ void validate_input (input_data * ipt)
             }
             
             get_sample_name(ipt->fn[sm][i], ipt->sn[sm][i]);
-            //printf("%s\n", ipt->sn[sm][i]);
+            printf("%s\n", ipt->sn[sm][i]);
+            remove_simple_suffix(ipt->sn[sm][i], tbl_sffx);
+            printf("%s\n", ipt->sn[sm][i]);
             
-            tbl_sffx_ptr = strstr(ipt->sn[sm][i], tbl_sffx);
+            /*tbl_sffx_ptr = strstr(ipt->sn[sm][i], tbl_sffx);
             //printf("%d %d %s\n", sm, i, tbl_sffx_ptr);
             
             //printf("%llu\n", (uint64_t)(tbl_sffx_ptr) - (uint64_t)(ipt->sn[sm][i]));
             ipt->sn[sm][i][(uint64_t)(tbl_sffx_ptr) - (uint64_t)(ipt->sn[sm][i])] = '\0';
             printf("%s\n", ipt->sn[sm][i]);
-            
+            */
             
             parse_VL_sample_name(&ipt->sn[sm][i][0], &ipt->cfg[sm][i]);
         }

@@ -20,7 +20,7 @@
 #include "store_SM2_profile.h"
 
 /* store_SM2_profile: store shapemapper 2 profile in SM2_profile struct */
-void store_SM2_profile(struct SM2_profile * prf, char * filepath)
+int store_SM2_profile(struct SM2_profile * prf, char * filepath)
 {
     FILE * fp = NULL;          //file pointer for opening profile file
     char line[MAX_LINE] = {0}; //storage for file lines
@@ -274,6 +274,8 @@ void store_SM2_profile(struct SM2_profile * prf, char * filepath)
         printf("print_input_filenames: error - failed to close output file. Aborting program...\n");
         abort();
     }
+    
+    return file_lines;
 }
 
 

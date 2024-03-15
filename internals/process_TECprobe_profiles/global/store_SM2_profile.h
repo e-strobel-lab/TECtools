@@ -97,7 +97,7 @@ typedef struct SM2_profile {
 } SM2_profile;
 
 /* store_SM2_profile: store shapemapper 2 profile in SM2_profile struct */
-void store_SM2_profile(struct SM2_profile * prf, char * filepath);
+int store_SM2_profile(struct SM2_profile * prf, char * filepath);
 
 /* get_line_local: get line from file, place into array, remove trailing newline, and return
  line length if successful. local version that allows files to end on non-newline characters */

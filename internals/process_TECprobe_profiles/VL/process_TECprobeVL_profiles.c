@@ -25,8 +25,10 @@
 #include "./process_TECprobeVL_profiles_structs.h"
 
 #include "../global/store_SM2_profile.h"
+#include "../global/initialize_empty_profile.h"
 #include "../global/calculate_normalization_factor.h"
 
+#include "./parse_VL_sample_name.h"
 #include "./read_VL_analysis_directories.h"
 #include "./VL_input_validation.h"
 #include "./make_VL_output_directories.h"
@@ -208,7 +210,7 @@ int main(int argc, char *argv[])
         
         //open all relevant directories and files in the parent directory
         //then validate that transcript length profiles are contiguous
-        an_dir[i].prfs_opnd = read_prnt_directory(&an_dir[i], i, &sn);
+        an_dir[i].prfs_cnt = read_prnt_directory(&an_dir[i], i, &sn);
         validate_VL_an_dir_contiguity(&an_dir[i]);
     }
     
@@ -221,46 +223,69 @@ int main(int argc, char *argv[])
     //this process
     generate_VL_sample_name(&sn);
     
+    int mod_detected = 0; //flag that modified  reads were detected
+    int unt_detected = 0; //flag that untreated reads were detected
+    int den_detected = 0; //flag that denatured reads were detected
+        
     //store profiles and normalize reactivity values using whole dataset
     for (i = 0; i < dir_count; i++) {   //for each input analysis directory
         
+        mod_detected = unt_detected = den_detected = 0; //zero channel detection variables
+        
         for (j = an_dir[i].min_tl; j <= an_dir[i].max_tl; j++) { //for each transcript length
-
-            //store the shapemapper2 profile and add the number of
-            //target RNA nucleotide reactivity values to the total
-            store_SM2_profile(&an_dir[i].data[j], an_dir[i].loc[j]);
-            an_dir[i].trg_rct_cnt += an_dir[i].data[j].trg_nt_cnt;
             
-            //verify that the channel configuration is valid and that
-            //all transcript lengths have the same channel configuration
-            validate_channel_configuration(&an_dir[i].data[j].chnls);
-            validate_channel_compatibility(&an_dir[i].data[j].chnls, &an_dir[i].data[an_dir[i].min_tl].chnls);
-            
+            if (an_dir[i].opnd[j]) { //if a profile was opened for the current transcript length
+                
+                //store the shapemapper2 profile and add the number of
+                //target RNA nucleotide reactivity values to the total
+                store_SM2_profile(&an_dir[i].data[j], an_dir[i].loc[j]);
+                an_dir[i].trg_rct_cnt += an_dir[i].data[j].trg_nt_cnt;
+                
+                if (an_dir[i].data[j].chnls.mod) {
+                    mod_detected = 1;
+                }
+                
+                if (an_dir[i].data[j].chnls.unt) {
+                    unt_detected = 1;
+                }
+                
+                if (an_dir[i].data[j].chnls.den) {
+                    den_detected = 1;
+                }
+            }
         }
+        
+        //set minimum and maximum opened profiles
+        set_opnd_profile_bounds(&an_dir[i]);
+        
+        //set the channel configuration of the entire dataset, confirm that
+        //the channel configuration is valid, and confirm that all input
+        //datasets have the same channel configuration
+        an_dir[i].chnls.mod = mod_detected;
+        an_dir[i].chnls.unt = unt_detected;
+        an_dir[i].chnls.den = den_detected;
+        validate_channel_configuration(&an_dir[i].chnls);
+        validate_channel_compatibility(&an_dir[i].chnls, &an_dir[0].chnls);
         
         //set the start index of the entire dataset and confirm that all
         //individual transcripts of the dataset have the same start index
         //and that all analysis directories have the same start index
-        an_dir[i].trgt_start = an_dir[i].data[an_dir[i].min_tl].trgt_start;
-        validate_int_start_ix_compatibility(&an_dir[i]);
+        an_dir[i].trgt_start = validate_trgt_start(&an_dir[i]);
         validate_ext_start_ix_compatibility(an_dir[i].trgt_start, an_dir[0].trgt_start);
         
         //verify that each transcript sequence is a substring of the
         //next transcript sequence
         validate_transcript_substrings(&an_dir[i]);
         
-        //set the channel configuration of the entire dataset and confirm
-        //that all input datasets have the same channel configuration
-        an_dir[i].chnls.mod = an_dir[i].data[an_dir[i].min_tl].chnls.mod;
-        an_dir[i].chnls.unt = an_dir[i].data[an_dir[i].min_tl].chnls.unt;
-        an_dir[i].chnls.den = an_dir[i].data[an_dir[i].min_tl].chnls.den;
-        validate_channel_compatibility(&an_dir[i].chnls, &an_dir[0].chnls);
+        //initialize empty profiles for missing transcript lengths
+        for (j = an_dir[i].min_tl; j <= an_dir[i].max_tl; j++) {
+            if (!an_dir[i].opnd[j]) {
+                allocate_SM2_profile_memory(&an_dir[i].data[j], j+an_dir[i].trgt_start);
+                initialize_empty_profile(&an_dir[i].data[j], j, an_dir[i].trgt_start);
+            }
+        }
         
-        //confirm that the same number of target RNA reactivity values were
-        //counted for all input data sets
-        validate_trg_rct_cnt(an_dir[i].trg_rct_cnt, an_dir[0].trg_rct_cnt);
-        
-        //recalculate individual normalized reactivity values
+        //perform whole dataset reactivity normalization
         normalize_VL_reactivities(&an_dir[i], min_depth, max_bkg, verify_norm);
     }
     
@@ -290,7 +315,7 @@ int main(int argc, char *argv[])
     //close output files
     for (i = an_dir[0].min_tl; i <= an_dir[0].max_tl; i++) {
         if (fclose(outfiles.ofp[i]) == EOF) {
-            printf("read_SM2out_directory: error - failed to close output file. Aborting program...\n");
+            printf("main: error - failed to close output file. Aborting program...\n");
             abort();
         }
     }
@@ -298,9 +323,11 @@ int main(int argc, char *argv[])
     //close input files
     for (i = 0; i < dir_count; i++) {
         for (j = an_dir[0].min_tl; j <= an_dir[0].max_tl; j++) {
-            if (fclose(an_dir[i].prf[j]) == EOF) {
-                printf("read_SM2out_directory: error - failed to close input file. Aborting program...\n");
-                abort();
+            if (an_dir[i].opnd[j]) {
+                if (fclose(an_dir[i].prf[j]) == EOF) {
+                    printf("read_SM2out_directory: error - failed to close input file. Aborting program...\n");
+                    abort();
+                }
             }
         }
     }
@@ -315,8 +342,6 @@ void print_processing_record(sample_names * sn, output_files * outfiles, SM2_ana
     FILE * p_prcs_rcrd = NULL;         //processing record file pointer
     char prcs_rcrd_nm[MAX_LINE] = {0}; //processing record file name
     char tmp_sn[MAX_LINE] = {0};       //temp sample name
-    char out_sffx[5] = "_out";
-    char * out_str_ptr = NULL;
     
     //generate processing record file name
     if (snprintf(prcs_rcrd_nm, MAX_LINE, "./%s/000_processing_record.txt", outfiles->out_dir) >= MAX_LINE) {
@@ -336,24 +361,9 @@ void print_processing_record(sample_names * sn, output_files * outfiles, SM2_ana
     fprintf(p_prcs_rcrd, "input directories\n");
     
     for (i = 0; i < sn->cnt; i++) {
-        strcpy(tmp_sn, sn->ipt[i]);             //copy iput file name to tmp_sn array
-        out_str_ptr = strstr(tmp_sn, out_sffx); //find "_out" string in sample name
-        
-        //check that "_out" string is preceded by transcript length digits
-        //and followed by a terminating null
-        if ((uint64_t)(&tmp_sn[0]) - (uint64_t)(&out_sffx[0]) > 4) {
-            if (!out_str_ptr[strlen(out_sffx)] &&
-                isdigit(out_str_ptr[-1])       &&
-                isdigit(out_str_ptr[-2])       &&
-                isdigit(out_str_ptr[-3])       &&
-                out_str_ptr[-4] == '_') {
-                out_str_ptr[-4] = '\0';
-            } else {
-                printf("print_processing_record: error - unexpected input file name format. aborting...\n");
-                abort();
-            }
-        }
-        
+        strcpy(tmp_sn, sn->ipt[i]); //copy iput file name to tmp_sn array
+        remove_out_suffix(tmp_sn);  //remove transcript length out suffix
+                
         //print input sample name to file and screen
         printf("input %d: %s\n", i+1, tmp_sn);
         fprintf(p_prcs_rcrd, "input %d: %s\n", i+1, tmp_sn);
@@ -370,11 +380,16 @@ void print_processing_record(sample_names * sn, output_files * outfiles, SM2_ana
     
     
     //print transcript length inventory
-    printf("%d profiles opened per input directory\n", an_dir[0].prfs_opnd);
+    printf("transcript length inventory:\n");
+    fprintf(p_prcs_rcrd, "transcript length inventory:\n");
+    for (i = 0; i < sn->cnt; i++) {
+        printf("input %d: %3d/%d input directories contained a profile\n", i, an_dir[i].prfs_cnt, an_dir[i].outs_cnt);
+        fprintf(p_prcs_rcrd, "input %d: %3d/%d input directories contained a profile\n", i, an_dir[i].prfs_cnt, an_dir[i].outs_cnt);
+    }
+    
     printf("minimum transcript length: %d\n", an_dir[0].min_tl);
     printf("maximum transcript length: %d\n\n", an_dir[0].max_tl);
     
-    fprintf(p_prcs_rcrd, "%d profiles opened per input directory\n", an_dir[0].prfs_opnd);
     fprintf(p_prcs_rcrd, "minimum transcript length: %d\n", an_dir[0].min_tl);
     fprintf(p_prcs_rcrd, "maximum transcript length: %d\n\n", an_dir[0].max_tl);
     

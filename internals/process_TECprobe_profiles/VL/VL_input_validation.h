@@ -37,8 +37,8 @@ void validate_channel_configuration(channel_tracker * chnls);
    channel, and that the presence of untreated and denatured channels is uniform */
 void validate_channel_compatibility(channel_tracker * crrnt_chnls, channel_tracker * first_chnls);
 
-/* validate_int_start_ix_compatibility: verify that all transcript lengths within an analysis directory have the same start index */
-void validate_int_start_ix_compatibility(SM2_analysis_directory * an_dir);
+/* validate_trgt_start: verify that all transcript lengths within an analysis directory have the same start index */
+int validate_trgt_start(SM2_analysis_directory * an_dir);
 
 /* validate_ext_start_ix_compatibility: verify that two analysis directories have the same start index */
 void validate_ext_start_ix_compatibility(int ix1, int ix2);
@@ -47,7 +47,5 @@ void validate_ext_start_ix_compatibility(int ix1, int ix2);
    a substring of the transcript with length n+1 */
 void validate_transcript_substrings(SM2_analysis_directory * an_dir);
 
-/* validate_trg_rct_cnt: verify that target reactivity count is the same */
-void validate_trg_rct_cnt(int cnt1, int cnt2);
 
 #endif /* VL_input_validation_h */

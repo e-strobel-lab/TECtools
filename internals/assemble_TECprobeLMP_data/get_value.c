@@ -45,7 +45,7 @@ int get_value(FILE * ipt,  mode_parameters * mode_params, int delims2col, double
             //the first column value (transcript length) has been read, set the
             //offset to the current column value (which is the minimum transcript
             //length)
-            if (mode_params->mod == LENGTH_DISTRIBUTION && !mode_params->offset && delim_cnt == 1) {
+            if (mode_params->mod == LEN_DIST && !mode_params->offset && delim_cnt == 1) {
                 mode_params->offset = atoi(tmp_val);
             }
             

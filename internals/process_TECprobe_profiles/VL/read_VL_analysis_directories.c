@@ -113,7 +113,7 @@ int read_tl_directory(SM2_analysis_directory * an_dir, int dir_num, int crnt_tl,
                 abort();
             }
             
-            out_dir_cnt++; //increment output direcotry count
+            out_dir_cnt++; //increment output directory count
         }
     }
     
@@ -142,6 +142,8 @@ int read_SM2out_directory(SM2_analysis_directory * an_dir, int crnt_tl, char * o
     if ((an_dir->out[crnt_tl] = opendir(out_dir_nm)) == NULL) {
         printf("read_SM2out_directory: error - failed to open SM2 output directory for transcript length %d. aborting...\n", crnt_tl);
         abort();
+    } else {
+        an_dir->outs_cnt++; //increment out directory opened counter
     }
     
     //read directory contents
@@ -168,17 +170,47 @@ int read_SM2out_directory(SM2_analysis_directory * an_dir, int crnt_tl, char * o
             abort();
         }
         strcpy(an_dir->loc[crnt_tl], profile_nm);
-        //printf("%s\n%s\n\n", profile_nm, an_dir->loc[crnt_tl]);
         
-        //open the reactivity prifle
+        //open the reactivity profile
         if ((an_dir->prf[crnt_tl] = fopen(profile_nm, "r")) == NULL) {
             printf("read_SM2out_directory: error - could not open %s. Aborting program...\n", profile_nm);
             abort();
         }
+        an_dir->opnd[crnt_tl] = 1; //set flag that profile was opened
         return 1;
         
-    } else { //if more than one reactivity profile was found, abort
+    } else if (!profile_cnt) { //no reactivity profiles were found
+        an_dir->opnd[crnt_tl] = 0; //set flag that profile was not opened
+        return 0;
+        
+    } else if (profile_cnt > 1) { //if more than one reactivity profile was found, abort
         printf("read_SM2out_directory: error - more than one reactivity profile found in transcript length %d SM2 output directory. aborting...\n", crnt_tl);
         abort();
+        
+    } else { //negative profile count?
+        printf("read_SM2out_directory: error - negative reactivity profile in transcript length %d SM2 output directory. how??? aborting...\n", crnt_tl);
+        abort();
     }
+}
+
+/* set_opnd_profile_bounds: set min and max opened profiles in SM2 analysis directory structure */
+void set_opnd_profile_bounds(SM2_analysis_directory * an_dir)
+{
+    int i = 0;             //general purpose index
+    int min_prf_set = 0;   //flag that minimum profile was set
+    int max_opnd_prf = 0;  //maximum opened profile
+    
+    for (i = an_dir->min_tl; i <= an_dir->max_tl; i++) {
+        if (an_dir->opnd[i]) {        //if the current transcript length profile was opened
+            if (!min_prf_set) {       //if the minimum profile was not yet set
+                an_dir->min_opnd = i; //set the minimum profile to the current transcript length
+                min_prf_set = 1;      //turn on flag that minimum profile was set
+            }
+            max_opnd_prf = i;         //set the max profile to the current transcript length
+        }
+    }
+    
+    an_dir->max_opnd = max_opnd_prf;  //set the max profile to the last opened transcript length
+    
+    return;
 }

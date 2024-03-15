@@ -29,16 +29,18 @@ void validate_VL_an_dir_contiguity(SM2_analysis_directory * an_dir)
     //check the transcript length contiguity of the opened profiles
     for (i = 0; i < MAX_ROW; i++) {
         
-        //check that all transript lengths are within the min_tl/max_tl bounds
+        //check that all transcript lengths are within the min_tl/max_tl bounds
         if (an_dir->prf[i] != NULL && (i < an_dir->min_tl || i > an_dir->max_tl)) {
-            printf("validate_VL_an_dir_contiguity: error - out of bounds transcript length in %s data set. aborting...\n", an_dir->prnt_dir_nm);
+            printf("validate_VL_an_dir_contiguity: error - out of bounds transcript length (%d) in %s data set. aborting...\n", i, an_dir->prnt_dir_nm);
             abort();
         }
         
-        //check that all transcript lengths within the min_tl/max_tl bounds have an associated profile
+        //check that all transcript lengths within the min_tl/max_tl bounds have
+        //an associated profile. throw warning rather than error, since it is
+        //possible for a profile to be absent if no reads were assigned to that
+        //transcrip length
         if (an_dir->prf[i] == NULL && (i >= an_dir->min_tl && i <= an_dir->max_tl)) {
-            printf("validate_VL_an_dir_contiguity: error - missing transcript length %d  in %s data set. aborting...\n", i, an_dir->prnt_dir_nm);
-            abort();
+            printf("validate_VL_an_dir_contiguity: warning - missing transcript length %d in %s data set.\n", i, an_dir->prnt_dir_nm);
         }
     }
     
@@ -57,9 +59,9 @@ void validate_VL_an_dir_compatibility(SM2_analysis_directory * an_dir, int dir_c
     } else { //verify compatibility of all input directories
         for (i = 1; i < dir_count; i++) {
             
-            //check that the number of profiles opened matches that of the first parent directory
-            if (an_dir[i].prfs_opnd != an_dir[0].prfs_opnd) {
-                printf("validate_VL_an_dir_compatibility: error - the number of reactivity profiles opened is not the same for all input directories (first = %d, current = %d). aborting...\n", an_dir[0].prfs_opnd, an_dir[i].prfs_opnd);
+            //check that the number of out directories opened matches that of the first parent directory
+            if (an_dir[i].outs_cnt != an_dir[0].outs_cnt) {
+                printf("validate_VL_an_dir_compatibility: warning - the number of shapemapper2 analysis directories opened is not the same for all input directories (first = %d, current = %d). aborting...\n", an_dir[0].outs_cnt, an_dir[i].outs_cnt);
                 abort();
             }
             
@@ -101,7 +103,7 @@ void validate_channel_configuration(channel_tracker * chnls)
 void validate_channel_compatibility(channel_tracker * crrnt_chnls, channel_tracker * first_chnls)
 {
     if (!crrnt_chnls->mod) {
-        printf("validate_channel_compatibility: reactivity profile contains no modified channel reads. aborting...\n");
+        printf("validate_channel_compatibility: sample contains no modified channel reads. aborting...\n");
         abort();
     }
     
@@ -114,23 +116,35 @@ void validate_channel_compatibility(channel_tracker * crrnt_chnls, channel_track
         printf("validate_channel_compatibility: denatured channel reads were detected in some, but not all, reactivity profiles. aborting...\n");
         abort();
     }
-    
-    
 }
 
-/* validate_start_index_compatibility: verify that all transcript lengths have the same start index */
-void validate_int_start_ix_compatibility(SM2_analysis_directory * an_dir)
+/* validate_trgt_start: verify that all transcript lengths have the same start index */
+int validate_trgt_start(SM2_analysis_directory * an_dir)
 {
-    int i = 0;
+    int i = 0; //general purpose index
     
-    for (i = an_dir->min_tl; i < an_dir->max_tl; i++) {
-        if (an_dir->data[i].trgt_start != an_dir->data[an_dir->min_tl].trgt_start) {
-            printf("validate_start_index_compatibility: error - start index is not uniform across all transcript lengths. aborting\n");
-            abort();
+    int first_trg_start = -1; //first target start index
+    
+    //check that target start index is the same for every profile
+    for (i = an_dir->min_tl; i <= an_dir->max_tl; i++) { //for each transcript length
+        
+        if (an_dir->opnd[i]) {           //if the analysis directory was opened
+            if (first_trg_start == -1) { //if the first target start index was not yet found
+                first_trg_start = an_dir->data[i].trgt_start; //set the first target start index
+                
+            } else { //if the first target start index was already found
+                
+                //check that the current target start index
+                //matches the first target start index
+                if (an_dir->data[i].trgt_start != first_trg_start) {
+                    printf("validate_trgt_start: error - start index is not uniform across all transcript lengths. aborting...\n");
+                    abort();
+                }
+            }
         }
     }
     
-    return;
+    return first_trg_start;
 }
 
 /* validate_ext_start_ix_compatibility: verify that two analysis directories have the same start index */
@@ -148,42 +162,45 @@ void validate_ext_start_ix_compatibility(int ix1, int ix2)
    a substring of the transcript with length n+1 */
 void validate_transcript_substrings(SM2_analysis_directory * an_dir)
 {
-    int i = 0;
+    int i = 0;                 //general purpose index
+    int skipped = 0;           //tracks how many transcript lengths were skipped
     
-    char * p_prev = NULL; //pointer to previous transcript sequence substring
-
-    for (i = an_dir->min_tl+1; i < an_dir->max_tl; i++) {
-        
-        //check that previous sequence is a substring of the current sequence
-        if ((p_prev = strstr(an_dir->data[i].sequence, an_dir->data[i-1].sequence)) == NULL) {
-            printf("validate_transcript_substrings: error - sequence of transcript %d is not a substring of transcript %d. aborting...\n", i-1, i);
-            abort();
-            
-        }
-
-        //check that the current and previous sequence string start at the same position
-        if ((uint64_t)(&p_prev[0]) != (uint64_t)(&an_dir->data[i].sequence[0])) {
-            printf("validate_transcript_substrings: error - sequence of transcripts %d and %d do not start at the same position. aborting...\n", i-1, i);
-            abort();
-            
-        }
-        
-        //check that the current sequence string is one nt shorter than the previous sequence string
-        if (strlen(an_dir->data[i-1].sequence) != (strlen(an_dir->data[i].sequence)-1)) {
-            printf("validate_transcript_substrings: error - sequence of transcript %d is not 1 nt shorter than sequence of transcript %d. aborting...\n", i-1, i);
-            abort();
-        }
-    }
+    char * p_last_seq = NULL;  //pointer to the last transcript sequence
+    char * p_substring = NULL; //pointer to previous sequence substring in current sequence
     
-    return;
-}
-
-/* validate_trg_rct_cnt: verify that target reactivity count is the same */
-void validate_trg_rct_cnt(int cnt1, int cnt2)
-{
-    if (cnt1 != cnt2) {
-        printf("validate_trg_rct_cnt: target RNA reactivity count is not the same for all input directories. aborting...\n");
-        abort();
+    p_last_seq = &an_dir->data[an_dir->min_opnd].sequence[0]; //init p_last_seq to min opened sequence
+    
+    for (i = an_dir->min_opnd+1; i <= an_dir->max_opnd; i++) { //for every length after min opened
+        
+        if (an_dir->opnd[i]) { //if a profile was opened
+            
+            //check that previous sequence is a substring of the current sequence
+            if ((p_substring = strstr(an_dir->data[i].sequence, p_last_seq)) == NULL) {
+                printf("validate_transcript_substrings: error - sequence of transcript %d is not a substring of transcript %d. aborting...\n", i-1-skipped, i);
+                abort();
+                
+            }
+            
+            //check that the current and previous sequence string start at the same position
+            if ((uint64_t)(&p_substring[0]) != (uint64_t)(&an_dir->data[i].sequence[0])) {
+                printf("validate_transcript_substrings: error - sequence of transcripts %d and %d do not start at the same position. aborting...\n", i-1-skipped, i);
+                abort();
+                
+            }
+                        
+            //check that the current sequence string is the expected number
+            //of nucleotides shorter than the previous sequence string
+            if (strlen(p_last_seq) != (strlen(an_dir->data[i].sequence)-1-skipped)) {
+                printf("validate_transcript_substrings: error - sequence of transcript %d is not %d nt shorter than sequence of transcript %d. aborting...\n", i-1-skipped, 1+skipped, i);
+                abort();
+            }
+                        
+            p_last_seq = &an_dir->data[i].sequence[0]; //set the last seq pointer to the current seq
+            skipped = 0;                               //reset the skipped counter to zero
+            
+        } else {       //profile was not opened for current transcript length
+            skipped++; //increment skipped counter
+        }
     }
     
     return;

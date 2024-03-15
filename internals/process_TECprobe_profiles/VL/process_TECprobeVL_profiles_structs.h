@@ -27,9 +27,13 @@ typedef struct SM2_analysis_directory {
     FILE * prf[MAX_ROW];          //pointer to profile file
     char * loc[MAX_ROW];          //relative filepaths of profiles
     SM2_profile data[MAX_ROW];    //SM2 profile data
+    int opnd[MAX_ROW];            //flag that profile was opened
     channel_tracker chnls;        //struct to track what channels are present
-    int prfs_opnd;                //number of profiles opened
+    int outs_cnt;                 //number of output directories opened
+    int prfs_cnt;                 //number of profiles opened
     int trgt_start;               //target RNA start index
+    int min_opnd;                 //min transcript length that was opened
+    int max_opnd;                 //max transcript length that was opened
     int min_tl;                   //minimum transcript length
     int max_tl;                   //maximum transcript length
     int trg_rct_cnt;              //target nucleotide reactivity count

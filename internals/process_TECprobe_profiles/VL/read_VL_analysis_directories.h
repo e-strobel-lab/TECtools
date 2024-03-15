@@ -26,4 +26,7 @@ int read_tl_directory(SM2_analysis_directory * an_dir, int dir_num, int crnt_tl,
 /* read_SM2out_directory: read shapemapper 2 output directory and open reactivity profile file */
 int read_SM2out_directory(SM2_analysis_directory * an_dir, int crnt_tl, char * out_dir_nm);
 
+/* set_opnd_profile_bounds: set min and max opened profiles in SM2 analysis directory structure */
+void set_opnd_profile_bounds(SM2_analysis_directory * an_dir);
+
 #endif /* read_VL_analysis_directories_h */

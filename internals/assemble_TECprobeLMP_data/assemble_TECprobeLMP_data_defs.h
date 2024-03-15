@@ -15,7 +15,7 @@
 
 #define MODE_INIT -1            //initial value of mode
 #define REACTIVITY 0            //value for REACTIVITY mode
-#define LENGTH_DISTRIBUTION 1   //value for LENGTH_DISTRIUTION mode
+#define LEN_DIST 1              //value for LEN_DIST mode
 
 #define TOT_SAMPLES 3           //total sample number
 #define MAX_IPT 16              //maximum number of input files per sample
