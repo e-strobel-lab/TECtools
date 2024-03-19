@@ -394,7 +394,7 @@ void print_processing_record(sample_names * sn, output_files * outfiles, SM2_ana
     fprintf(p_prcs_rcrd, "maximum transcript length: %d\n\n", an_dir[0].max_tl);
     
     //print normalization factors
-    printf("normalization factors:\n");
+    /*printf("normalization factors:\n");
     fprintf(p_prcs_rcrd, "normalization factors\n");
     
     for (i = 0; i < sn->cnt; i++) {
@@ -405,10 +405,10 @@ void print_processing_record(sample_names * sn, output_files * outfiles, SM2_ana
     if (sn->cnt > 1) {
         printf("merged:  %.10f\n", mrg->cnf);
         fprintf(p_prcs_rcrd, "merged:  %.10f\n", mrg->cnf);
-    }
+    }*/
     
-    printf("\n");
-    fprintf(p_prcs_rcrd, "\n");
+    //printf("\n");
+    //fprintf(p_prcs_rcrd, "\n");
     
     //close processing record file
     if (fclose(p_prcs_rcrd) == EOF) {

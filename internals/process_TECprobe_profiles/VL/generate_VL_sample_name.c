@@ -72,7 +72,7 @@ void merge_sample_names(sample_names *sn)
     set_cfg_string(&sn->mrgd_cfg.input_name, sn->cfg[0].input_name, 0);   //set RNA name
     sn->mrgd_cfg.cotranscriptional = sn->cfg[0].cotranscriptional;        //set folding type
     set_cfg_string(&sn->mrgd_cfg.chemical_probe, sn->cfg[0].chemical_probe, 0); //set chemical probe
-    sn->mrgd_cfg.concatenated = 1;                                        //set concatenated flag to TRUE
+    sn->mrgd_cfg.concatenated = (sn->cnt > 1) ? 1 : 0;                    //set concatenated flag
     sn->mrgd_cfg.run_count = sn->cfg[0].run_count;                        //set intial run count val
     set_cfg_string(&sn->mrgd_cfg.runID[0], sn->cfg[0].runID[0], 0);       //set first run ID
     sn->mrgd_cfg.smoothing = sn->cfg[0].smoothing;                        //set smoothing flag
@@ -128,7 +128,7 @@ void merge_sample_names(sample_names *sn)
             }
             
             if (strcmp(sn->cfg[i].ligand_conc, sn->mrgd_cfg.ligand_conc)) {
-                printf("merge_sample_names: error - samples contain discordant ligand names. aborting...\n");
+                printf("merge_sample_names: error - samples contain discordant ligand concentrations. aborting...\n");
                 abort();
             }
         }

@@ -153,6 +153,7 @@ int init_brcd_tmplts(wt_source * brcd_src, basemap * brcd_bmap)
         strcpy(brcd_bmap[i].nm, brcd_nm);    //set barcode template name
         strcpy(brcd_bmap[i].rS, brcd_sq[i]); //set barcode template sequence
         strcpy(brcd_bmap[i].rP[0], brcd_pr); //set barcode template pair constraints
+        brcd_bmap[i].rP_cnt = 1;             //set pair constraint count to 1
         
         printf("%s\n", brcd_bmap[i].rS);
     }

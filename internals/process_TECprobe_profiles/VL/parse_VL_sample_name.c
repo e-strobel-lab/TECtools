@@ -367,9 +367,7 @@ void remove_simple_suffix(char * sn, char * str2rmv)
     
     if ((sffx_ptr = strstr(sn, str2rmv)) != NULL) {
         if (!sffx_ptr[strlen(str2rmv)]) {
-            printf("%s\n", sn);
             sn[(uint64_t)(sffx_ptr) - (uint64_t)(sn)] = '\0';
-            printf("%s\n", sn);
         } else {
             printf("remove_simple_suffix: error - suffix string was found but was not at the end of the string. aborting...\n");
             abort();
