@@ -180,10 +180,14 @@ int main(int argc, char *argv[])
     }
     
     //set the output sample name that will be used
-    if (sn.usr[0]) {            //if a user-supplied output sample name was provided
-        sn.sn2use = &sn.usr[0]; //use the user-supplied output sample name
-    } else {
-        sn.sn2use = &sn.mrg[0]; //otherwise, use the auto-generated sample name
+    if (sn.usr[0]) {               //if a user-supplied output sample name was provided
+        sn.sn2use = &sn.usr[0];    //use the user-supplied output sample name
+        
+    } else if (dir_count == 1) {   //otherwise, if only 1 input directory was provided
+        sn.sn2use = &sn.ipt[0][0]; //use sample name derived from the input
+        
+    } else if (dir_count > 1) {    //otherwise, if more than 1 input directory was provided
+        sn.sn2use = &sn.mrg[0];    //use the auto-generated sample name
     }
     
     int i = 0; //general purpose index
@@ -341,7 +345,6 @@ void print_processing_record(sample_names * sn, output_files * outfiles, SM2_ana
     
     FILE * p_prcs_rcrd = NULL;         //processing record file pointer
     char prcs_rcrd_nm[MAX_LINE] = {0}; //processing record file name
-    char tmp_sn[MAX_LINE] = {0};       //temp sample name
     
     //generate processing record file name
     if (snprintf(prcs_rcrd_nm, MAX_LINE, "./%s/000_processing_record.txt", outfiles->out_dir) >= MAX_LINE) {
@@ -361,12 +364,9 @@ void print_processing_record(sample_names * sn, output_files * outfiles, SM2_ana
     fprintf(p_prcs_rcrd, "input directories\n");
     
     for (i = 0; i < sn->cnt; i++) {
-        strcpy(tmp_sn, sn->ipt[i]); //copy iput file name to tmp_sn array
-        remove_out_suffix(tmp_sn);  //remove transcript length out suffix
-                
         //print input sample name to file and screen
-        printf("input %d: %s\n", i+1, tmp_sn);
-        fprintf(p_prcs_rcrd, "input %d: %s\n", i+1, tmp_sn);
+        printf("input %d: %s\n", i+1, sn->ipt[i]);
+        fprintf(p_prcs_rcrd, "input %d: %s\n", i+1, sn->ipt[i]);
     }
     
     //if more than one input was provided, print merged sample name
@@ -383,8 +383,8 @@ void print_processing_record(sample_names * sn, output_files * outfiles, SM2_ana
     printf("transcript length inventory:\n");
     fprintf(p_prcs_rcrd, "transcript length inventory:\n");
     for (i = 0; i < sn->cnt; i++) {
-        printf("input %d: %3d/%d input directories contained a profile\n", i, an_dir[i].prfs_cnt, an_dir[i].outs_cnt);
-        fprintf(p_prcs_rcrd, "input %d: %3d/%d input directories contained a profile\n", i, an_dir[i].prfs_cnt, an_dir[i].outs_cnt);
+        printf("input %d: %3d/%d input directories contained a profile\n", i+1, an_dir[i].prfs_cnt, an_dir[i].outs_cnt);
+        fprintf(p_prcs_rcrd, "input %d: %3d/%d input directories contained a profile\n", i+1, an_dir[i].prfs_cnt, an_dir[i].outs_cnt);
     }
     
     printf("minimum transcript length: %d\n", an_dir[0].min_tl);

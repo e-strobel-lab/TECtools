@@ -27,27 +27,21 @@
 /* generate_VL_sample_name: manages sample name parsing and generation */
 void generate_VL_sample_name (sample_names * sn)
 {
-    int i = 0; //general purpose index
-    char tmp_sn[MAX_LINE] = {0};
-    char first_sn[MAX_LINE] = {0};
+    int i = 0;              //general purpose index
+    char * first_sn = NULL; //pointer to first sample name
     
     //parse each sample name
-    for (i = 0; i < sn->cnt; i++) {
-        if (snprintf(tmp_sn, MAX_LINE, "%s", &sn->ipt[i][0]) == MAX_LINE) {
-            printf("generate_VL_sample_name: error - input sample name exceeded buffer. aborting...\n");
-            abort();
-        }
-        
-        remove_out_suffix(tmp_sn); //remove SM2 output directory suffix from sample name
-        if (!i) {
-            strcpy(first_sn, tmp_sn);
+    for (i = 0; i < sn->cnt; i++) {     //for each sample name
+
+        if (!i) {                       //if reading the first sample name
+            first_sn = &sn->ipt[i][0];  //set pointer to the first sample name
             
-        } else if (!strcmp(tmp_sn, first_sn)) {
+        } else if (!strcmp(sn->ipt[i], first_sn)) { //otherwise, compare to the first sample name
             printf("generate_VL_sample_name: error - detected duplicate input for sample name %s. aborting...", first_sn);
             abort();
         }
         
-        parse_VL_sample_name(tmp_sn, &sn->cfg[i]); //parse sample name
+        parse_VL_sample_name(sn->ipt[i], &sn->cfg[i]); //parse sample name
         
         if (sn->cfg[i].run_count != 1) {
             printf("generate_VL_sample_name: error - expected directory to contain data that was not concatenated prior to analysis. aborting...\n");
@@ -131,6 +125,14 @@ void merge_sample_names(sample_names *sn)
                 printf("merge_sample_names: error - samples contain discordant ligand concentrations. aborting...\n");
                 abort();
             }
+        }
+    }
+    
+    //TODO: this temporary code preserves variable fields in the merged sample name if only one input was provided. need to decide how to handle variable fields when multiple inputs are provided.
+    if (sn->cnt == 1) {
+        sn->mrgd_cfg.field_count = sn->cfg[0].field_count;
+        for (i = 0; i < sn->cfg[0].field_count; i++) {
+            set_cfg_string(&sn->mrgd_cfg.field[i], sn->cfg[0].field[i], 0);
         }
     }
     

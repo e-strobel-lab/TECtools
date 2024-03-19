@@ -14,6 +14,8 @@
 #include "./process_TECprobeVL_profiles_defs.h"
 #include "./process_TECprobeVL_profiles_structs.h"
 
+#include "parse_VL_sample_name.h"
+
 #include "read_VL_analysis_directories.h"
 
 /* read_prnt_directory: read parent shapemapper 2 analysis directory and identify transcript length analysis sub-folders*/
@@ -101,10 +103,13 @@ int read_tl_directory(SM2_analysis_directory * an_dir, int dir_num, int crnt_tl,
             //record the name of the current shapemapper 2 output directory
             //in the sample names structure
             if (dir_num == sn->cnt) {
-                if (snprintf(sn->ipt[sn->cnt++], MAX_NAME, "%s", dir->d_name) >= MAX_NAME) {
+                if (snprintf(sn->ipt[sn->cnt], MAX_NAME, "%s", dir->d_name) >= MAX_NAME) {
                     printf("read_out_directory: error - reactivity profile name for transcript length %d exceeded buffer. aborting...\n", crnt_tl);
                     abort();
                 }
+                
+                remove_out_suffix(sn->ipt[sn->cnt]); //remove output suffix
+                sn->cnt++;                           //increment sample name count
             }
             
             //construct relative shapemapper 2 output directory path

@@ -66,7 +66,7 @@ void print_legacy_compiled_table(SM2_analysis_directory * an_dir, output_files *
     char lgcy_tbl_nm[MAX_LINE] = {0}; //legacy table record file name
     
     //generate legacy table file name
-    if (snprintf(lgcy_tbl_nm, MAX_LINE, "./%s/%s_full_table.csv", outfiles->out_dir, sn->mrg) >= MAX_LINE) {
+    if (snprintf(lgcy_tbl_nm, MAX_LINE, "./%s/%s_full_table.csv", outfiles->out_dir, sn->sn2use) >= MAX_LINE) {
         printf("print_processing_record: error - legacy compiled table file name exceeded buffer. aborting...\n");
         abort();
     }
