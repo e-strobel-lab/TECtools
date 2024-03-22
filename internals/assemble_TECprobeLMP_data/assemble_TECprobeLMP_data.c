@@ -188,7 +188,7 @@ int main(int argc, char *argv[])
     }
     
     //validate input files
-    validate_input(&ipt);
+    validate_input(&ipt, mode_params.mod);
     
     //check that output name was provided and make output directory
     if (!out_nm[0]) {

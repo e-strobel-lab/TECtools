@@ -19,6 +19,8 @@
 #include "./mkmtrx_defs.h"
 #include "./mkmtrx_structs.h"
 
+#include "../cotrans_preprocessor/run_script_gen/MLT/config_MLT_struct.h"
+
 /* mk_rdat: manages rdata config parsing/checking and
  construction of output rdat file*/
 int mk_rdat(FILE * fp_config, cotrans_matrix * mtrx, int mode)
@@ -512,17 +514,4 @@ int print_rdat(rdat_metadata * rdat_meta, cotrans_matrix * mtrx, int mode)
     }
     
     return 1;
-}
-
-/* set_TF_value: set true or false value as 1 and 0, respectively */
-void set_TF_value(char * tf, char * setting_name, int * config_val)
-{
-    if (!strcmp(tf, "FALSE")) {
-        *config_val = 0;
-    } else if (!strcmp(tf, "TRUE")) {
-        *config_val = 1;
-    } else {
-        printf("parse_MLT_config: error - unexpected value for %s setting. set to FALSE, or TRUE. aborting...\n", setting_name);
-        abort();
-    }
 }

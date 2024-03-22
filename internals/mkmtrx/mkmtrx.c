@@ -20,7 +20,6 @@
 #include "./mkmtrx_defs.h"
 #include "./mkmtrx_structs.h"
 
-#include "./get_smpl_nm.h"
 #include "./get_fastp_out.h"
 #include "./get_profiles.h"
 #include "./parse_log.h"
@@ -172,14 +171,12 @@ int main(int argc, char *argv[])
     int pass_reads = 0; //number of reads after fastp filtering
     
     char smpl_nm[MAX_LINE] = {0};   //name of samples
-    get_smpl_nm(prnt_dir, smpl_nm); //obtain sample name from parent directory input
     
     if (!test_SM2_data) { //only read fastp output if not assessing test SM2 data
         get_fastp_out(prnt_dir, &ipt_reads, &pass_reads); //get filtering stats from fastp json output
     }
-    get_profiles(prnt_dir, &mtrx, &algn[0], test_SM2_data); //store reactivity/eff depth of each transcript len in cotrans matrix
-    
-    
+    get_profiles(prnt_dir, &mtrx, &algn[0], smpl_nm, test_SM2_data); //store reactivity/eff depth of each transcript len in cotrans matrix
+
     if (mode == MULTI) {
         check_contiguity(&mtrx); //check that transcript lengths are contiguous from min len to max len
         set_enriched_lengths(&mtrx, incld_up2, excld_trmnl);

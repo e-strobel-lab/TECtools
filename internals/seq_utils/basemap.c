@@ -498,9 +498,11 @@ void set_basemap_pairs(basemap * bmap, int mode)
     if (mode == NO_MASK) { //running NO_MASK mode
         //no checks needed for NO_MASK mode
         
-    } else if (mode == MASK_PAIRS && bmap->rP_cnt > 1) { //MASK_PAIRS mode requires <= 1 pair constraint
-        printf("set_basemap_pairs: error - basemap pairs cannot be set in MASK_PAIRS mode if the basemap contains more than one pair constraint. aborting...\n");
-        abort();
+    } else if (mode == MASK_PAIRS) { //running MASK_PAIRS mode
+        if (bmap->rP_cnt != 1) {     //requires 1 pair constraint
+            printf("set_basemap_pairs: error - basemap pairs cannot be set in MASK_PAIRS mode if the basemap does not contain exactly one pair constraint. aborting...\n");
+            abort();
+        }
         
     } else { //unrecognized mode
         printf("set_basemap_pairs: unrecognized mode. aborting...\n");

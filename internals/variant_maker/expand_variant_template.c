@@ -26,8 +26,11 @@
 /* expand_variant_template: recursively construct targets from a variant template base map */
 void expand_variant_template(basemap * bmap, int nxt, char output[MAXLEN+1], struct trgt_vb lcl_bases, int mode)
 {
-    extern fasta *vrnts; //array of variant sequences
-    extern int v_indx;   //index for vrnts array
+    extern fasta *vrnts;    //array of variant sequences
+    extern uint64_t v_indx; //index for vrnts array
+    
+    extern barcode_bank * bc_crnt; //pointer to current barcode bank
+    extern uint64_t barcode_count; //number of barcodes that passed filter
     
     int i = 0; //general purpose index
     int j = 0; //general purpose index
@@ -118,8 +121,8 @@ void expand_variant_template(basemap * bmap, int nxt, char output[MAXLEN+1], str
             mk_variant_name(vrnt_nm, lcl_bases, bmap);                  //construct variant name
         
             //allocate memory for variant name and sequence
-            vrnts[v_indx].nm = malloc((strlen(vrnt_nm)+1) * sizeof(vrnts[v_indx].nm));
-            vrnts[v_indx].sq = malloc((strlen(output)+1) * sizeof(vrnts[v_indx].sq));
+            vrnts[v_indx].nm = malloc((strlen(vrnt_nm)+1) * sizeof(*(vrnts[v_indx].nm)));
+            vrnts[v_indx].sq = malloc((strlen(output)+1) * sizeof(*(vrnts[v_indx].sq)));
             
             if (vrnts[v_indx].nm == NULL || vrnts[v_indx].sq == NULL) { //check memory allocation success
                 printf("expand_variant_template: variant memory allocation failed. aborting...");
@@ -136,13 +139,20 @@ void expand_variant_template(basemap * bmap, int nxt, char output[MAXLEN+1], str
          */
         } else if (mode == MAKE_BARCODES && !filter_barcode(output)) {
             
-            //allocate memory for variant sequence
-            if ((vrnts[v_indx].sq = malloc((strlen(output)+1) * sizeof(vrnts[v_indx].sq))) == NULL) {
-                printf("expand_variant_template: variant memory allocation failed. aborting...");
+            //allocate memory for barcode sequence
+            if ((bc_crnt->fa[bc_crnt->cnt].sq = malloc((strlen(output)+1) * sizeof(*(bc_crnt->fa[bc_crnt->cnt].sq)))) == NULL) {
+                printf("expand_variant_template: barcode sequence memory allocation failed. aborting...");
                 abort();
             }
-            strcpy(vrnts[v_indx].sq, output); //store variant sequence invrnts array
-            v_indx++;                         //increment variant index
+            
+            strcpy(bc_crnt->fa[bc_crnt->cnt].sq, output); //store barcode sequence
+            
+            if (++bc_crnt->cnt == BC_BLOCK_SIZE) {        //if current bank is now full
+                add_barcode_bank(bc_crnt);                //allocate a new barcode bank
+                bc_crnt = bc_crnt->nxt;                   //set bc_crnt to point to the next barcode bank
+            }
+            
+            barcode_count++; //increment total passed filter barcode count
         }
     }
     

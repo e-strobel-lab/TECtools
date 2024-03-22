@@ -21,7 +21,7 @@
 #include "validate_input.h"
 
 /* validate_input: perform basic checks to assess input sample compatiblity */
-void validate_input (input_data * ipt)
+void validate_input (input_data * ipt, int mode)
 {
     //check that number of input files for each sample is the same
     if (ipt->cnt[S2] != ipt->cnt[S1] || ipt->cnt[S3] != ipt->cnt[S1]) {
@@ -33,7 +33,18 @@ void validate_input (input_data * ipt)
     int i = 0;                  //general purpose index
     int ipt_cnt = ipt->cnt[S1]; //input count
     
-    char tbl_sffx[22] = {"_full_table"};   //suffix to remove from sample name
+    char * sffx2rmv = NULL; //pointer to sffx 2 remove, depending on mode
+    char tbl_sffx[12]  = {"_full_table"};     //suffix to remove from sample name
+    char algn_sffx[17] = {"_alignment_rates"};//suffix to remove from sample name
+    
+    if (mode == REACTIVITY) {      //if running REACTIVITY mode
+        sffx2rmv = &tbl_sffx[0];   //remove full table suffix
+    } else if (mode == LEN_DIST) { //if running LEN_DIST mode
+        sffx2rmv = &algn_sffx[0];  //remove the alignment rate suffix
+    } else {
+        printf("validate_input: unexpected mode. aborting...\n");
+        abort();
+    }
     
     for (sm = 0; sm < TOT_SAMPLES; sm++) { //for each sample
         
@@ -47,7 +58,7 @@ void validate_input (input_data * ipt)
             
             //get parsable sample name
             get_sample_name(ipt->fn[sm][i], ipt->sn[sm][i]);
-            remove_simple_suffix(ipt->sn[sm][i], tbl_sffx);
+            remove_simple_suffix(ipt->sn[sm][i], sffx2rmv);
             
             //parse sample name, then compare the attributes of current
             //sub-sample name to the attributes of the first sub-sample name

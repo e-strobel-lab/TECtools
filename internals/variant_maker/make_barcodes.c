@@ -33,21 +33,26 @@
 /* NOTE: the barcode linker sequence is appended in get_rndm_brcds.
  any change to the barcode linker sequence must be made there. */
 
+//barcode storage
+barcode_bank bc_root = {0};    //root barcode bank
+barcode_bank * bc_crnt = NULL; //pointer to current barcode bank
+uint64_t barcode_count = 0;    //number of barcodes that passed filter
+
 /* mk_brcds: coordinates barcode generation */
 int mk_brcds(int brcds2mk) {
     
     printf("running in MAKE_BARCODES mode\n");
     
-    extern fasta *vrnts; //pointer to fasta structures used when generating variants
-    extern int v_indx;   //index of current variant
+    extern fasta *vrnts;    //pointer to fasta structures used when generating variants
+    extern uint64_t v_indx; //index of current variant
     
     extern FILE * prcs_ofp;            //output file pointer for processing messages
     extern char prcs_out_nm[MAX_LINE]; //name of processing message output file
     extern char out_msg[MAX_LINE];     //output message
     
-    int i = 0;                 //general purpose index
-    int passed_filter = 0;     //number of barcodes that passed the parameter filter
-    target * pf_brcds = NULL;  //pointer to target structures, used when picking random barcodes
+    int i = 0;                  //general purpose index
+    uint64_t passed_filter = 0; //number of barcodes that passed the parameter filter
+    target * pf_brcds = NULL;   //pointer to target structures, used when picking random barcodes
     
     wt_source brcd_src[BARCODE_TEMPLATES] = {0}; //wt_source array for storing barcode template sequences
     basemap brcd_bmap[BARCODE_TEMPLATES] = {0};  //basemap array for storing barcode template sequences
@@ -66,7 +71,8 @@ int mk_brcds(int brcds2mk) {
     init_brcd_tmplts(&brcd_src[0], &brcd_bmap[0]);   //initialize variant templates for barcode generation
     passed_filter = xpnd_brcd_tmplts(&brcd_bmap[0]); //expand barcode variant templates
     
-    printf("passed filter: %d\n", passed_filter);
+    printf("passed filter: %llu\n", (long long unsigned int)passed_filter);
+    merge_barcode_bank(&bc_root, passed_filter);
     
     //allocate memory to store passed filter barcodes in targets structures
     if ((pf_brcds = calloc(passed_filter, sizeof(*pf_brcds))) == NULL) {
@@ -106,13 +112,13 @@ int init_brcd_tmplts(wt_source * brcd_src, basemap * brcd_bmap)
     int vars = 0; //total number of variants encoded by barcode templates
     
     const char brcd_nm[17] = {"barcode_template"}; //name placeholder for barcode variant templates
-    const char brcd_sq[BARCODE_TEMPLATES][43] ={   //barcode variant template sequences
-                             //SNNNNNNSloopSNNNNNNStKKtKYYgRYgRtcWSloopSW
-                              "SNNNNNNSTKCGSNNNNNNSTKKTKYYGRYGRTCWSTKCGSW",
-                              "SNNNNNNSTKCGSNNNNNNSTKKTKYYGRYGRTCWSGKGASW",
-                              "SNNNNNNSGKGASNNNNNNSTKKTKYYGRYGRTCWSTKCGSW",
-                              "SNNNNNNSGKGASNNNNNNSTKKTKYYGRYGRTCWSGKGASW"};
-    const char brcd_pr[43] = {"((((((((....))))))))..............((....))"}; //barcode variant template structure
+    const char brcd_sq[BARCODE_TEMPLATES][45] ={   //barcode variant template sequences
+                             //NNNNNNNNSloopSNNNNNNNNtKKtKYYgRYgRtcNNloopNN
+                              "NNNNNNNNSTKCGSNNNNNNNNTKKTKYYGRYGRTCNNTKCGNN",
+                              "NNNNNNNNSTKCGSNNNNNNNNTKKTKYYGRYGRTCNNGKGANN",
+                              "NNNNNNNNSGKGASNNNNNNNNTKKTKYYGRYGRTCNNTKCGNN",
+                              "NNNNNNNNSGKGASNNNNNNNNTKKTKYYGRYGRTCNNGKGANN"};
+    const char brcd_pr[45] = {"(((((((((....)))))))))..............((....))"}; //barcode variant template structure
     
     //initialize a variant template for each barcode sequence
     
@@ -162,35 +168,34 @@ int init_brcd_tmplts(wt_source * brcd_src, basemap * brcd_bmap)
 }
 
 /* xpnd brcd_tmplts: expand barcode templates to generate all possible barcode variants */
-int xpnd_brcd_tmplts(basemap * brcd_bmap)
+uint64_t xpnd_brcd_tmplts(basemap * brcd_bmap)
 {
-    printf("expanding barcode templates\n");
-    extern fasta *vrnts; //pointer to fasta structures used when generating variant
-    extern int v_indx;   //index of current variant
+    printf("\nexpanding barcode templates\n");
+    
+    extern barcode_bank bc_root;   //root barcode bank
+    extern barcode_bank * bc_crnt; //pointer to current barcode bank
+    extern uint64_t barcode_count; //total number of passed filter barcodes
     
     int i = 0;    //general purpose index
     int vars = 0; //total number of variants encoded by barcode templates
     
-    vars = count_variants(&brcd_bmap[0], BARCODE_TEMPLATES, MAKE_BARCODES); //determine number of possible barcodes
-    printf("total barcodes = %d\n\n", vars);
-    
     char var_outpt[MAXLEN] = {0};       //array to store sequences during barcode expansion
     struct trgt_vb var_lcl_bases = {0}; //array of variable bases that were set for a given barcode
     
-    //allocate memory to store barcode sequences
-    if ((vrnts = calloc(vars+1, sizeof(*vrnts))) == NULL) {
-        printf("xpnd_brcd_tmplts: error - variant memory allocation failed. aborting...\n");
-        abort();
-    }
+    init_barcode_bank(&bc_root, NULL);  //initialize root barcode bank
+    bc_crnt = &bc_root;                 //set current barcode bank pointer to root barcode bank
     
     //expand barcode templates
     for (i = 0; i < BARCODE_TEMPLATES; i++) {
         printf("expanding ref %s\n", brcd_bmap[i].rS);
-        get_vbases(&brcd_bmap[i], MASK_PAIRS); //convert variant template to a basemap
+        get_vbases(&brcd_bmap[i], MASK_PAIRS);          //convert variant template to a basemap
+        set_basemap_pairs(&brcd_bmap[i], MASK_PAIRS);   //set pairing information in MASK_PAIRS mode
         expand_variant_template(&brcd_bmap[i], 0, var_outpt, var_lcl_bases, MAKE_BARCODES); //expand variant template
     }
     
-    return v_indx; //return number of barcodes generated
+    printf("\nexpanded variant templates yielding %llu pf barcodes\n", (long long unsigned int)barcode_count);
+    
+    return barcode_count; //return number of barcodes generated
 }
 
 /* filter_barcode: filter barcodes that do not meet the parameters specified in make_barcodes.h */
@@ -206,10 +211,11 @@ int filter_barcode(char * sq)
     int crnt_homopol = 0;  //variable to track length of a homopolymer
     char prev_base = '\0'; //identity of previous base, used for homopolymer tracking
     
-    int pos1to3_gc = 0;    //number of GC nucleotides in positions 1 to 3
-    int pos4to6_gc = 0;    //number of GC nucleotides in positions 4 to 6
-    int pos1to6_gc = 0;    //number of GC nucleotides in positions 1 to 6
-    int pos25to26_gc = 0;  //number of GC nucleotides in positions 25 and 26
+    int s1bot_gc = 0;      //number of GC nucleotides in positions 1 to 3
+    int s1top_gc = 0;      //number of GC nucleotides in positions 4 to 6
+    int s1all_gc = 0;      //number of GC nucleotides in positions 1 to 6
+    int s2bot_gc = 0;      //number of GC nucleotides in positions 27 and 28
+    int s2top_gc = 0;      //number of GC nucleotides in positions 36 and 37
         
     for (j = 0; sq[j]; j++) {
         
@@ -225,17 +231,22 @@ int filter_barcode(char * sq)
                 
             case 'G':
                 gc_cnt++;
-                if (j >= STEM1BOT_N_STRT && j <= STEM1BOT_N_END) {pos1to3_gc++;} //track bottom stem1 gc content
-                if (j >= STEM1TOP_N_STRT && j <= STEM1TOP_N_END) {pos4to6_gc++;} //track top stem1 gc content
-                if (j >= STEM1BOT_N_STRT && j <= STEM1TOP_N_END) {pos1to6_gc++;} //track entire stem1 gc content
-                if (j >= 25 && j <= 26) {pos25to26_gc++;}                        //track 25/26 gc content
+                if (j >= STEM1BOT_N_STRT && j <= STEM1BOT_N_END) {s1bot_gc++;} //track bottom stem1 gc content
+                if (j >= STEM1TOP_N_STRT && j <= STEM1TOP_N_END) {s1top_gc++;} //track top stem1 gc content
+                if (j >= STEM1BOT_N_STRT && j <= STEM1TOP_N_END) {s1all_gc++;} //track entire stem1 gc content
+                if (j >= STEM2BOT_STRT && j <= STEM2BOT_END) {s2bot_gc++;}  //track s2bot gc content
+                
+                if (j >= STEM2TOP_STRT && j <= STEM2TOP_END) {s2top_gc++;}  //track s2top gc content
                 break;
             case 'C':
                 gc_cnt++;
-                if (j >= STEM1BOT_N_STRT && j <= STEM1BOT_N_END) {pos1to3_gc++;} //track bottom stem1 gc content
-                if (j >= STEM1TOP_N_STRT && j <= STEM1TOP_N_END) {pos4to6_gc++;} //track top stem 1 gc content
-                if (j >= STEM1BOT_N_STRT && j <= STEM1TOP_N_END) {pos1to6_gc++;} //track entire stem1 gc content
-                if (j >= 25 && j <= 26) {pos25to26_gc++;}                        //track 25/26 gc content
+                if (j >= STEM1BOT_N_STRT && j <= STEM1BOT_N_END) {s1bot_gc++;} //track bottom stem1 gc content
+                if (j >= STEM1TOP_N_STRT && j <= STEM1TOP_N_END) {s1top_gc++;} //track top stem 1 gc content
+                if (j >= STEM1BOT_N_STRT && j <= STEM1TOP_N_END) {s1all_gc++;} //track entire stem1 gc content
+                if (j >= STEM2BOT_STRT && j <= STEM2BOT_END) {s2bot_gc++;}  //track s2bot gc content
+                
+                if (j >= STEM2TOP_STRT && j <= STEM2TOP_END) {s2top_gc++;}  //track s2top gc content
+                
                 break;
                 
             default:
@@ -261,16 +272,17 @@ int filter_barcode(char * sq)
     }
     
     //check if barcode sequence meets all specifications
-    if (max_homopol > HOMOPOL_LIMIT       ||
-        gc_cnt < BRCD_GC_MIN              ||
-        gc_cnt > BRCD_GC_MAX              ||
-        pos1to3_gc < POS1TO3_GC_MIN       ||
-        pos1to3_gc > POS1TO3_GC_MAX       ||
-        pos4to6_gc < POS4TO6_GC_MIN       ||
-        pos4to6_gc > POS4TO6_GC_MAX       ||
-        pos1to6_gc < POS1TO6_GC_MIN       ||
-        pos1to6_gc > POS1TO6_GC_MAX       ||
-        pos25to26_gc > POS25TO26_GC_LIMIT) {
+    if (max_homopol > HOMOPOL_LIMIT ||
+        gc_cnt < BRCD_GC_MIN        ||
+        gc_cnt > BRCD_GC_MAX        ||
+        s1bot_gc < S1BOT_GC_MIN     ||
+        s1bot_gc > S1BOT_GC_MAX     ||
+        s1top_gc < S1TOP_GC_MIN     ||
+        s1top_gc > S1TOP_GC_MAX     ||
+        s1all_gc < S1ALL_GC_MIN     ||
+        s1all_gc > S1ALL_GC_MAX     ||
+        s2top_gc > S2TOP_GC_LIMIT /*||
+        pos25to26_gc > POS25TO26_GC_LIMIT*/) {
         return 1; //return fail
     } else {
         return 0; //return pass
@@ -278,10 +290,10 @@ int filter_barcode(char * sq)
 }
 
 /* store_pf_brcds: store barcodes that passed filter in a targets struct*/
-int store_pf_brcds(target * pf_brcds, int passed_filter)
+int store_pf_brcds(target * pf_brcds, uint64_t passed_filter)
 {
     extern fasta *vrnts; //pointer to fasta structures used when generating variant
-    extern int v_indx;   //index of current variant
+    extern uint64_t v_indx;   //index of current variant
     
     int i = 0;           //general purpose index
     int b_indx = 0;      //barcode index
@@ -301,7 +313,7 @@ int store_pf_brcds(target * pf_brcds, int passed_filter)
      
     //check that number of sequences stored in pf_brcds matches the number of sequences that passed filter
     if (b_indx != passed_filter) {
-        printf("store_pf_barcodes: error - variants stored in pf_brcds array (%d) does not equal the number of passed filter variants(%d). aborting...\n", passed_filter, b_indx);
+        printf("store_pf_barcodes: error - variants stored in pf_brcds array (%llu) does not equal the number of passed filter variants(%d). aborting...\n", (long long unsigned int)passed_filter, b_indx);
         abort();
     }
     
@@ -310,7 +322,7 @@ int store_pf_brcds(target * pf_brcds, int passed_filter)
 }
 
 /* get_rndom_brcds: select random passed filter barcodes to output*/
-int get_rndm_brcds(target ** brcd_out, target * pf_brcds, int passed_filter, int brcds2mk)
+int get_rndm_brcds(target ** brcd_out, target * pf_brcds, uint64_t passed_filter, int brcds2mk)
 {
     srand(time(NULL)); //seed random number generation
     
@@ -320,14 +332,13 @@ int get_rndm_brcds(target ** brcd_out, target * pf_brcds, int passed_filter, int
     
     const char brcd_lnkr[10] = "AAACCAACT"; //barcode linker sequence //TODO: confirm finalized
     
-                        //SNNNNNNSloopSNNNNNNStKKtKYYgRYgRtcWSloopSW
-    char rPos[43] =     {"************.........**.***.**.*..******.."}; //randomized positions
-    //note that the K in the KYY motif at the base of the sequester hairpin
-    //does not always form a base pair.
-    char brcd_sec[43] = {"((((((((....))))))))....((((((((((((....))"}; //secondary structure
+                        //NNNNNNNNSloopSNNNNNNNNtKKtKYYgRYgRtcNNloopNN
+    char rPos[45] =     {"*************..........**.***.**.*..******.."}; //randomized positions
+    char brcd_sec[45] = {"(((((((((....))))))))).....(((((((((((....))"}; //secondary structure
+    //NOTE: the K in the 'KYY' motife at the beginning of stem 2 will not always be paired
     
     int dstnc = 0;         //variable to track variable position differences during sequence comparision
-    int dstnc_thrshld = 5; //minimum number of differences between barcodes
+    int dstnc_thrshld = 7; //minimum number of differences between barcodes
     int too_close = 0;     //flag that current barcode sequence is too closely related to a previous sequence
     int brcd_cnt = 0;      //number of barcodes selected for output
         
@@ -402,4 +413,68 @@ int get_rndm_brcds(target ** brcd_out, target * pf_brcds, int passed_filter, int
     return 1;
 }
 
+/* init_barcode_bank: initialize new barcode bank */
+void init_barcode_bank (barcode_bank * bc_bnk, barcode_bank * prev)
+{
+    bc_bnk->fa = calloc(BC_BLOCK_SIZE, sizeof(*(bc_bnk->fa))); //allocate memory for barcode sequences
+    bc_bnk->cnt = 0;     //initialize bank barcode count to zero
+    bc_bnk->nxt = NULL;  //initialize pointer to next bank to NULL
+    bc_bnk->prev = prev; //initialize pointer to previous bank to the 'prev' argument
+}
 
+/* add_barcode_bank: allocate a new barcode bank within the barcode bank linked list */
+void add_barcode_bank (barcode_bank * bc_bnk)
+{
+    bc_bnk->nxt = calloc(1, sizeof(*(bc_bnk->nxt))); //allocate memory for the new barcode bank
+    init_barcode_bank(bc_bnk->nxt, bc_bnk);          //initialize the new barcode bank
+}
+
+/* merge_barcode_bank: merge the barcode bank linked list into a fasta array */
+void merge_barcode_bank(barcode_bank * bc_bnk, uint64_t cnt)
+{
+    extern fasta * vrnts;          //pointer to fasta structures used when generating variants
+    extern uint64_t v_indx;        //index of current variant
+    extern barcode_bank * bc_crnt; //pointer to current barcode bank
+    
+    barcode_bank * lcl_crnt_bnk = bc_bnk; //set local current barcode bank to bc_bnk argument
+    
+    int i = 0; //general purpose index
+    
+    //allocate memory to store barcode sequences
+    if ((vrnts = calloc(cnt+1, sizeof(*vrnts))) == NULL) {
+        printf("xpnd_brcd_tmplts: error - variant memory allocation failed. aborting...\n");
+        abort();
+    }
+        
+    int found_last_bank = 0; //flag that last barcode bank was found
+    
+    while (!found_last_bank) {
+        for (i = 0; i < lcl_crnt_bnk->cnt; i++) { //for every variant in the current barcode bank
+            
+            //allocate barcode sequence storage in the vrnts array
+            if ((vrnts[v_indx].sq = malloc((strlen(lcl_crnt_bnk->fa[i].sq)+1) * sizeof(*(vrnts[v_indx].sq)))) == NULL) {
+                printf("merge_barcode_bank: variant memory allocation failed. aborting...\n");
+                abort();
+            }
+            
+            strcpy(vrnts[v_indx].sq, lcl_crnt_bnk->fa[i].sq); //store variant sequence in vrnts array
+            v_indx++;                                         //increment variant index
+            free(lcl_crnt_bnk->fa[i].sq);                     //free bc bank variant sequence memory
+        }
+        
+        free(lcl_crnt_bnk->fa); //free bc_bank fasta memory
+        
+        if ((lcl_crnt_bnk = lcl_crnt_bnk->nxt) == NULL) { //if there is not another bank to merge
+            found_last_bank = 1;                          //set flag that last bank was found
+        }
+    }
+    
+    lcl_crnt_bnk = bc_crnt; //set local current barcode bank to last barcode bank
+    
+    while (lcl_crnt_bnk->prev != NULL) {   //until the root barcode bank is reached
+        lcl_crnt_bnk = lcl_crnt_bnk->prev; //set the local current bc bank to the previous bc bank
+        free(lcl_crnt_bnk->nxt);           //free next barcode bank memory
+    }
+        
+    return;
+}

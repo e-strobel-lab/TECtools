@@ -19,7 +19,7 @@
 #include "./assemble_TECprobeLMP_data_structs.h"
 
 /* validate_input: perform basic checks to assess input sample compatiblity */
-void validate_input (input_data * ipt);
+void validate_input (input_data * ipt, int mode);
 
 /* validate_sample_compatibility: compare sample attributes to assess whether samples are compatible*/
 void validate_sample_compatibility(configuration_MLT * cfgT, configuration_MLT * cfgR);

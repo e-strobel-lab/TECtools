@@ -21,9 +21,11 @@
 #include "./find_nxt_dir_entry.h"
 #include "./parse_log.h"
 
+#include "../process_TECprobe_profiles/VL/parse_VL_sample_name.h"
+
 /* get_profiles: read input directory to find shapemapper output files.
  then call parse_profile to store reactivity data in cotrans matrix struct*/
-int get_profiles(char * prnt_dir, cotrans_matrix * mtrx, alignment_stats * algn, int test_SM2_data)
+int get_profiles(char * prnt_dir, cotrans_matrix * mtrx, alignment_stats * algn, char * smpl_nm, int test_SM2_data)
 {
     //printf("in get_profiles\n");
     
@@ -58,6 +60,8 @@ int get_profiles(char * prnt_dir, cotrans_matrix * mtrx, alignment_stats * algn,
     int fnd_d_entry = 0;             //flag that directory entry was found
     
     int proceed = 1;                 //flag to proceed with the next iteration of outermost while loop
+    
+    int sample_name_set = 0;         //flag that sample name was set
     
     mtrx->sq[0] = '>';
     mtrx->tl[MIN] = MIN_INIT;
@@ -125,6 +129,14 @@ int get_profiles(char * prnt_dir, cotrans_matrix * mtrx, alignment_stats * algn,
 
             
             if (proceed) { //found next directory entry
+                
+                //set sample name
+                if (i == 1 && !sample_name_set) { //if reading SM2 output dir and sample name is not set
+                    strcpy(smpl_nm, ntry_name);   //set the sample name
+                    remove_out_suffix(smpl_nm);   //remove the out suffix from the directory
+                    sample_name_set = 1;          //set flag that the sample name was set
+                }
+                
                 strcpy(tmp_file_loc, file_loc); //copy current file_loc to tmp_file_loc
                 
                 //test if new file location fits in array, if so, assemble new file_loc

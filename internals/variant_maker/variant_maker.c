@@ -41,8 +41,8 @@ void check_input(names * nm, int varFile_supplied, int brcdFile_supplied, int ap
 void print_output(names * nm, basemap * bmap, int vTmpCnt, int varCnt, char * out_dir);
 
 //variant storage
-fasta *vrnts = NULL; //pointer to fasta structures used when generating variants
-int v_indx = 0;      //index of current variant
+fasta *vrnts = NULL;  //pointer to fasta structures used when generating variants
+uint64_t v_indx = 0;  //index of current variant
 
 FILE * prcs_ofp = NULL;           //output file pointer for processing messages
 char prcs_out_nm[MAX_LINE] = {0}; //name of processing message output file
@@ -53,7 +53,7 @@ char out_msg[MAX_LINE] = {0};     //output message
 int main(int argc, char *argv[])
 {
     extern fasta *vrnts;       //pointer to fasta structures used when generating variants
-    extern int v_indx;         //index of current variant
+    extern uint64_t v_indx;    //index of current variant
     
     extern FILE * prcs_ofp;            //output file pointer for processing messages
     extern char prcs_out_nm[MAX_LINE]; //name of processing message output file
@@ -81,6 +81,7 @@ int main(int argc, char *argv[])
         static struct option long_options[] =
         {
             {"mk-variants",     required_argument,  0,  'v'},  //variant template input file, sets MAKE_VARIANTS mode
+            /* WARNING: mk-barcodes mode should only be run on systems with >= 64 GB of RAM */
             {"mk-barcodes",     required_argument,  0,  'b'},  //flag to make barcode file
             {"append_barcode",  required_argument,  0,  'a'},  //flag to append barcodes to variants
             {0, 0, 0, 0}
@@ -212,7 +213,7 @@ int main(int argc, char *argv[])
     }
     
     print_output(&nm, &bmap[0], vTmpCnt, varCnt, out_dir);
-    sprintf(out_msg, "\n%d variants were generated from %d variant template(s)\n", v_indx-vTmpCnt, vTmpCnt);
+    sprintf(out_msg, "\n%llu variants were generated from %d variant template(s)\n", (long long unsigned int)(v_indx-vTmpCnt), vTmpCnt);
     printf2_scrn_n_fl(prcs_ofp, out_msg);
     /* ******* end of variant generation ******* */
     
