@@ -57,7 +57,7 @@ void print_reactivity_output(char * out_dir, char * out_nm, mode_parameters * mo
         for (j = 0; j < ipt_cnt[i]; j++) {
             fprintf(out_fp, "\t%s_S%d_%dnt_%d", out_nm, i+1, nrchd_len[i], j+1);
         }
-        fprintf(out_fp, "\t%s_S%d_%dnt_avg", out_nm, nrchd_len[i], i+1);
+        fprintf(out_fp, "\t%s_S%d_%dnt_avg", out_nm, i+1, nrchd_len[i]);
     }
     fprintf(out_fp, "\n");
     

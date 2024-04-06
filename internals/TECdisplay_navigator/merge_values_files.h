@@ -22,6 +22,8 @@
 #include "./TECdisplay_navigator_defs.h"
 #include "./TECdisplay_navigator_structs.h"
 
+#include "./parse_TECdisplay_out_line.h"
+
 /* merge_values_files: merge multiple values files into a single file */
 int merge_values_files(values_input * vals_ipt, int vals_cnt, char * merged_out_nm, int nonstandard);
 

@@ -38,6 +38,7 @@ int filter_values(FILE * ipt, constraints * cons, int cons_cnt, basemap * bmap, 
     //general input variables
     int smpl_cnt = 0;                     //number of samples in merged values file
     char line[MAX_LINE+1] = {0};          //array to store value file line
+    char tmp_line[MAX_LINE+1] = {0};      //array for storing temporary copy of line
     
     //vbase/values input variables
     char *p_id = NULL;                    //pointer to start of variant id in line array
@@ -53,9 +54,10 @@ int filter_values(FILE * ipt, constraints * cons, int cons_cnt, basemap * bmap, 
     
     /**** parse first line of values file to get column headers ****/
     get_line(line, ipt); //get first line of values file
+    strcpy(tmp_line, line);
     
     if (!nonstandard) {  //input data is standard TECdisplay format
-        smpl_cnt = get_sample_info(line, &vals[0], &tot_vals); //parse line for column headers
+        smpl_cnt = get_sample_info(tmp_line, &vals[0], &tot_vals); //parse line for column headers
     }
     
     /**** open output file for each constraint ****/

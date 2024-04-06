@@ -16,7 +16,7 @@
 #define MAKE_VARIANTS 1     //make variants mode
 #define MAKE_BARCODES 2     //make barcodes mode
 
-#define MAXREF 8            //maximum number of references sequences
+#define MAXREF 1024         //maximum number of references sequences
 #define MAX_COMPLEX 26      //maximum number of complex pairs
 #define MAX_BRCDS_2_MK 5000 //maximum number of barcodes to make
 
