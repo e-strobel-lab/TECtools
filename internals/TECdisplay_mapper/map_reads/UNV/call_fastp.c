@@ -33,19 +33,24 @@ int call_fastp(names * nm, fastp_params prms)
     char unmerged_out1[256] = {0}; //array to store read 1 output option
     char unmerged_out2[256] = {0}; //array to store read 2 output option
     
+    int ret = 0; //variable for storing snprintf return value
+    
     //construct output file options
-    if ((snprintf(merged_out, 256, "--merged_out ./processed/%s.fq.gz", nm->mrg)) >= 256) {
-        printf("call_fastp: error - merged_out name exceeded buffer. aborting...\n");
+    ret = snprintf(merged_out, 256, "--merged_out ./processed/%s.fq.gz", nm->mrg);
+    if (ret >= 256 || ret < 0) {
+        printf("call_fastp: error - error when constructing merged_out name. aborting...\n");
         abort();
     }
     
-    if ((snprintf(unmerged_out1, 256, "--out1 ./processed/%s_unmerged.fq.gz", nm->smpl[READ1])) >= 256) {
-        printf("call_fastp: error - unmerged_out1 name exceeded buffer. aborting...\n");
+    ret = snprintf(unmerged_out1, 256, "--out1 ./processed/%s_unmerged.fq.gz", nm->smpl[READ1]);
+    if (ret >= 256 || ret < 0) {
+        printf("call_fastp: error - error when constructing unmerged_out1 name. aborting...\n");
         abort();
     }
     
-    if ((snprintf(unmerged_out2, 256, "--out2 ./processed/%s_unmerged.fq.gz", nm->smpl[READ2])) >= 256) {
-        printf("call_fastp: error - unmerged_out2 name exceeded buffer. aborting...\n");
+    ret = snprintf(unmerged_out2, 256, "--out2 ./processed/%s_unmerged.fq.gz", nm->smpl[READ2]);
+    if (ret >= 256 || ret < 0) {
+        printf("call_fastp: error - error when constructing unmerged_out2 name. aborting...\n");
         abort();
     }
     

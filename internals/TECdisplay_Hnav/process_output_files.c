@@ -81,6 +81,8 @@ void aggregate_output(int vals_cnt, values_input * vals, int layr_cnt, constrain
     
     int cols2incld[MAX_VALS] = {0};  //array for storing the included column numbers
     
+    int ret = 0; //variable for storing snprintf return value
+    
     for (i = 0; i < layr_cnt; i++) { //for each layer
         
         EOF_tot = 0; //zero EOF tot for current layer
@@ -117,8 +119,9 @@ void aggregate_output(int vals_cnt, values_input * vals, int layr_cnt, constrain
             
         } else {  //if processing a non-zero layer, append the constraint sample name to the output suffix
             strcpy(tmp_str, out_suffix);
-            if ((snprintf(out_suffix, MAX_LINE, "%s_%s", tmp_str, cons_meta[i].sn)) >= MAX_LINE) {
-                printf("aggregate_output: error - output suffix exceeded buffer. aborting...\n");
+            ret = snprintf(out_suffix, MAX_LINE, "%s_%s", tmp_str, cons_meta[i].sn);
+            if (ret >= MAX_LINE || ret < 0) {
+                printf("aggregate_output: error - error when appending constraint sample name to output name. aborting...\n");
                 abort();
             }
         }
@@ -127,8 +130,9 @@ void aggregate_output(int vals_cnt, values_input * vals, int layr_cnt, constrain
         for (j = 0; j < vals_cnt; j++) {
             
             //generate file name by appending out_suffix to the values file name
-            if ((snprintf(agg_out_nm, MAX_LINE, "%s_%s.txt", vals[j].nm, out_suffix)) >= MAX_LINE) {
-                printf("aggregate_output: error - aggregate output file name exceeded buffer. aborting...\n");
+            ret = snprintf(agg_out_nm, MAX_LINE, "%s_%s.txt", vals[j].nm, out_suffix);
+            if (ret >= MAX_LINE || ret < 0) {
+                printf("aggregate_output: error - error when constructing aggregate output file name. aborting...\n");
                 abort();
             }
             

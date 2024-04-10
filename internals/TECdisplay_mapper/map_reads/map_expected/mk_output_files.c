@@ -69,10 +69,13 @@ void print_output(target * trgts, target_params * trg_prms, names * nm)
     opt_mx_trg * crnt_trg_val = NULL; //pointer for dereferencing target values
     opt_ref * crnt_ref_val = NULL;    //pointer for dereferencing reference values
     
+    int ret = 0; //variable for storing snprintf return value
+    
     //construct output file name
     if (nm->out_nm[0]) {
-        if ((snprintf(out_nm, 256, "%s_out.txt", nm->out_nm)) >= 256) {
-            printf("print_output: error - output file name string exceeded buffer. aborting...\n");
+        ret = snprintf(out_nm, 256, "%s_out.txt", nm->out_nm);
+        if (ret >= 256 || ret < 0) {
+            printf("print_output: error - error when constructing output file name. aborting...\n");
             abort();
         }
     } else {
@@ -155,40 +158,47 @@ void print_metrics(target * trgts, target_params * trg_prms, metrics * met, name
     
     char out_str[MAX_LINE] = {0}; //array to store output strings
     
+    int ret = 0; //variable for storing return value
+    
     printf("\n\n");
 
     //print input files
     sprintf(out_str, "input files\n");
     printf2_scrn_n_fl(out_fp, out_str);
     
-    if ((snprintf(out_str, MAX_LINE, "read 1:  %s\n", nm->file[READ1])) >= MAX_LINE) {
-        printf("print_metrics: error - read 1 name string exceeded buffer. aborting...\n");
+    ret = snprintf(out_str, MAX_LINE, "read 1:  %s\n", nm->file[READ1]);
+    if (ret >= MAX_LINE || ret < 0) {
+        printf("print_metrics: error - error when printing read 1 name to mapping record. aborting...\n");
         abort();
     }
     printf2_scrn_n_fl(out_fp, out_str);
     
-    if ((snprintf(out_str, MAX_LINE, "read 2:  %s\n", nm->file[READ2])) >= MAX_LINE) {
-        printf("print_metrics: error - read 2 name string exceeded buffer. aborting...\n");
+    ret = snprintf(out_str, MAX_LINE, "read 2:  %s\n", nm->file[READ2]);
+    if (ret >= MAX_LINE || ret < 0) {
+        printf("print_metrics: error - error when printing read 2 name to mapping record. aborting...\n");
         abort();
     }
     printf2_scrn_n_fl(out_fp, out_str);
     
-    if ((snprintf(out_str, MAX_LINE, "targets: %s\n", nm->trgs)) >= MAX_LINE) {
-        printf("print_metrics: error - targets name string exceeded buffer. aborting...\n");
+    ret = snprintf(out_str, MAX_LINE, "targets: %s\n", nm->trgs);
+    if (ret >= MAX_LINE || ret < 0) {
+        printf("print_metrics: error - error when printing targets name to mapping record. aborting...\n");
         abort();
     }
     printf2_scrn_n_fl(out_fp, out_str);
     
     //print merged sample name
-    if ((snprintf(out_str, MAX_LINE, "\nmerged sample name:\n%s\n", nm->mrg)) >= MAX_LINE) {
-        printf("print_metrics: error - merged name string exceeded buffer. aborting...\n");
+    ret = snprintf(out_str, MAX_LINE, "\nmerged sample name:\n%s\n", nm->mrg);
+    if (ret >= MAX_LINE || ret < 0) {
+        printf("print_metrics: error - error when printing merged name string to mapping record. aborting...\n");
         abort();
     }
     printf2_scrn_n_fl(out_fp, out_str);
     
     if (nm->out_nm[0]) {
-        if ((snprintf(out_str, MAX_LINE, "\noutput name:\n%s\n", nm->out_nm)) >= MAX_LINE) {
-            printf("print_metrics: error - output name string exceeded buffer. aborting...\n");
+        ret = snprintf(out_str, MAX_LINE, "\noutput name:\n%s\n", nm->out_nm);
+        if (ret >= MAX_LINE || ret < 0) {
+            printf("print_metrics: error - error when printing output name to mapping record. aborting...\n");
             abort();
         }
         printf2_scrn_n_fl(out_fp, out_str);

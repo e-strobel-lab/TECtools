@@ -47,6 +47,7 @@ int main(int argc, char *argv[])
     
     int i = 0; //general purpose index
     
+    int ret = 0; //variable for storing snprintf return value
     
     /****** parse options using getopt_long ******/
     int c = -1;
@@ -116,8 +117,9 @@ int main(int argc, char *argv[])
                 break;
                 
             case 'o': //output file name supplied
-                if (snprintf(output_name, MAX_NAME, "%s.txt", argv[optind-1]) >= MAX_NAME) {
-                    printf("average_TECprobe_matrices: error - output name exceeded buffer. aborting...\n");
+                ret = snprintf(output_name, MAX_NAME, "%s.txt", argv[optind-1]);
+                if (ret >= MAX_NAME || ret < 0) {
+                    printf("average_TECprobe_matrices: error - error when storing output name. aborting...\n");
                     abort();
                 }
                 break;

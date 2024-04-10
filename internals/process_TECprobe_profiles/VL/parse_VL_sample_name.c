@@ -52,9 +52,12 @@ void parse_VL_sample_name(char * ipt_nm, configuration_MLT * cfg)
     
     int found_conc_start = 0;    //flag that start of concentration string was found
     
+    int ret = 0; //variable for storing snprintf return value
+    
     //copy sample name to snm array for parsing into sub-strings
-    if (snprintf(snm, MAX_LINE, "%s", ipt_nm) >= MAX_LINE) {
-        printf("parse_sample_name: sample name exceeded buffer. aborting...\n");
+    ret = snprintf(snm, MAX_LINE, "%s", ipt_nm);
+    if (ret >= MAX_LINE || ret < 0) {
+        printf("parse_sample_name: error when storing copy of sample name. aborting...\n");
         abort();
     }
     

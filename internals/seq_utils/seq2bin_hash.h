@@ -17,7 +17,7 @@
 
 #define SEQ2BIN_MAX_IPT 2048    //maximum target length
 #define SEQ2BIN_MAX_KEY 32		//maximum key length
-#define TABLE_SIZE 1300021		//hash table size
+#define TABLE_SIZE 16000057		//hash table size
 #define BLOCK_SIZE 131072		//memory allocation block size
 
 /* target: structure containing values for hash table targets */

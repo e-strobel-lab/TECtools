@@ -73,6 +73,8 @@ int main(int argc, char *argv[])
     int i = 0; //general purpose index
     int j = 0; //general purpose index
     
+    int ret = 0; //variable for storing snprintf return value
+    
     /* ******* parse options using getopt_long ******* */
     int c = -1;
     int option_index = 0;
@@ -136,15 +138,17 @@ int main(int argc, char *argv[])
     char out_dir[MAX_LINE] = {0}; //array to store output directory name
     
     //construct output directory name
-    if ((snprintf(out_dir, MAX_LINE, "%s_out", nm.vTmp)) >= MAX_LINE) {
-        printf("variant_maker: error - output directory name exceeded buffer. aborting...\n");
+    ret = snprintf(out_dir, MAX_LINE, "%s_out", nm.vTmp);
+    if (ret >= MAX_LINE || ret < 0) {
+        printf("variant_maker: error - error when constructing output directory name. aborting...\n");
         abort();
     }
     mk_out_dir(out_dir); //make output directory
     
     //generate input details file
-    if ((snprintf(prcs_out_nm, MAX_LINE, "./%s/%s_processing.txt", out_dir, nm.vTmp)) >= MAX_LINE) {
-        printf("variant_maker: error - processing messages file name exceeded buffer. aborting...\n");
+    ret = snprintf(prcs_out_nm, MAX_LINE, "./%s/%s_processing.txt", out_dir, nm.vTmp);
+    if (ret >= MAX_LINE || ret < 0) {
+        printf("variant_maker: error - error when constructing processing messages file name. aborting...\n");
         abort();
     }
     
@@ -231,9 +235,12 @@ void check_input(names * nm, int varFile_supplied, int brcdFile_supplied, int ap
     FILE * out_fp = NULL;         //output file pointer
     char out_nm[MAX_LINE] = {0};  //output file name
     
+    int ret = 0; //variable for storing snprintf return value
+    
     //construct input details file name
-    if ((snprintf(out_nm, MAX_LINE, "./%s/%s_input.txt", out_dir, nm->vTmp)) >= MAX_LINE) {
-        printf("check_input: error - input details file name exceeded buffer. aborting...\n");
+    ret = snprintf(out_nm, MAX_LINE, "./%s/%s_input.txt", out_dir, nm->vTmp);
+    if (ret >= MAX_LINE || ret < 0) {
+        printf("check_input: error - error when constructing input details file name. aborting...\n");
         abort();
     }
     
@@ -277,6 +284,8 @@ void print_output(names * nm, basemap * bmap, int vTmpCnt, int varCnt, char * ou
     int c = 0; //constant insertion index
     int d = 0; //constant deletion index
     
+    int ret = 0; //variable for storing snprintf return value
+    
     int printed_vb = 0; //flag that first vb of a variant template was printed
     
     int filtered_tot = 0; //total number of variants after filtering
@@ -289,8 +298,9 @@ void print_output(names * nm, basemap * bmap, int vTmpCnt, int varCnt, char * ou
     char out_nm[MAX_LINE] = {0}; //output file name
     
     //construct variant output file name
-    if ((snprintf(out_nm, MAX_LINE, "./%s/%s_variants.txt", out_dir, nm->vTmp)) >= MAX_LINE) {
-        printf("print_output: error - variant output file name exceeded buffer. aborting...\n");
+    ret = snprintf(out_nm, MAX_LINE, "./%s/%s_variants.txt", out_dir, nm->vTmp);
+    if (ret >= MAX_LINE || ret < 0) {
+        printf("print_output: error - error when constructing variant output file name. aborting...\n");
         abort();
     }
     

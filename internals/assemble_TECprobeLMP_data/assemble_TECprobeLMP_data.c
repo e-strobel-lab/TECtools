@@ -40,10 +40,10 @@ int main(int argc, char *argv[])
     int nrchd_len[TOT_SAMPLES] = {0};              //array to store enriched transcript length values (one per sample)
     int delims2col[TOT_SAMPLES][MAX_IPT] = {0};    //number of delimiters to reach the target data column
     
-    double vals[MAX_TRANSCRIPT][TOT_SAMPLES][MAX_IPT] = {{0}}; //array to store values from the target data columns
+    double vals[MAX_TRANSCRIPT][TOT_SAMPLES][MAX_IPT] = {{{0}}}; //array to store values from the target data columns
     
-    char out_nm[MAX_NAME] = {0};  //output file name
-    char out_dir[MAX_NAME] = {0}; //output directory name
+    char out_nm[MAX_NAME] = {0};    //output file name
+    char out_dir[MAX_NAME*2] = {0}; //output directory name
         
     /****** parse options using getopt_long ******/
     int c = -1;

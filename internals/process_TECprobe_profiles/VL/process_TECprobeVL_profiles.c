@@ -61,6 +61,8 @@ int main(int argc, char *argv[])
     
     char dflt_out_dir_nm[20] = {"dataset_norm_out"};
     
+    int ret = 0; //variable for storing snprintf return value
+    
     /****** parse options using getopt_long ******/
     int c = -1;
     int option_index = 0;
@@ -107,8 +109,9 @@ int main(int argc, char *argv[])
             case 'o': //output directory name
                 
                 //store output directory name
-                if (snprintf(outfiles.out_dir, MAX_NAME, "%s_%s", argv[optind-1], dflt_out_dir_nm) >= MAX_NAME) {
-                    printf("process_TECprobeVL_profiles: error - output directory name exceeds buffer. aborting...\n");
+                ret = snprintf(outfiles.out_dir, MAX_NAME, "%s_%s", argv[optind-1], dflt_out_dir_nm);
+                if (ret >= MAX_NAME || ret < 0) {
+                    printf("process_TECprobeVL_profiles: error - error when storing output directory name. aborting...\n");
                     abort();
                 }
                 
@@ -117,8 +120,9 @@ int main(int argc, char *argv[])
             case 'n': //user-supplied output file name
                 
                 //store user-supplied output file name
-                if (snprintf(sn.usr, MAX_NAME, "%s", argv[optind-1]) >= MAX_NAME) {
-                    printf("process_TECprobeVL_profiles: error - sample name exceeds buffer. aborting...\n");
+                ret = snprintf(sn.usr, MAX_NAME, "%s", argv[optind-1]);
+                if (ret >= MAX_NAME || ret < 0) {
+                    printf("process_TECprobeVL_profiles: error - error when storing sample name. aborting...\n");
                     abort();
                 }
                 break;
@@ -346,8 +350,11 @@ void print_processing_record(sample_names * sn, output_files * outfiles, SM2_ana
     FILE * p_prcs_rcrd = NULL;         //processing record file pointer
     char prcs_rcrd_nm[MAX_LINE] = {0}; //processing record file name
     
+    int ret = 0; //variable for storing snprintf return value
+    
     //generate processing record file name
-    if (snprintf(prcs_rcrd_nm, MAX_LINE, "./%s/000_processing_record.txt", outfiles->out_dir) >= MAX_LINE) {
+    ret = snprintf(prcs_rcrd_nm, MAX_LINE, "./%s/000_processing_record.txt", outfiles->out_dir);
+    if (ret >= MAX_LINE || ret < 0) {
         printf("print_processing_record: error - processing record file name exceeded buffer. aborting...\n");
         abort();
     }

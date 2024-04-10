@@ -27,6 +27,8 @@ void parse_TECdisplay_out_line(char * line, char ** p_id, char ** p_vals, int * 
     int j = 0; //general purpose index
     int k = 0; //general purpose index
     
+    int ret = 0; //variable for storing snprintf return value
+    
     int field_count = 0; //tracks number of fields in line
     int found_term = 0;  //flag that terminating null was found
     
@@ -55,7 +57,11 @@ void parse_TECdisplay_out_line(char * line, char ** p_id, char ** p_vals, int * 
         (*p_id) = &line[0];      //set pointer to variant id string
         (*p_vals) = &line[i+1];  //set pointer to values string
         
-        snprintf(tmp_vals, MAX_LINE, "%s", *p_vals); //store temporary copy of values string for parsing
+        ret = snprintf(tmp_vals, MAX_LINE, "%s", *p_vals); //store temporary copy of values string for parsing
+        if (ret >= MAX_LINE || ret < 0) {
+            printf("parse_TECdisplay_out_line: error - error when storing temporary copy of values string. aborting...");
+            abort();
+        }
                 
     } else { //unrecognized format error
         printf("%s\n", line);

@@ -21,6 +21,8 @@ void make_VL_output_directories(SM2_analysis_directory * an_dir, output_files * 
 {
     int i = 0; //general purpose index
     
+    int ret = 0; //variable for storing snprintf return value
+    
     char tl_dir_nm[MAX_NAME+1] = {'\0'};  //array to store transcrip length directory name
     char prf_dir_nm[MAX_NAME+1] = {'\0'}; //array to store reactivity profile directory name
     char profile_nm[MAX_NAME+1] = {'\0'}; //array to store reactivity profile file name
@@ -31,29 +33,32 @@ void make_VL_output_directories(SM2_analysis_directory * an_dir, output_files * 
         
         //generate a transcript length analysis directory with the format:
         //<three-digit transcript length>_analysis
-        if (snprintf(tl_dir_nm, MAX_NAME, "%s/%03d_analysis", outfiles->out_dir, i) >= MAX_NAME) {
-            printf("merged SM2_profiles: error - transcript length analysis directory name exceeded buffer. aborting...\n");
+        ret = snprintf(tl_dir_nm, MAX_NAME, "%s/%03d_analysis", outfiles->out_dir, i);
+        if (ret >= MAX_NAME || ret < 0) {
+            printf("make_VL_output_directories: error - error when constructing transcript length analysis directory name. aborting...\n");
             abort();
         }
         mk_out_dir(tl_dir_nm);
         
         //generate shapemapper 2 output directories with the format:
         //<sample_name>_<three-digit transcript length>_out
-        if (snprintf(prf_dir_nm, MAX_NAME, "%s/%s_%03d_out", tl_dir_nm, sn->sn2use, i) >= MAX_NAME) {
-            printf("merged SM2_profiles: error - SM2 output directory name exceeded buffer. aborting...\n");
+        ret = snprintf(prf_dir_nm, MAX_NAME, "%s/%s_%03d_out", tl_dir_nm, sn->sn2use, i);
+        if (ret >= MAX_NAME || ret < 0) {
+            printf("make_VL_output_directories: error - error when constructing SM2 output directory name. aborting...\n");
             abort();
         }
         mk_out_dir(prf_dir_nm);
         
         //generate output profile files with the format:
         //<sample_name>_<three-digit transcript length>_nt_profile.txt
-        if (snprintf(outfiles->ofn[i], MAX_NAME, "%s/%s_%03d_nt_profile.txt", prf_dir_nm, sn->sn2use, i) >= MAX_NAME) {
-            printf("merged SM2_profiles: error - output file name exceeded buffer. aborting...\n");
+        ret = snprintf(outfiles->ofn[i], MAX_NAME, "%s/%s_%03d_nt_profile.txt", prf_dir_nm, sn->sn2use, i);
+        if (ret >= MAX_NAME || ret < 0) {
+            printf("make_VL_output_directories: error - error when constructing output file name. aborting...\n");
             abort();
         }
                 
         if ((outfiles->ofp[i] = fopen(outfiles->ofn[i], "w")) == NULL) {
-            printf("read_SM2out_directory: error - could not open output file %s. Aborting program...\n", profile_nm);
+            printf("make_VL_output_directories: error - could not open output file %s. Aborting program...\n", profile_nm);
             abort();
         }
     }

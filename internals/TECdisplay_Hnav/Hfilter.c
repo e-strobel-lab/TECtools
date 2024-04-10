@@ -48,6 +48,8 @@ void Hfilter(constraint_metadata * cons_meta, char * prev_out_prfx, int cl, int 
     char out_msg_dir_name[13] = {"out_messages"}; //ouput message directory name
     struct stat st = {0};                         //storage for stat output
     
+    int ret = 0; //variable for storing snprintf return value
+    
     sprintf(cl_dir, "layer%d", cl+1); //generate directory name for the current layer
     
     if (stat(cl_dir, &st) == -1  && cl < layr_cnt) { //if output directory for current layer has not yet been made
@@ -97,38 +99,41 @@ void Hfilter(constraint_metadata * cons_meta, char * prev_out_prfx, int cl, int 
                     
                     //append layer name to TECDnav_out_dir
                     strcpy(tmp_str, TECDnav_out_dir);
-                    if ((snprintf(TECDnav_out_dir, MAX_LINE, "%s_%s",  tmp_str, layr_list[j])) >= MAX_LINE) {
-                        printf("Hfilter: error - TECdisplay_navigator output directory name exceeded buffer. aborting...\n");
+                    ret = snprintf(TECDnav_out_dir, MAX_LINE, "%s_%s",  tmp_str, layr_list[j]);
+                    if (ret >= MAX_LINE || ret < 0) {
+                        printf("Hfilter: error - error when constructing TECdisplay_navigator output directory name. aborting...\n");
                         abort();
                     }
                 }
                 
                 //append the info for the next input data file to the previous output file prefix to generate current out prefix
-                if ((snprintf(crnt_out_prfx, MAX_LINE, "%s_%s", prev_out_prfx, layr_list[cl-1])) >= MAX_LINE) {
-                    printf("Hfilter: error - TECdisplay_navigator output prefix exceeded buffer. aborting...\n");
+                ret = snprintf(crnt_out_prfx, MAX_LINE, "%s_%s", prev_out_prfx, layr_list[cl-1]);
+                if (ret >= MAX_LINE || ret < 0) {
+                    printf("Hfilter: error - error when constructing TECdisplay_navigator output prefix. aborting...\n");
                     abort();
                 }
                 prfx2use = crnt_out_prfx; //set crnt_out_prfx as the prefix to use in the TECdisplay_navigator command
                 
                 //construct input data file name
-                if ((snprintf(TECDnav_ipt_data, MAX_LINE, "%s/%s.txt", prev_TECDnav_out, crnt_out_prfx)) >= MAX_LINE) {
-                    printf("Hfilter: error - input data file name exceeded buffer. aborting...\n");
+                ret = snprintf(TECDnav_ipt_data, MAX_LINE, "%s/%s.txt", prev_TECDnav_out, crnt_out_prfx);
+                if (ret >= MAX_LINE || ret < 0) {
+                    printf("Hfilter: error - error when constructing input data file name. aborting...\n");
                     abort();
                 }
             }
             
             //generate a TECdisplay navigator command
-            if ((snprintf(TECDnav_command, MAX_LINE, "%s -v ../%s -c ../../%s%s-n -f %s -o %s > %s/%s_out_msg.txt",
-                        TDHN_TECDnav_path,  //path to TECdisplay_navigator
-                        TECDnav_ipt_data,   //input data
-                        cons_meta[cl].fn,   //constraint filename
-                        (cons_meta[cl].typ == 'x') ? " -x " : " ", //exclusion option
-                        prfx2use,           //prefix for output files
-                        TECDnav_out_dir,    //TECdisplay_navigator output directory
-                        out_msg_dir_name,   //output message directory name
-                        TECDnav_out_dir))   //prefix for output message file
-                    >= MAX_LINE) {
-                printf("Hfilter: error - TECdisplay_navigator command exceeded buffer. aborting...\n");
+            ret = snprintf(TECDnav_command, MAX_LINE, "%s -v ../%s -c ../../%s%s-n -f %s -o %s > %s/%s_out_msg.txt",
+                            TDHN_TECDnav_path,  //path to TECdisplay_navigator
+                            TECDnav_ipt_data,   //input data
+                            cons_meta[cl].fn,   //constraint filename
+                            (cons_meta[cl].typ == 'x') ? " -x " : " ", //exclusion option
+                            prfx2use,           //prefix for output files
+                            TECDnav_out_dir,    //TECdisplay_navigator output directory
+                            out_msg_dir_name,   //output message directory name
+                            TECDnav_out_dir);   //prefix for output message file
+            if (ret >= MAX_LINE || ret < 0) {
+                printf("Hfilter: error - error when constructing a TECdisplay_navigator command. aborting...\n");
                 abort();
             }
             
@@ -140,8 +145,9 @@ void Hfilter(constraint_metadata * cons_meta, char * prev_out_prfx, int cl, int 
             //construct the path to the current TECDnav output directory
             //this is needed so that the next layer can find the correct
             //input files
-            if ((snprintf(crnt_TECDnav_out, MAX_LINE, "%s/%s", cl_dir, TECDnav_out_dir)) >= MAX_LINE) {
-                printf("Hfilter: error - current TECdisplay_navigator output directory exceeded buffer. aborting...\n");
+            ret = snprintf(crnt_TECDnav_out, MAX_LINE, "%s/%s", cl_dir, TECDnav_out_dir);
+            if (ret >= MAX_LINE || ret < 0) {
+                printf("Hfilter: error - error when constructing current TECdisplay_navigator output directory. aborting...\n");
                 abort();
             }
             
@@ -164,6 +170,8 @@ void store_out_filenames(int cl, char * prefix, constraint_metadata * cons_meta)
     char tmp_out_fn[MAX_LINE+1] = {0}; //temp storage for generating output file names
     char * str2appnd = NULL;         //pointer to string that will be appended to the current prefix
     
+    int ret = 0; //variable for storing snprintf return value
+    
     //set output file count
     //if the current layer constraints file includes matches, set to the number of constraints in the file
     //if the current layer constraints file excludes matches, set to 1
@@ -181,8 +189,9 @@ void store_out_filenames(int cl, char * prefix, constraint_metadata * cons_meta)
         //if the current layer constraint file includes matches, set to the current constraint name
         //if the current layer constraint file excludes matches, set to the constraints file sample name
         str2appnd = (cons_meta[cl].typ == 'c') ? cons_meta[cl].cn[i] : cons_meta[cl].sn;
-        if ((snprintf(tmp_out_fn, MAX_LINE, "%s_%s.txt", prefix, str2appnd)) >= MAX_LINE) {
-            printf("store_out_filenames: error - output file name exceeded buffer. aborting...\n");
+        ret = snprintf(tmp_out_fn, MAX_LINE, "%s_%s.txt", prefix, str2appnd);
+        if (ret >= MAX_LINE || ret < 0) {
+            printf("store_out_filenames: error - error when constructing output file name. aborting...\n");
             abort();
         }
         

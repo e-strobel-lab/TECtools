@@ -45,6 +45,8 @@ int map_reads (names * nm, FILE * fp_trgs, char * minQ, fastp_params fastp_prms,
     target_params trg_prms = {0};   //structure for storing target parameters
     fasta wt = {0};                 //storage for wt sequence information
     
+    int ret = 0; //variable for storing snprintf return value
+    
     parse_header_lines(fp_trgs, &trg_prms, &wt); //parse targets file header lines
     
     //allocate memory for reference targets and targets
@@ -115,14 +117,16 @@ int map_reads (names * nm, FILE * fp_trgs, char * minQ, fastp_params fastp_prms,
     char gunzip[MAX_LINE];         //array for storing gunzip command
     
     //construct merged read file name
-    if ((snprintf(processed_file, MAX_LINE, "./processed/%s.fq", nm->mrg)) >= MAX_LINE) {
-        printf("map_reads: error - processed merged read file name exceeded buffer. aborting...\n");
+    ret = snprintf(processed_file, MAX_LINE, "./processed/%s.fq", nm->mrg);
+    if (ret >= MAX_LINE || ret < 0) {
+        printf("map_reads: error - error when constructing merged read file name. aborting...\n");
         abort();
     }
     
     //construct gunzip command
-    if ((snprintf(gunzip, MAX_LINE, "gunzip %s", processed_file)) >= MAX_LINE) {
-        printf("map_reads: error - gunzip command exceeded buffer. aborting...\n");
+    ret = snprintf(gunzip, MAX_LINE, "gunzip %s", processed_file);
+    if (ret >= MAX_LINE || ret < 0) {
+        printf("map_reads: error - error when constructing gunzip command. aborting...\n");
         abort();
     }
     
@@ -158,8 +162,10 @@ int map_reads (names * nm, FILE * fp_trgs, char * minQ, fastp_params fastp_prms,
     //compress merged fastq file
     char gzip[MAX_LINE]; //array to store gzip command
     
-    if ((snprintf(gzip, MAX_LINE, "gzip %s", processed_file)) >= MAX_LINE) { //construct gzip command
-        printf("map_reads: error - gzip command exceeded buffer. aborting...\n");
+    //construct gzip command
+    ret = snprintf(gzip, MAX_LINE, "gzip %s", processed_file);
+    if (ret >= MAX_LINE || ret < 0) {
+        printf("map_reads: error - error when constructing gzip command. aborting...\n");
         abort();
     }
     system(gzip); //gzip merged read file
@@ -228,6 +234,11 @@ int mk_htbl_TDSPLY(h_node **htbl, h_node_bank *bank, target *trgts, target *refs
         if ((*p_refnd) == NULL && !fnd_altMatch) {      //no existing hash table node for target sequence
             (*p_refnd) = &bank->hn[bank->count++];      //assign node from hash node bank
             (*p_refnd)->trg = &(trgts[i]);              //set node to point to current target
+            
+            if (bank->count == BLOCK_SIZE) {            //check whether bank was filled
+                extend_h_bank(bank);                    //if filled, extend bank
+            }
+            
             new_node++;                                 //increment new_node counter
         } else {
             trgts[i].mul = 1; //set flag that current target is redudant with previous target

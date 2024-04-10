@@ -33,9 +33,12 @@ int mk_test_data(names * nm, target *refs, target *trgts, target_params *trg_prm
     
     char out_dir[MAX_LINE] = {0}; //array to store output directory
     
+    int ret = 0; //variable for storing snprintf output name
+    
     //construct output directory name
-    if ((snprintf(out_dir, MAX_LINE, "%s_test_data", nm->trgs_prefix)) >= MAX_LINE) {
-        printf("mk_test_data: error - output directory name exceeded buffer. aborting...\n");
+    ret = snprintf(out_dir, MAX_LINE, "%s_test_data", nm->trgs_prefix);
+    if (ret >= MAX_LINE || ret < 0) {
+        printf("mk_test_data: error - error when constructing output directory name. aborting...\n");
         abort();
     }
     mk_out_dir(out_dir); //make output directory

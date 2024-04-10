@@ -32,6 +32,8 @@ int read_prnt_directory(SM2_analysis_directory * an_dir, int dir_num, sample_nam
     int crnt_tl = 0;         //current transcript length
     int profiles_opened = 0; //number of profiles opened
     
+    int ret = 0; //variable for storing snprintf return values
+    
     //open parent shapemapper 2 analysis directory
     if ((an_dir->prnt = opendir(an_dir->prnt_dir_nm)) == NULL) {
         printf("read_prnt_directory: error - failed to open parent directory. aborting...\n");
@@ -47,8 +49,9 @@ int read_prnt_directory(SM2_analysis_directory * an_dir, int dir_num, sample_nam
             !strcmp(&dir->d_name[3], an_sffx)) {
             
             //construct relative transcript length directory path
-            if (snprintf(tl_dir_nm, MAX_NAME, "%s/%s", an_dir->prnt_dir_nm, dir->d_name) >= MAX_NAME) {
-                printf("read_prnt_directory: error - transcript length directory name exceeded buffer. aborting...\n");
+            ret = snprintf(tl_dir_nm, MAX_NAME, "%s/%s", an_dir->prnt_dir_nm, dir->d_name);
+            if (ret >= MAX_NAME || ret < 0) {
+                printf("read_prnt_directory: error - error when constructing transcript length directory name. aborting...\n");
                 abort();
             }
             
@@ -85,6 +88,8 @@ int read_tl_directory(SM2_analysis_directory * an_dir, int dir_num, int crnt_tl,
     
     char out_dir_nm[MAX_NAME+1] = {'\0'}; //relative path to SM2 output directory
     int out_dir_cnt = 0;                  //number of output direcotries
+    
+    int ret = 0; //variable for storing snprintf return value
         
     //open the current transcript length directory
     if ((an_dir->tl[crnt_tl] = opendir(tl_dir_nm)) == NULL) {
@@ -103,8 +108,9 @@ int read_tl_directory(SM2_analysis_directory * an_dir, int dir_num, int crnt_tl,
             //record the name of the current shapemapper 2 output directory
             //in the sample names structure
             if (dir_num == sn->cnt) {
-                if (snprintf(sn->ipt[sn->cnt], MAX_NAME, "%s", dir->d_name) >= MAX_NAME) {
-                    printf("read_out_directory: error - reactivity profile name for transcript length %d exceeded buffer. aborting...\n", crnt_tl);
+                ret = snprintf(sn->ipt[sn->cnt], MAX_NAME, "%s", dir->d_name);
+                if (ret >= MAX_NAME || ret < 0) {
+                    printf("read_out_directory: error - error when constructing reactivity profile name for transcript length %d. aborting...\n", crnt_tl);
                     abort();
                 }
                 
@@ -113,8 +119,9 @@ int read_tl_directory(SM2_analysis_directory * an_dir, int dir_num, int crnt_tl,
             }
             
             //construct relative shapemapper 2 output directory path
-            if (snprintf(out_dir_nm, MAX_NAME, "%s/%s", tl_dir_nm, dir->d_name) >= MAX_NAME) {
-                printf("read_tl_directory: error - SM2 output directory name for transcript length %d exceeded buffer. aborting...\n", crnt_tl);
+            ret = snprintf(out_dir_nm, MAX_NAME, "%s/%s", tl_dir_nm, dir->d_name);
+            if (ret >= MAX_NAME || ret < 0) {
+                printf("read_tl_directory: error - error when constructing SM2 output directory name for transcript length %d. aborting...\n", crnt_tl);
                 abort();
             }
             
@@ -143,6 +150,8 @@ int read_SM2out_directory(SM2_analysis_directory * an_dir, int crnt_tl, char * o
     char profile_nm[MAX_NAME+1] = {'\0'};     //relative path to reactivity profile file
     int profile_cnt = 0;                      //number of reactivity profile files
     
+    int ret = 0; //variable for storing snprintf return value
+    
     //open the shapemapper 2 output directory
     if ((an_dir->out[crnt_tl] = opendir(out_dir_nm)) == NULL) {
         printf("read_SM2out_directory: error - failed to open SM2 output directory for transcript length %d. aborting...\n", crnt_tl);
@@ -159,8 +168,9 @@ int read_SM2out_directory(SM2_analysis_directory * an_dir, int crnt_tl, char * o
         if (p_profile_sffx != NULL && !p_profile_sffx[strlen(profile_sffx)]) { //found reactivity profile
             
             //generate relative path to reactivity profile file
-            if (snprintf(profile_nm, MAX_NAME, "%s/%s", out_dir_nm, dir->d_name) >= MAX_NAME) {
-                printf("read_SM2out_directory: error - reactivity profile name for transcript length %d exceeded buffer. aborting...\n", crnt_tl);
+            ret = snprintf(profile_nm, MAX_NAME, "%s/%s", out_dir_nm, dir->d_name);
+            if (ret >= MAX_NAME || ret < 0) {
+                printf("read_SM2out_directory: error - error when constructing reactivity profile name for transcript length %d. aborting...\n", crnt_tl);
                 abort();
             }
             profile_cnt++; //increment reactivity profile file count
