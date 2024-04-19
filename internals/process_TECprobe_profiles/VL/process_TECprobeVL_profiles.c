@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
     
     int dir_count = 0; //flag that input directory was supplied
     
-    int min_depth = 1000;  //minimum effective read depth
+    int min_depth = 5000;  //minimum effective read depth
                            //NOTE: SM2 docs say default 5000, but 1000 is used in code
     double max_bkg = 0.05; //maximum untreated mutation rate
     

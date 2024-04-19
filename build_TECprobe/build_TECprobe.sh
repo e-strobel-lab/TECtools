@@ -24,3 +24,9 @@ gcc -Wall -o mtrx2cols ../internals/mtrx2cols/mtrx2cols.c ../internals/utils/io_
 #
 #
 #
+#build process_TECprobeVL_profiles
+gcc -Wall -o process_TECprobeVL_profiles ../internals/process_TECprobe_profiles/VL/process_TECprobeVL_profiles.c ../internals/utils/debug.c ../internals/utils/io_management.c ../internals/utils/gen_utils.c ../internals/seq_utils/isRNAbase.c ../internals/process_TECprobe_profiles/global/store_SM2_profile.c ../internals/process_TECprobe_profiles/global/initialize_empty_profile.c ../internals/process_TECprobe_profiles/global/calculate_normalization_factor.c ../internals/process_TECprobe_profiles/VL/read_VL_analysis_directories.c ../internals/process_TECprobe_profiles/VL/VL_input_validation.c ../internals/process_TECprobe_profiles/VL/make_VL_output_directories.c  ../internals/process_TECprobe_profiles/VL/normalize_VL_reactivities.c ../internals/process_TECprobe_profiles/VL/merge_VL_profiles.c ../internals/process_TECprobe_profiles/VL/parse_VL_sample_name.c ../internals/process_TECprobe_profiles/VL/generate_VL_sample_name.c ../internals/process_TECprobe_profiles/VL/print_merged_VL_profiles.c ../internals/process_TECprobe_profiles/VL/print_legacy_compiled_table.c  ../internals/cotrans_preprocessor/run_script_gen/MLT/config_MLT_struct.c ../internals/cotrans_preprocessor/run_script_gen/MLT/mk_MLT_run_nm.c -lm
+#
+#
+#
+#
