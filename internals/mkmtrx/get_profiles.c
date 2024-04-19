@@ -25,7 +25,7 @@
 
 /* get_profiles: read input directory to find shapemapper output files.
  then call parse_profile to store reactivity data in cotrans matrix struct*/
-int get_profiles(char * prnt_dir, cotrans_matrix * mtrx, alignment_stats * algn, char * smpl_nm, int test_SM2_data)
+int get_profiles(char * prnt_dir, cotrans_matrix * mtrx, alignment_stats * algn, char * smpl_nm, int rct_typ, int preprocessed, int test_SM2_data)
 {
     //printf("in get_profiles\n");
     
@@ -148,8 +148,8 @@ int get_profiles(char * prnt_dir, cotrans_matrix * mtrx, alignment_stats * algn,
                 }
                 
                 //reading transcript analysis directory, parse the log file for alignment details
-                //only perform this step if not analyzing test SM2 data
-                if (!i && !test_SM2_data) {
+                //only perform this step if not analyzing test SM2 data or preprocessed data
+                if (!i && !test_SM2_data && !preprocessed) {
                     parse_log(file_loc, &algn[transcript_len]);
                 }
                 
@@ -167,8 +167,8 @@ int get_profiles(char * prnt_dir, cotrans_matrix * mtrx, alignment_stats * algn,
                 }
             }
         }
-        if (proceed && fnd_d_entry) {                      //found shapemapper output file
-            parse_profile(file_loc, transcript_len, mtrx); //store reactivity data in cotrans_matrix struct
+        if (proceed && fnd_d_entry) { //found shapemapper output file
+            parse_profile(file_loc, transcript_len, mtrx, rct_typ); //store reactivity data in cotrans_matrix struct
         }
     }
     
@@ -191,7 +191,7 @@ int get_profiles(char * prnt_dir, cotrans_matrix * mtrx, alignment_stats * algn,
 
 /* parse_profile: shapemapper output file to validate file integrity
  and copy reactivity values into cotrans matrix struct */
-int parse_profile(char * prfl_loc, int len, cotrans_matrix * mtrx)
+int parse_profile(char * prfl_loc, int len, cotrans_matrix * mtrx, int rct_typ)
 {
     
     FILE * prfl_p = NULL;         //pointer to profile file
@@ -269,7 +269,7 @@ int parse_profile(char * prfl_loc, int len, cotrans_matrix * mtrx)
                     p_val_cnt = &val_cnt[UNT];                     //set pointer to corresponding unt array location
                     array2use = &mtrx->unt[len][val_cnt[UNT]];     //set pointer to unt value counter
                     
-                } else if (crnt_col == REACTIVITY_PROFILE) {       //if reading the reactivity_profile column...
+                } else if (crnt_col == rct_typ) {                  //if reading the output reactivity column...
                     store_column_val = 1;                          //set flag to store column value
                     array2use = &mtrx->vals[len][val_cnt[RCT]];    //set pointer to corresponding reactivity arrry loc
                     p_val_cnt = &val_cnt[RCT];                     //set pointer to rct vlaue counter
@@ -352,6 +352,10 @@ int vldt_SMO_hdr(char * line)
         } else if (col_num == UNT_EFFECTIVE && strcmp(tmp_val, "Untreated_effective_depth")) { //check Untreated_effective_depth column header
             return -1; //error
         } else if (col_num == REACTIVITY_PROFILE && strcmp(tmp_val, "Reactivity_profile")) { //check Reactivity_profile column header
+            return -1; //error
+        } else if (col_num == HQ_PROFILE && strcmp(tmp_val, "HQ_profile")) { //check HQ_profile column header
+            return -1; //error
+        } else if (col_num == NORM_PROFILE && strcmp(tmp_val, "Norm_profile")) { //check Norm_profile column header
             return -1; //error
         }
     }

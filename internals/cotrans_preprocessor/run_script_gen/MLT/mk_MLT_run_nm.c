@@ -53,7 +53,7 @@ int mk_MLT_run_nm(char *sample_name, configuration_MLT * config_MLT)
     //if ligand name and conc were provided
     //4.  append ligand name
     //5.  append ligand concentration
-    if (config_MLT->ligand_name[0] && config_MLT->ligand_conc[0]) {
+    if (config_MLT->ligand_name != NULL && config_MLT->ligand_conc != NULL) {
         strcat(sample_name, config_MLT->ligand_name);
         strcat(sample_name, "_");
         strcat(sample_name, config_MLT->ligand_conc);

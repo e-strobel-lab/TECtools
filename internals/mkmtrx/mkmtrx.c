@@ -40,8 +40,11 @@ int main(int argc, char *argv[])
     int excld_trmnl = 0;        //exclude transcripts at and beyond this position when generating matrix
     char mode_str[16] = {0};    //string to store mode option
     int mode = -1;              //mode value
+    int rct_typ = -1;           //reactivity type
+    int preprocessed = 0;       //flag that data was processed by process_TECprobeVL_profiles
     
     int mode_set = 0;           //flag that mode was set
+    int rct_typ_set = 0;        //flag that reactivity type was set
     int dir_provided = 0;       //flag that input directory was supplied
     int incUp2_provided = 0;    //flag that include-up-to option was supplied
     int excTrm_provided = 0;    //flag that exclude-term option was supplied
@@ -58,16 +61,18 @@ int main(int argc, char *argv[])
     while (1) {
         static struct option long_options[] =
         {
-            {"mode",          required_argument,  0,  'm'},  //shapemapper analysis directory input
-            {"input",         required_argument,  0,  'i'},  //shapemapper analysis directory input
-            {"include-up-to", required_argument,  0,  'w'},  //whitelist up to arg for transcript length inclusion
-            {"exclude-term",  no_argument,        0,  'x'},  //exclude transcripts after arg
-            {"test_SM2_data", no_argument,        0,  't'},  //flag that test shapemapper2 data is being assessed
-            {"make_rdat",     required_argument,  0,  'r'},  //make rdat file
+            {"mode",           required_argument,  0,  'm'},  //run mode: SINGLE or MULTI
+            {"reactivity-col", required_argument,  0,  'c'},  //reactivity column to use
+            {"preprocessed",   no_argument,        0,  'p'},  //flag that data was preprocessed
+            {"input",          required_argument,  0,  'i'},  //shapemapper analysis directory input
+            {"include-up-to",  required_argument,  0,  'w'},  //whitelist up to arg for transcript length inclusion
+            {"exclude-term",   no_argument,        0,  'x'},  //exclude transcripts after arg
+            {"test_SM2_data",  no_argument,        0,  't'},  //flag that test shapemapper2 data is being assessed
+            {"make_rdat",      required_argument,  0,  'r'},  //make rdat file
             {0, 0, 0, 0}
         };
         
-        c = getopt_long(argc, argv, "m:i:w:xtr:", long_options, &option_index);
+        c = getopt_long(argc, argv, "m:c:pi:w:xtr:", long_options, &option_index);
         
         if (c == -1) {
             break;
@@ -91,6 +96,32 @@ int main(int argc, char *argv[])
                     printf("mkmtrx: error - more than one mode option provided\n");
                     abort();
                 }
+                break;
+                
+            case 'c': //reactivity column
+                if (!rct_typ_set) {
+                    
+                    if (!strcmp(argv[optind-1], "REACTIVITY_PROFILE")) {
+                        rct_typ = REACTIVITY_PROFILE;
+                    } else if (!strcmp(argv[optind-1], "HQ_PROFILE")) {
+                        rct_typ = HQ_PROFILE;
+                    } else if (!strcmp(argv[optind-1], "NORM_PROFILE")) {
+                        rct_typ = NORM_PROFILE;
+                    } else {
+                        printf("mkmtrx: error - unrecognized reactivity column name\n");
+                        abort();
+                    }
+                    
+                    rct_typ_set++; //increment flag that reactivity column was set
+                    
+                } else {
+                    printf("mkmtrx: error - more than one reactivity column option provided\n");
+                    abort();
+                }
+                break;
+                
+            case 'p':
+                preprocessed = 1;
                 break;
                 
             case 'i': //input directory
@@ -160,6 +191,12 @@ int main(int argc, char *argv[])
         abort();
     }
     
+    //check that reactivity column was set
+    if (!rct_typ_set) {
+        printf("mkmtrx: error - reactivity column to use was not set. please specify 'REACTIVITY_PROFILE', 'HQ_PROFILE', or 'NORM_PROFILE'. aborting...\n");
+        abort();
+    }
+    
     //check that input directory was provided
     if (!dir_provided) {
         printf("mkmtrx: error - no input directory was provided. aborting...\n");
@@ -172,10 +209,11 @@ int main(int argc, char *argv[])
     
     char smpl_nm[MAX_LINE] = {0};   //name of samples
     
-    if (!test_SM2_data) { //only read fastp output if not assessing test SM2 data
+    //only read fastp output if not assessing test SM2 data or preprocessed data
+    if (!test_SM2_data && !preprocessed) {
         get_fastp_out(prnt_dir, &ipt_reads, &pass_reads); //get filtering stats from fastp json output
     }
-    get_profiles(prnt_dir, &mtrx, &algn[0], smpl_nm, test_SM2_data); //store reactivity/eff depth of each transcript len in cotrans matrix
+    get_profiles(prnt_dir, &mtrx, &algn[0], smpl_nm, rct_typ, preprocessed, test_SM2_data); //store reactivity/eff depth of each transcript len in cotrans matrix
 
     if (mode == MULTI) {
         check_contiguity(&mtrx); //check that transcript lengths are contiguous from min len to max len

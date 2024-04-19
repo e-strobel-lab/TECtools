@@ -32,7 +32,7 @@ int check_MLT_config(configuration_MLT * config_MLT)
     }
     
     //check shpmppr2_path variable
-    if (!config_MLT->shpmppr2_path[0]) {
+    if (config_MLT->shpmppr2_path == NULL) {
         printf("check_MLT_config: error - shpmppr2_path is not set. aborting\n");
         abort();
     } else {
@@ -41,7 +41,7 @@ int check_MLT_config(configuration_MLT * config_MLT)
     }
     
     //check ipt_file_loc variable
-    if (!config_MLT->ipt_file_loc[0]) {
+    if (config_MLT->ipt_file_loc == NULL) {
         printf("check_MLT_config: error - ipt_file_loc is not set. aborting\n");
         abort();
     } else {
@@ -50,7 +50,7 @@ int check_MLT_config(configuration_MLT * config_MLT)
     }
     
     //check out_file_loc variable
-    if (!config_MLT->out_file_loc[0]) {
+    if (config_MLT->out_file_loc == NULL) {
         printf("check_MLT_config: error - out_file_loc is not set. aborting\n");
         abort();
     } else {
@@ -59,7 +59,7 @@ int check_MLT_config(configuration_MLT * config_MLT)
     }
     
     //check untreated_read1_prefix
-    if (!config_MLT->untreated_read1_prefix[0]) {
+    if (config_MLT->untreated_read1_prefix == NULL) {
         printf("check_MLT_config: error - untreated_read1_prefix is not set. aborting\n");
         abort();
     } else {
@@ -68,7 +68,7 @@ int check_MLT_config(configuration_MLT * config_MLT)
     }
     
     //check untreated_read2_prefix
-    if (!config_MLT->untreated_read2_prefix[0]) {
+    if (config_MLT->untreated_read2_prefix == NULL) {
         printf("check_MLT_config: error - untreated_read2_prefix is not set. aborting\n");
         abort();
     } else {
@@ -77,7 +77,7 @@ int check_MLT_config(configuration_MLT * config_MLT)
     }
     
     //check modified_read1_prefix
-    if (!config_MLT->modified_read1_prefix[0]) {
+    if (config_MLT->modified_read1_prefix == NULL) {
         printf("check_MLT_config: error - modified_read1_prefix is not set. aborting\n");
         abort();
     } else {
@@ -86,7 +86,7 @@ int check_MLT_config(configuration_MLT * config_MLT)
     }
     
     //check modified_read2_prefix
-    if (!config_MLT->modified_read2_prefix[0]) {
+    if (config_MLT->modified_read2_prefix == NULL) {
         printf("check_MLT_config: error - modified_read2_prefix is not set. aborting\n");
         abort();
     } else {
@@ -95,7 +95,7 @@ int check_MLT_config(configuration_MLT * config_MLT)
     }
     
     //check trg_files_loc
-    if (!config_MLT->trg_files_loc[0]) {
+    if (config_MLT->trg_files_loc == NULL) {
         printf("check_MLT_config: error - trg_files_loc is not set. aborting\n");
         abort();
     } else {
@@ -104,7 +104,7 @@ int check_MLT_config(configuration_MLT * config_MLT)
     }
     
     //check trg_files_prfx
-    if (!config_MLT->trg_files_prfx[0]) {
+    if (config_MLT->trg_files_prfx == NULL) {
         printf("check_MLT_config: error - trg_files_prfx is not set. aborting\n");
         abort();
     } else {
@@ -131,7 +131,7 @@ int check_MLT_config(configuration_MLT * config_MLT)
     }
     
     //check input_name
-    if (!config_MLT->input_name[0]) {
+    if (config_MLT->input_name == NULL) {
         printf("check_MLT_config: error - input_name is not set. aborting\n");
         abort();
     } else {
@@ -160,7 +160,7 @@ int check_MLT_config(configuration_MLT * config_MLT)
     }
     
     //check chemical_probe
-    if (!config_MLT->chemical_probe[0]) {
+    if (config_MLT->chemical_probe == NULL) {
         printf("check_MLT_config: error - chemical_probe is not set. aborting\n");
         abort();
     } else {
@@ -201,7 +201,7 @@ int check_MLT_config(configuration_MLT * config_MLT)
     }
     
     //check runID
-    if (!config_MLT->runID[0][0]) {
+    if (config_MLT->runID[0] == NULL) {
         printf("check_MLT_config: error - runID is not set. aborting...\n");
         abort();
     } else {
@@ -214,10 +214,12 @@ int check_MLT_config(configuration_MLT * config_MLT)
     }
     
     //check ligand_name and ligand_conc settings
-    if (config_MLT->ligand_name[0] && !config_MLT->ligand_conc[0]) {
+    if (config_MLT->ligand_name == NULL && config_MLT->ligand_conc == NULL) {
+        ; //do nothing, no ligand information to assess
+    } else if (config_MLT->ligand_name != NULL && config_MLT->ligand_conc == NULL) {
         printf("check_MLT_config: error - ligand name was supplied without ligand concentrtation. aborting...\n");
         abort();
-    } else if (!config_MLT->ligand_name[0] && config_MLT->ligand_conc[0]) {
+    } else if (config_MLT->ligand_name == NULL && config_MLT->ligand_conc != NULL) {
         printf("check_MLT_config: error - ligand concentration was supplied without ligand name. aborting...\n");
         abort();
 	//check format of ligand concentration value
@@ -236,7 +238,7 @@ int check_MLT_config(configuration_MLT * config_MLT)
         
         printf("check_MLT_config: error - unexpected ligand concentration format. aborting...\n");
         abort();
-    } else if (config_MLT->ligand_name[0] && config_MLT->ligand_conc[0]) {
+    } else if (config_MLT->ligand_name != NULL && config_MLT->ligand_conc != NULL) {
         printf("ligand_name\t\t%s\n", config_MLT->ligand_name);
         fprintf(out_fp, "ligand_name\t\t%s\n", config_MLT->ligand_name);
         

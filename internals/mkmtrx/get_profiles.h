@@ -24,11 +24,11 @@
 
 /* get_profiles: read input directory to find shapemapper output files.
  then call parse_profile to store reactivity data in cotrans matrix struct*/
-int get_profiles(char * prnt_dir, cotrans_matrix * mtrx, alignment_stats * algn, char * smpl_nm, int test_SM2_data);
+int get_profiles(char * prnt_dir, cotrans_matrix * mtrx, alignment_stats * algn, char * smpl_nm, int rct_typ, int preprocessed, int test_SM2_data);
 
 /* parse_profile: shapemapper output file to validate file integrity
  and copy reactivity values into cotrans matrix struct */
-int parse_profile(char * smo_loc, int len, cotrans_matrix * mtrx);
+int parse_profile(char * smo_loc, int len, cotrans_matrix * mtrx, int rct_typ);
 
 /* vldt_SMO_hdr: validate shapemapper output file header by checking first column,
  columns that will be used in parse_profiles, and the number of columns */
