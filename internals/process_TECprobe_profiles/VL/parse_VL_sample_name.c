@@ -186,9 +186,6 @@ void parse_VL_sample_name(char * ipt_nm, configuration_MLT * cfg)
                 printf("parse_sample_name: error - expected string of three digits at start of ligand concentration. aborting...\n");
                 abort();
             } */
-        } else {
-            printf("parse_sample_name: error - expected string of three digits at start of ligand concentration. aborting...\n");
-            abort();
         }
         
         
@@ -312,11 +309,15 @@ void parse_VL_sample_name(char * ipt_nm, configuration_MLT * cfg)
             set_TF_value("FALSE", "smoothing", &cfg->smoothing);
         }
                     
-        //store ligand name in config
-        set_cfg_string(&cfg->ligand_name, prsd_sn.lig, 0);
-                      
-        //store ligand concentration in config
-        set_cfg_string(&cfg->ligand_conc, prsd_sn.conc, 0);
+        //sample name contains ligand name/conc
+        if (prsd_sn.lig != NULL && prsd_sn.conc != NULL) {
+            
+            //store ligand name in config
+            set_cfg_string(&cfg->ligand_name, prsd_sn.lig, 0);
+                          
+            //store ligand concentration in config
+            set_cfg_string(&cfg->ligand_conc, prsd_sn.conc, 0);
+        }
                         
         //store custom fields in config
         cfg->field_count = prsd_sn.field_cnt;
@@ -396,7 +397,7 @@ void print_parsed_fields(char * ipt_nm, configuration_MLT * cfg)
     printf("probe:         %s\n", cfg->chemical_probe);
     
     //if present, print ligand info
-    if (cfg->ligand_name[0] && cfg->ligand_conc[0]) {
+    if (cfg->ligand_name != NULL && cfg->ligand_conc != NULL) {
         printf("ligand name:   %s\n", cfg->ligand_name);
         printf("ligand conc:   %s\n", cfg->ligand_conc);
     }

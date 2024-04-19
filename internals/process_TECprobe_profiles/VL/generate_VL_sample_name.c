@@ -70,8 +70,11 @@ void merge_sample_names(sample_names *sn)
     sn->mrgd_cfg.run_count = sn->cfg[0].run_count;                        //set intial run count val
     set_cfg_string(&sn->mrgd_cfg.runID[0], sn->cfg[0].runID[0], 0);       //set first run ID
     sn->mrgd_cfg.smoothing = sn->cfg[0].smoothing;                        //set smoothing flag
-    set_cfg_string(&sn->mrgd_cfg.ligand_name, sn->cfg[0].ligand_name, 0); //set ligand name
-    set_cfg_string(&sn->mrgd_cfg.ligand_conc, sn->cfg[0].ligand_conc, 0); //set ligand concentration
+    
+    if (sn->cfg[0].ligand_name != NULL && sn->cfg[0].ligand_conc != NULL) {
+        set_cfg_string(&sn->mrgd_cfg.ligand_name, sn->cfg[0].ligand_name, 0); //set ligand name
+        set_cfg_string(&sn->mrgd_cfg.ligand_conc, sn->cfg[0].ligand_conc, 0); //set ligand concentration
+    }
     
     //compare attributes of the first input directory (now in the merged config)
     //to attributes of all other input directories. during this process, the
@@ -115,7 +118,7 @@ void merge_sample_names(sample_names *sn)
 
         //if either sample contained a ligand name, check that
         //ligand names and concentrations are identical
-        if (sn->mrgd_cfg.ligand_name[0] || sn->cfg[i].ligand_name[0]) {
+        if (sn->mrgd_cfg.ligand_name != NULL || sn->cfg[i].ligand_name != NULL) {
             if (strcmp(sn->cfg[i].ligand_name, sn->mrgd_cfg.ligand_name)) {
                 printf("merge_sample_names: error - samples contain discordant ligand names. aborting...\n");
                 abort();
