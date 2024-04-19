@@ -194,18 +194,22 @@ Required:
 `process_TECprobeVL_profiles` performs whole-dataset normalization for TECprobe-VL data (which is normalized on a per-transcript length basis during analysis) and assembles ShapeMapper2 (https://github.com/Weeks-UNC/shapemapper2) output file data into a single csv file that is compatible with TECprobe visualization tools. Normalization is performed exactly as in ShapeMapper2:
 
 ```
-"Over the set of all RNAs and nucleotide positions without masked (lowercase) sequence, high background, or low read depth, reactivities are normalized by dividing by the mean reactivity of the top 10% of reactivities after reactivities above a threshold are excluded (see section 3.2.1 in Low and Weeks, 2010). That threshold is selected from the largest value out of [1.5 × interquartile range, 90th percentile (if total seq length > 100) or 95th percentile (if total seq length < 100)]." - ShapeMapper2 README
+"Over the set of all RNAs and nucleotide positions without masked (lowercase) sequence, high background, or
+low read depth, reactivities are normalized by dividing by the mean reactivity of the top 10% of reactivities
+after reactivities above a threshold are excluded (see section 3.2.1 in Low and Weeks, 2010). That threshold
+is selected from the largest value out of [1.5 × interquartile range, 90th percentile (if total seq length > 100)
+or 95th percentile (if total seq length < 100)]." - ShapeMapper2 README
 ```
 
-If more than one input directory is provided, `process_TECprobe-VL_profiles` will merge the data into a single dataset. Therefore, only replicate data sets should be provided to `process_TECprobe-VL_profiles` together. 
+If more than one input directory is provided, `process_TECprobeVL_profiles` will merge the data into a single dataset. Therefore, only replicate data sets should be provided together. `process_TECprobeVL_profiles` checks the attributes of input data names and the data itself to confirm that input datasets are compatible.
 
 ### process_TECprobeVL_profiles inputs and options
   
 Required:
 ```
 -i/--input <data_directory>     Input TECprobe-VL data directory. This should be the directory in which the
-                                ShapeMapper2 run script was executed. If more than one input directory is
-                                provided, the data will be merged.
+                                ShapeMapper2 run script was executed. If more than one compatible input directory
+                                is provided, the data will be merged.
 ```
  
 Optional:
