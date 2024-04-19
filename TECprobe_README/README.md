@@ -2,7 +2,7 @@
 
 [**cotrans_preprocessor**](#processing-tecprobe-data-using-cotrans_preprocessor) - Performs sequencing read preprocessing to prepare data for analysis by ShapeMapper2 (https://github.com/Weeks-UNC/shapemapper2)
 
-[**mkmtrx**](#assembling-tecprobe-ml-data-using-mkmtrx) - Assembles data into matrix and other useful formats, reports alignment rates, and can be used to generate rdat files
+[**mkmtrx**](#assembling-tecprobe-vl-data-using-mkmtrx) - Assembles data into matrix and other useful formats, reports alignment rates, and can be used to generate rdat files
 
 [**mtrx2cols**](#extract-reactivity-trajectories-using-mtrx2cols) - Extracts reactivity trajectories for specific nucleotides from a reactivity matrix
 
@@ -30,7 +30,7 @@ run_mode_specifiers:
                       substitution, insertion, and deletion variants of the last 14 nt 
                       (or more, if specified) of every possible intermediate transcript.
   
-  PROCESS_MULTI       Perform preprocessing for TECprobe-ML experiments
+  PROCESS_MULTI       Perform preprocessing for TECprobe-VL experiments
   
   PROCESS_SINGLE      Perform preprocessing for TECprobe-SL experiments
   
@@ -126,7 +126,7 @@ Required:
     This will generate a FASTA file named `<target_RNA_name>.fa` with the sequence `<target_RNA_sequence>`.
     
 
-2.  If analyzing TECprobe-ML data, generate 3' end and intermediate transcript targets by
+2.  If analyzing TECprobe-VL data, generate 3' end and intermediate transcript targets by
     running `cotrans_preprocessor` in `MAKE_3pEND_TARGET` mode:
     
     without test_data:
@@ -152,7 +152,7 @@ Required:
     
 3.  Process sequencing reads:
 
-    If analyzing TECprobe-ML data, run `cotrans_preprocessor` in `PROCESS_MULTI` mode:
+    If analyzing TECprobe-VL data, run `cotrans_preprocessor` in `PROCESS_MULTI` mode:
   
     `cotrans_preprocessor -m PROCESS_MULTI -i <read1_fastq_file> -I <read2_fastq_file> -e <3p_ends_target file>`
   
@@ -189,9 +189,43 @@ Required:
      
 7. Run the shell script that was generated in Step 6 to start ShapeMapper2 processing.
   
-    
+## Normalizing TECprobe-VL data using process_TECprobeVL_profiles  
 
-## Assembling TECprobe-ML data using mkmtrx
+`process_TECprobeVL_profiles` performs whole-dataset normalization for TECprobe-VL data (which is normalized on a per-transcript length basis during analysis) and assembles ShapeMapper2 (https://github.com/Weeks-UNC/shapemapper2) output file data into a single csv file that is compatible with TECprobe visualization tools. Normalization is performed exactly as in ShapeMapper2:
+
+```
+"Over the set of all RNAs and nucleotide positions without masked (lowercase) sequence, high background, or low read depth, reactivities are normalized by dividing by the mean reactivity of the top 10% of reactivities after reactivities above a threshold are excluded (see section 3.2.1 in Low and Weeks, 2010). That threshold is selected from the largest value out of [1.5 × interquartile range, 90th percentile (if total seq length > 100) or 95th percentile (if total seq length < 100)]." - ShapeMapper2 README
+```
+
+If more than one input directory is provided, `process_TECprobe-VL_profiles` will merge the data into a single dataset. Therefore, only replicate data sets should be provided to `process_TECprobe-VL_profiles` together. 
+
+### process_TECprobeVL_profiles inputs and options
+  
+Required:
+```
+-i/--input <data_directory>     Input TECprobe-VL data directory. This should be the directory in which the
+                                ShapeMapper2 run script was executed. If more than one input directory is
+                                provided, the data will be merged.
+```
+ 
+Optional:
+```
+-o/--out_dir_name <input>       Output directory name. Default = 'dataset_norm_out'
+-n/--sample-name <input>        Sample name. If no sample name is provided, a sample name will be automatically
+                                generated from the input data names.
+-e/--min-depth <n>              Minimum read depth for high-quality nucleotides. Default = 5000.
+-b/--max-background <n>         Maximum background mutation rate for high-quality nucleotides. Default = 0.05.
+```
+
+### Basic usage of process_TECprobeVL_profiles
+
+To process a single TECprobe-VL dataset, run the command: 
+`process_TECprobeVL_profiles -i <data_directory>`
+
+To merge three TECprobe-VL datasets, run the command: 
+`process_TECprobeVL_profiles -i <data_directory> -i <data_directory> -i <data_directory>`
+
+## Assembling TECprobe-VL data using mkmtrx
  
 `mkmtrx` assembles data into matrix and other useful formats, reports alignment rates, and can be used to generate rdat files.
   
@@ -200,8 +234,11 @@ Required:
 Required:
 ```
 -m/--mode <run_mode_specifier>  Set run mode. Valid run_mode_specifier values are `MULTI` for
-                                TECprobe-ML data and `SINGLE` for TECprobe-SL data
+                                TECprobe-VL data and `SINGLE` for TECprobe-SL data
 -i/--input <data_directory>     The directory in which the ShapeMapper2 run script was executed
+-c/--reactivity-col <input>     Set reactivity value to output. Valid inputs are `REACTIVITY_PROFILE`
+                                for unfilitered raw reactivity, `HQ_PROFILE` for high quality nucleotide
+                                raw reactivity, and `NORM_PROFILE` for normalized reactivity.
 ```
  
 Optional:
