@@ -104,7 +104,7 @@ int parse_constraints(FILE * ipt, constraints * cons, basemap * bmap, char * cns
                 
                 //add constant indels
                 if (strcmp(cnstnt_indels, "none")) {                              //if constant indels string contains values
-                    set_cnstnt_indel_constraints(cons, cnstnt_indels, &bi, bmap); //add constant indels to base constraints
+                    set_cnstnt_indel_constraints(&cons[i], cnstnt_indels, &bi, bmap); //add constant indels to base constraints
                 }
                 
                 //check that constraint contained the expected number of vbases

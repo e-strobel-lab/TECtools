@@ -27,7 +27,7 @@
 #include "normalize_VL_reactivities.h"
 
 /* normalize_VL_reactivities: generate normalization factor using whole data set and normalize reactivity values */
-void normalize_VL_reactivities(SM2_analysis_directory * an_dir, int min_depth, double max_bkg, int verify_norm)
+void normalize_VL_reactivities(SM2_analysis_directory * an_dir, int min_depth, double max_bkg, int norm_all, int verify_norm)
 {
     extern int debug; //flag to run debug mode
     
@@ -153,8 +153,9 @@ void normalize_VL_reactivities(SM2_analysis_directory * an_dir, int min_depth, d
         for (j = 0; j < an_dir->data[i].tot_nt_cnt; j++) {
             
             //only apply normalization factor to high-quality nucleotides
-            //low quality nucleotides are masked as NAN
-            if (isHQnuc(&an_dir->data[i], j, min_depth, max_bkg)) {
+            //low quality nucleotides are masked as NAN unless norm_all
+            //option is on
+            if (isHQnuc(&an_dir->data[i], j, min_depth, max_bkg) || norm_all) {
                 an_dir->data[i].dataset_norm_profile[j] = an_dir->data[i].reactivity_profile[j]/an_dir->cnf;
             } else {
                 an_dir->data[i].dataset_norm_profile[j] = NAN;

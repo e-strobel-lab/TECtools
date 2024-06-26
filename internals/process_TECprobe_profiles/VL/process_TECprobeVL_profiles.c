@@ -54,6 +54,7 @@ int main(int argc, char *argv[])
     
     int min_depth_provided = 0; //flag that minimum depth option was provided
     int max_bkg_provided = 0;   //flag that maximum background option was provided
+    int norm_all = 0;           //flag to normalize non-HQ nucleotides
     int verify_norm = 0;        //flag to verify normalization against SM2 calculations
     
     sample_names sn = {{{0}}};  //structure for sample name storage/merged name construction
@@ -76,11 +77,12 @@ int main(int argc, char *argv[])
             {"debug",          no_argument,       0, 'd'}, //debug flag
             {"min-depth",      required_argument, 0, 'e'}, //min effective depth
             {"max-background", required_argument, 0, 'b'}, //max background
+            {"norm-all",       no_argument,       0, 'a'}, //normalize non-HQ nucleotides
             {"verify_norm",    no_argument,       0, 'y'}, //verify normalization
             {0, 0, 0, 0}
         };
         
-        c = getopt_long(argc, argv, "i:o:n:de:b:y", long_options, &option_index);
+        c = getopt_long(argc, argv, "i:o:n:de:b:ay", long_options, &option_index);
         
         if (c == -1) {
             break;
@@ -152,6 +154,10 @@ int main(int argc, char *argv[])
                     abort();
                 }
                 
+                break;
+                
+            case 'a': //normalize non-HQ nucleotides too
+                norm_all = 1;
                 break;
                 
             case 'y': //turn on normalization verification
@@ -294,7 +300,7 @@ int main(int argc, char *argv[])
         }
         
         //perform whole dataset reactivity normalization
-        normalize_VL_reactivities(&an_dir[i], min_depth, max_bkg, verify_norm);
+        normalize_VL_reactivities(&an_dir[i], min_depth, max_bkg, norm_all, verify_norm);
     }
     
     //print sample names to screen
@@ -307,12 +313,12 @@ int main(int argc, char *argv[])
     SM2_analysis_directory * data2output = NULL; //pointer to data set to use for output
     
     if (dir_count == 1) {     //if there is only one input directory
-        normalize_VL_reactivities(&an_dir[0], min_depth, max_bkg, 0); //normalize input data
-        data2output = &an_dir[0];                                     //output that input directory
+        normalize_VL_reactivities(&an_dir[0], min_depth, max_bkg, norm_all, 0); //normalize input data
+        data2output = &an_dir[0];                                               //output that input directory
         
     } else { //if there is more than one input directory
-        merge_VL_profiles(&an_dir[0], dir_count, &mrg, min_depth, max_bkg); //merge SM2 profiles
-        normalize_VL_reactivities(&mrg, min_depth, max_bkg, 0);             //normalize merged data
+        merge_VL_profiles(&an_dir[0], dir_count, &mrg, min_depth, max_bkg);     //merge SM2 profiles
+        normalize_VL_reactivities(&mrg, min_depth, max_bkg, norm_all, 0);       //normalize merged data
         data2output = &mrg;
     }
     

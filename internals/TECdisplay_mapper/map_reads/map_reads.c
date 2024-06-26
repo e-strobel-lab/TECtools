@@ -231,6 +231,8 @@ int mk_htbl_TDSPLY(h_node **htbl, h_node_bank *bank, target *trgts, target *refs
         }
         if (debug) {printf("\n");}
         
+        /* TODO: need to set up to handle targets with identical hash keys that are distinct */
+        
         if ((*p_refnd) == NULL && !fnd_altMatch) {      //no existing hash table node for target sequence
             (*p_refnd) = &bank->hn[bank->count++];      //assign node from hash node bank
             (*p_refnd)->trg = &(trgts[i]);              //set node to point to current target
