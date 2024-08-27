@@ -15,8 +15,8 @@
 #include "../mkmtrx/cotrans_mtrx.h"
 #include "../utils/io_management.h"
 
-#include "./assemble_TECprobeLMP_data_defs.h"
-#include "./assemble_TECprobeLMP_data_structs.h"
+#include "./assemble_TECprobeLM_data_defs.h"
+#include "./assemble_TECprobeLM_data_structs.h"
 
 /* validate_input: perform basic checks to assess input sample compatiblity */
 void validate_input (input_data * ipt, int mode);

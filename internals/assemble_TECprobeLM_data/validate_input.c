@@ -15,8 +15,8 @@
 
 #include "../process_TECprobe_profiles/VL/parse_VL_sample_name.h"
 
-#include "./assemble_TECprobeLMP_data_defs.h"
-#include "./assemble_TECprobeLMP_data_structs.h"
+#include "./assemble_TECprobeLM_data_defs.h"
+#include "./assemble_TECprobeLM_data_structs.h"
 
 #include "validate_input.h"
 

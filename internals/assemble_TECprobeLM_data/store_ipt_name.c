@@ -6,8 +6,8 @@
 //
 
 #include "../global/global_defs.h"
-#include "./assemble_TECprobeLMP_data_defs.h"
-#include "./assemble_TECprobeLMP_data_structs.h"
+#include "./assemble_TECprobeLM_data_defs.h"
+#include "./assemble_TECprobeLM_data_structs.h"
 
 #include "store_ipt_name.h"
 

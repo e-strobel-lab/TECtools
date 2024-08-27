@@ -11,8 +11,8 @@
 #include <stdio.h>
 
 #include "../global/global_defs.h"
-#include "./assemble_TECprobeLMP_data_defs.h"
-#include "./assemble_TECprobeLMP_data_structs.h"
+#include "./assemble_TECprobeLM_data_defs.h"
+#include "./assemble_TECprobeLM_data_structs.h"
 
 void print_input_filenames(char * out_dir, char * out_nm, char * ipt_nm[TOT_SAMPLES][MAX_IPT], int ipt_cnt[TOT_SAMPLES]);
 

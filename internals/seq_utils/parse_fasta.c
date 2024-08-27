@@ -18,6 +18,7 @@
 #include "./isDNAbase.h"
 
 
+//TODO: add argument specifying whether the input sequence is expected to be DNA/RNA/contain degenerate base symbols
 /* parse_fasta: place name and sequence lines of a fasta file into character arrays */
 int parse_fasta(FILE * fp_fasta, char * name, char * seq)
 {
@@ -60,7 +61,7 @@ int parse_fasta(FILE * fp_fasta, char * name, char * seq)
     //get sequence line from input fasta file
     if (get_line(&line[0], fp_fasta)) {
         for (i = 0; line[i] && i < MAX_LINE-1; i++) {
-            if (isDNAbase(line[i])) { //input sequence line should only contain standard DNA char (not allowing whole IUPAC code currently)
+            if (isDNAbase(line[i]) || line[i] == 'U' || line[i] == 'u') { //input sequence line should only contain standard DNA char (not allowing whole IUPAC code currently)
                 seq[i] = toupper(line[i]);    //set to uppercase when copying line
             } else {
                 printf("parse_fasta: error - fasta file sequence line contained the non-standard DNA base %c. the sequence should only contain A/T/G/C/a/t/g/c aborting...\n", line[i]);

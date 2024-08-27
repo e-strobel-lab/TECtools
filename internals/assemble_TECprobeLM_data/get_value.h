@@ -11,8 +11,8 @@
 #include <stdio.h>
 
 #include "../global/global_defs.h"
-#include "./assemble_TECprobeLMP_data_defs.h"
-#include "./assemble_TECprobeLMP_data_structs.h"
+#include "./assemble_TECprobeLM_data_defs.h"
+#include "./assemble_TECprobeLM_data_structs.h"
 
 int get_value(FILE * ipt,  mode_parameters * mode_params, int delims2col, double * val);
 

@@ -11,8 +11,8 @@
 #include <stdio.h>
 
 #include "../global/global_defs.h"
-#include "./assemble_TECprobeLMP_data_defs.h"
-#include "./assemble_TECprobeLMP_data_structs.h"
+#include "./assemble_TECprobeLM_data_defs.h"
+#include "./assemble_TECprobeLM_data_structs.h"
 
 int count_delims_2_col(FILE * ipt,  mode_parameters * mode_params, int nrchd_len, int * delims2col);
 

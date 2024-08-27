@@ -1,12 +1,12 @@
 //
-//  assemble_TECprobeLMP_data_defs.h
+//  assemble_TECprobeLM_data_defs.h
 //  
 //
 //  Created by Eric Strobel on 2/7/24.
 //
 
-#ifndef assemble_TECprobeLMP_data_defs_h
-#define assemble_TECprobeLMP_data_defs_h
+#ifndef assemble_TECprobeLM_data_defs_h
+#define assemble_TECprobeLM_data_defs_h
 
 #include <stdio.h>
 
@@ -25,4 +25,4 @@
 #define S2 1 //sample 2 index
 #define S3 2 //sample 3 index
 
-#endif /* assemble_TECprobeLMP_data_defs_h */
+#endif /* assemble_TECprobeLM_data_defs_h */

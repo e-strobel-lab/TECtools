@@ -1,5 +1,5 @@
 //
-//  assemble_TECprobeLMP_data.c
+//  assemble_TECprobeLM_data.c
 //  
 //
 //  Created by Eric Strobel on 7/5/23.
@@ -15,8 +15,8 @@
 #include "../global/global_defs.h"
 #include "../mkmtrx/cotrans_mtrx.h"
 
-#include "./assemble_TECprobeLMP_data_defs.h"
-#include "./assemble_TECprobeLMP_data_structs.h"
+#include "./assemble_TECprobeLM_data_defs.h"
+#include "./assemble_TECprobeLM_data_structs.h"
 
 #include "./store_ipt_name.h"
 #include "./validate_input.h"
@@ -75,7 +75,7 @@ int main(int argc, char *argv[])
               
             case 'm': //set mode
                 if (mode_params.mod != -1) { //mode was already set, throw error
-                    printf("assemble_TECprobeLMP_data: error - more than one mode argument was provided. aborting...\n");
+                    printf("assemble_TECprobeLM_data: error - more than one mode argument was provided. aborting...\n");
                     abort();
                 } else {
                     if (!strcmp(argv[optind-1], "REACTIVITY")) {                  //REACTIVITY mode
@@ -89,7 +89,7 @@ int main(int argc, char *argv[])
                         //NOTE: offset is set later based on the minimum transcript length
                         strcpy(mode_params.hdr, "frac_algnd");                    //set target header to frac_algnd
                     } else {
-                        printf("assemble_TECprobeLMP_data: error - unrecognized mode. aborting...\n");
+                        printf("assemble_TECprobeLM_data: error - unrecognized mode. aborting...\n");
                         abort();
                     }
                 }
@@ -97,7 +97,7 @@ int main(int argc, char *argv[])
                 
             case 'a': //set sample 1 enriched length
                 if (nrchd_len[S1]) { //enriched length 1 was already set, throw error
-                    printf("assemble_TECprobeLMP_data: error - more than one value provided for sample 1 enriched length. aborting...\n");
+                    printf("assemble_TECprobeLM_data: error - more than one value provided for sample 1 enriched length. aborting...\n");
                     abort();
                 } else {
                     nrchd_len[S1] = atoi(argv[optind-1]);
@@ -107,7 +107,7 @@ int main(int argc, char *argv[])
                 
             case 'b': //set sample 2 enriched length
                 if (nrchd_len[S2]) { //enriched length 2 was already set, throw error
-                    printf("assemble_TECprobeLMP_data: error - more than one value provided for sample 2 enriched length. aborting...\n");
+                    printf("assemble_TECprobeLM_data: error - more than one value provided for sample 2 enriched length. aborting...\n");
                     abort();
                 } else {
                     nrchd_len[S2] = atoi(argv[optind-1]);
@@ -117,7 +117,7 @@ int main(int argc, char *argv[])
                 
             case 'c': //set sample 3 enriched length
                 if (nrchd_len[S3]) { //enriched length 3 was already set, throw error
-                    printf("assemble_TECprobeLMP_data: error - more than one value provided for sample 3 enriched length. aborting...\n");
+                    printf("assemble_TECprobeLM_data: error - more than one value provided for sample 3 enriched length. aborting...\n");
                     abort();
                 } else {
                     nrchd_len[S3] = atoi(argv[optind-1]);
@@ -130,7 +130,7 @@ int main(int argc, char *argv[])
                     store_ipt_name(&ipt.fn[S1][ipt.cnt[S1]], argv[optind-1]);
                     ipt.cnt[S1]++;
                 } else {
-                    printf("assemble_TECprobeLMP_data: error too many sample 1 input files provided. aborting...");
+                    printf("assemble_TECprobeLM_data: error too many sample 1 input files provided. aborting...");
                     abort();
                 }
                 break;
@@ -141,7 +141,7 @@ int main(int argc, char *argv[])
                     store_ipt_name(&ipt.fn[S2][ipt.cnt[S2]], argv[optind-1]);
                     ipt.cnt[S2]++;
                 } else {
-                    printf("assemble_TECprobeLMP_data: error too many sample 2 input files provided. aborting...");
+                    printf("assemble_TECprobeLM_data: error too many sample 2 input files provided. aborting...");
                     abort();
                 }
                 break;
@@ -152,7 +152,7 @@ int main(int argc, char *argv[])
                     store_ipt_name(&ipt.fn[S3][ipt.cnt[S3]], argv[optind-1]);
                     ipt.cnt[S3]++;
                 } else {
-                    printf("assemble_TECprobeLMP_data: error too many sample 3 input files provided. aborting...");
+                    printf("assemble_TECprobeLM_data: error too many sample 3 input files provided. aborting...");
                     abort();
                 }
                 break;
@@ -161,7 +161,7 @@ int main(int argc, char *argv[])
                 if (!out_nm[0]) { //check that output name hasn't been set
                     strcpy(out_nm, argv[optind-1]);
                 } else {
-                    printf("assemble_TECprobeLMP_data: error more than one output name provided. aborting...");
+                    printf("assemble_TECprobeLM_data: error more than one output name provided. aborting...");
                     abort();
                 }
                 
@@ -183,7 +183,7 @@ int main(int argc, char *argv[])
     
     //check that mode was set
     if (mode_params.mod == -1) {
-        printf("assemble_TECprobeLMP_data: error - run mode was not set. set run mode to REACTIVITY or LEN_DIST depending on input file type. aborting...\n");
+        printf("assemble_TECprobeLM_data: error - run mode was not set. set run mode to REACTIVITY or LEN_DIST depending on input file type. aborting...\n");
         abort();
     }
     
@@ -192,7 +192,7 @@ int main(int argc, char *argv[])
     
     //check that output name was provided and make output directory
     if (!out_nm[0]) {
-        printf("assemble_TECprobeLMP_data: error - no output name was provided. aborting...\n");
+        printf("assemble_TECprobeLM_data: error - no output name was provided. aborting...\n");
         abort();
     } else {
         if (mode_params.mod == REACTIVITY) {
@@ -217,7 +217,7 @@ int main(int argc, char *argv[])
     for (i = 0; i < TOT_SAMPLES; i++) {
         for (j = 0; j < ipt.cnt[i]; j++) {
             if (!count_delims_2_col(ipt.fp[i][j], &mode_params, nrchd_len[i], &(delims2col[i][j]))) {
-                printf("assemble_TECprobeLMP_data: error - delim count failed. aborting...\n");
+                printf("assemble_TECprobeLM_data: error - delim count failed. aborting...\n");
                 abort();
             }
         }
@@ -256,7 +256,7 @@ int main(int argc, char *argv[])
                             }
                         } else {                    //if processing a non-first input file
                             if (line_term != ipt0_term) { //check that the terminating character matches that of the first input file
-                                printf("assemble_TECprobeLMP_data: error - lines at same file position terminate with different characters\n");
+                                printf("assemble_TECprobeLM_data: error - lines at same file position terminate with different characters\n");
                                 abort();
                             }
                         }

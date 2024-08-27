@@ -1,18 +1,18 @@
 //
-//  assemble_TECprobeLMP_data_structs.h
+//  assemble_TECprobeLM_data_structs.h
 //  
 //
 //  Created by Eric Strobel on 2/7/24.
 //
 
-#ifndef assemble_TECprobeLMP_data_structs_h
-#define assemble_TECprobeLMP_data_structs_h
+#ifndef assemble_TECprobeLM_data_structs_h
+#define assemble_TECprobeLM_data_structs_h
 
 #include <stdio.h>
 
 #include "../global/global_defs.h"
 #include "../mkmtrx/cotrans_mtrx.h"
-#include "./assemble_TECprobeLMP_data_defs.h"
+#include "./assemble_TECprobeLM_data_defs.h"
 #include "../cotrans_preprocessor/run_script_gen/MLT/config_MLT_struct.h"
 
 /* mode_parameters: structure for storing mode-specific variables */
@@ -33,4 +33,4 @@ typedef struct input_data {
 } input_data;
 
 
-#endif /* assemble_TECprobeLMP_data_structs_h */
+#endif /* assemble_TECprobeLM_data_structs_h */
