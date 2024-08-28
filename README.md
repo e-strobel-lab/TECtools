@@ -4,31 +4,37 @@ TECtools is a suite of tools for processing data from Transcription Elongation C
 
 ### TECdisplay tools:
 
-**variant_maker** - Generates a targets file for user-specified sequence variants.
+`variant_maker` - Generates a targets file for user-specified sequence variants.
 
-**TECdisplay_mapper** - Processes and maps sequencing reads to targets.
+`TECdisplay_mapper` - Processes and maps sequencing reads to targets.
 
-**merge_TECdisplay_replicates** - Merges data from replicate experiments.
+`merge_TECdisplay_replicates` - Merges data from replicate TECdisplay experiments.
 
-**TECdisplay_navigator** - Filters data for variants that match user-specified constraints.
+`calc_FracBound_difference` - Calculates the difference in fraction bound for all variants in two TECdisplay datasets.
 
-**TECdisplay_Hnav** - Hierarchically filters data for variants that match a series of user-specified constraints.
+`TECdisplay_navigator` - Filters data for variants that match user-specified constraints.
 
-**id2variant** - Reconstructs complete variant sequences from variant ids.
+`TECdisplay_Hnav` - Hierarchically filters data for variants that match a series of user-specified constraints.
 
+`id2variant` - Reconstructs complete variant sequences from variant ids.
 
 
 ### TECprobe tools:
 
-**cotrans_preprocessor** - Performs sequencing read preprocessing to prepare data for analysis by ShapeMapper2 (https://github.com/Weeks-UNC/shapemapper2)
+`cotrans_preprocessor` - Performs sequencing read preprocessing to prepare TECprobe-VL and TECprobe-LM data for analysis by ShapeMapper2 (https://github.com/Weeks-UNC/shapemapper2)
 
-**mkmtrx** - Assembles data into matrix and other useful formats, reports alignment rates, and can be used to generate rdat files
+`process_TECprobeVL_profiles` - performs whole-dataset normalization for TECprobe-VL and TECprobe-LM data, merges replicate data, and assembles ShapeMapper2 output files into a single csv file that is compatible with TECprobe visualization tools.
 
-**mtrx2cols** - Extracts reactivity trajectories for specific nucleotides from a reactivity matrix
+`mkmtrx` - Assembles TECprobe-VL and TECprobe-LM data into matrix and other useful formats, reports alignment rates, and can be used to generate rdat files
+
+`mtrx2cols` - Extracts reactivity trajectories for specific nucleotides from a reactivity matrix
+
+`assemble_TECprobeLM_data` - assembles target transcript length reactivity profiles or transcript length distributions for each sample of a TECprobe-LM experiment into a single file.
+
+`draw_intermediates` - performs reactivity-constrained minimum free energy RNA structure prediction for intermediate transcripts using the RNAstructure (Reuter, J. S. & Mathews, D. H., BMC Bioinformatics) Fold algorithm.
 
 
-
-## Compiling TECtools scripts
+## Compiling TECtools
 
 **TECtools will only run on Linux and MacOS systems. Windows is not currently supported**
 
@@ -42,7 +48,7 @@ cd ./TECtools-1.1.0/build_TECdisplay
 sh ./build_TECdisplay.sh
 ```
 
-This will generate the executables `variant_maker`, `TECdisplay_mapper`, `merge_TECdisplay_replicates`, `TECdisplay_navigator`, `TECdisplay_Hnav`, and `id2variant` in the build_TECdisplay directory.
+This will generate the executables `variant_maker`, `TECdisplay_mapper`, `merge_TECdisplay_replicates`, `calc_FracBound_difference`, `TECdisplay_navigator`, `TECdisplay_Hnav`, and `id2variant` in the build_TECdisplay directory.
 
 
 
@@ -56,4 +62,4 @@ cd ./TECtools-1.1.0/build_TECprobe
 sh ./build_TECprobe.sh
 ```
 
-This will generate the executables `cotrans_preprocessor`, `mkmtrx`, and `mtrx2cols` in the build_TECprobe directory.
+This will generate the executables `cotrans_preprocessor`, `process_TECprobeVL_profiles`, `mkmtrx`, `mtrx2cols`, `assemble_TECprobeLM_data`, and `draw_intermediates` in the build_TECprobe directory.
