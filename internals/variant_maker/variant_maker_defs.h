@@ -19,6 +19,7 @@
 #define MAXREF 1024         //maximum number of references sequences
 #define MAX_COMPLEX 26      //maximum number of complex pairs
 #define MAX_BRCDS_2_MK 5000 //maximum number of barcodes to make
+#define MAX_LINKER 64       //maximum custom linker length
 
 #define CALCULATED 0        //index for calculated variant count in basemap struct
 #define EXPANDED   1        //index for expanded variant count in basemap struct

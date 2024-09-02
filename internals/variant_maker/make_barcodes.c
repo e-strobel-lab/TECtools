@@ -358,10 +358,10 @@ int get_rndm_brcds(target ** brcd_out, target * pf_brcds, uint64_t passed_filter
     fprintf(out_fp, "bStruct=%s\n", brcd_sec);  //third line of file is the barcode secondary structure
     
     //select first barcode and print to file
-    brcd_out[brcd_cnt] = &pf_brcds[rand() % passed_filter];       //set output pointer for first barcode
-    printf("%d\t%s\n", brcd_cnt+1, brcd_out[brcd_cnt]->sq);       //print barcode to screen
-    fprintf(out_fp, "%d\t%s\n",brcd_cnt, brcd_out[brcd_cnt]->sq); //print barcode to file
-    brcd_cnt++;                                                   //increment barcode count
+    brcd_out[brcd_cnt] = &pf_brcds[rand() % passed_filter];         //set output pointer for 1st barcode
+    printf("%d\t%s\n", brcd_cnt+1, brcd_out[brcd_cnt]->sq);         //print barcode to screen
+    fprintf(out_fp, "%d\t%s\n",brcd_cnt+1, brcd_out[brcd_cnt]->sq); //print barcode to file
+    brcd_cnt++;                                                     //increment barcode count
     
     //select barcodes until brcds2mk barcodes have been output
     //or until 100000 barcodes have been tested without outputting a barcode

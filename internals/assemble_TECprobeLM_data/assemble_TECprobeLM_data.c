@@ -60,7 +60,7 @@ int main(int argc, char *argv[])
             {"data1",      required_argument,  0,  'x'}, //input file for sample 1
             {"data2",      required_argument,  0,  'y'}, //input file for sample 2
             {"data3",      required_argument,  0,  'z'}, //input file for sample 3
-            {"out_name",   required_argument,  0,  'o'}, //output file name
+            {"out-name",   required_argument,  0,  'o'}, //output file name
             {0, 0, 0, 0}
         };
         
@@ -184,6 +184,16 @@ int main(int argc, char *argv[])
     //check that mode was set
     if (mode_params.mod == -1) {
         printf("assemble_TECprobeLM_data: error - run mode was not set. set run mode to REACTIVITY or LEN_DIST depending on input file type. aborting...\n");
+        abort();
+    }
+    
+    if (mode_params.mod == REACTIVITY && (!nrchd_len[S1] || !nrchd_len[S2] || !nrchd_len[S3])) {
+        printf("assemble_TECprobeLM_data: error - enriched transcript lengths were not set for all samples. aborting...\n");
+        abort();
+    }
+    
+    if (mode_params.mod == LEN_DIST && (nrchd_len[S1] || nrchd_len[S2] || nrchd_len[S3])) {
+        printf("assemble_TECprobeLM_data: error - enriched transcript length options should not be set in LEN_DIST mode. aborting...\n");
         abort();
     }
     

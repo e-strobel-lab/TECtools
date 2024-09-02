@@ -36,9 +36,12 @@
 #include "./filter_variants.h"
 
 #include "make_barcodes.h"
+#include "read_bcFile.h"
+#include "print_output.h"
 
+/* check_input: check that correct input files were supplied for
+ variant generation and print input file information to file*/
 void check_input(names * nm, int varFile_supplied, int brcdFile_supplied, int append_barcode, char * out_dir);
-void print_output(names * nm, basemap * bmap, int vTmpCnt, int varCnt, char * out_dir);
 
 //variant storage
 fasta *vrnts = NULL;  //pointer to fasta structures used when generating variants
@@ -47,6 +50,12 @@ uint64_t v_indx = 0;  //index of current variant
 FILE * prcs_ofp = NULL;           //output file pointer for processing messages
 char prcs_out_nm[MAX_LINE] = {0}; //name of processing message output file
 char out_msg[MAX_LINE] = {0};     //output message
+
+//priming sites
+//const char c3sc1[34] = "ATTCGGTGCTCTTCTCTTCGGCCTTCGGGCCAA";
+//const char vra3[27]  = "GATCGTCGGACTGTAGAACTCTGAAC";
+const char c3sc1[34] = "attcggtgctcttctcttcggccttcgggccaa";
+const char vra3[27]  = "gatcgtcggactgtagaactctgaac";
 
 /* end of global variables */
 
@@ -69,6 +78,14 @@ int main(int argc, char *argv[])
     int brcdFile_supplied = 0; //flag that barcode file was provided
     int brcds2mk = 0;          //number of barcodes to make
     int append_barcode = 0;    //flag to append barcodes to variants
+    int append_priming = 0;    //flag to append C3-SC1 and VRA3 priming sites
+    int make_fasta = 0;        //flag to make fasta file
+    
+    char cstm_lnkr[MAX_LINKER+1] = {0}; //custom linker sequence
+    
+    char usr_resp[4] = {0};         //storage for user response
+    char discard[MAX_LINE+1] = {0}; //array for flushing stdin
+    int resp_provided = 0;          //flag that valid reponse was provided
         
     int i = 0; //general purpose index
     int j = 0; //general purpose index
@@ -85,11 +102,14 @@ int main(int argc, char *argv[])
             {"mk-variants",     required_argument,  0,  'v'},  //variant template input file, sets MAKE_VARIANTS mode
             /* WARNING: mk-barcodes mode should only be run on systems with >= 64 GB of RAM */
             {"mk-barcodes",     required_argument,  0,  'b'},  //flag to make barcode file
+            {"append_priming",  no_argument,        0,  'p'},  //append C3-SC1 and VRA3 priming sites
             {"append_barcode",  required_argument,  0,  'a'},  //flag to append barcodes to variants
+            {"custom_linker",   required_argument,  0,  'l'},  //use custom linker/exclude linker
+            {"make_fasta",      no_argument,        0,  'f'},  //make fasta file
             {0, 0, 0, 0}
         };
         
-        c = getopt_long(argc, argv, "v:b:a:", long_options, &option_index);
+        c = getopt_long(argc, argv, "v:b:pa:l:f", long_options, &option_index);
         
         if (c == -1) {
             break;
@@ -107,6 +127,26 @@ int main(int argc, char *argv[])
             
             //run barcode generation
             case 'b':
+                printf("\nWARNING: barcode generation should only be performed on machines with >=64GB of RAM.\n\nproceed with barcode generation (yes/no)? \n");
+                
+                while (!resp_provided) {
+                    scanf("%3s", usr_resp);
+                    
+                    if (!strcmp(usr_resp, "yes")) {
+                        printf("proceeding with barcode generation\n\n");
+                        resp_provided = 1;
+                        
+                    } else if (!strcmp(usr_resp, "no")) {
+                        printf("aborting barcode generation\n\n");
+                        abort();
+                        
+                    } else {
+                        printf("invalid response. please enter \"yes\" or \"no\".\n");
+                        get_line(discard, stdin);
+                        
+                    }
+                }
+                
                 mode = MAKE_BARCODES;                       //set mode to MAKE_BARCODES
                 brcds2mk = atoi(argv[optind-1]);            //get number of barcodes to make
                 
@@ -116,9 +156,14 @@ int main(int argc, char *argv[])
                     abort();
                 }
                 
-                mk_brcds(brcds2mk);                         //generate barcodes 
-                return 1;                                   //end program after barcodes are made
-                break;                                      //leaving this in case I decide to remove the return later
+                mk_brcds(brcds2mk); //generate barcodes
+                return 1;           //end program after barcodes are made
+                break;              //leaving this in case I decide to remove the return later
+                
+            //append C3-SC1 and VRA3 priming sites to variants
+            case 'p':
+                append_priming = 1;
+                break;
             
             //append pre-generated barcodes to variants
             case 'a':
@@ -127,6 +172,28 @@ int main(int argc, char *argv[])
                 strcpy(nm.iptB, argv[optind-1]);            //copy barcode file name to names struct
                 get_sample_name(argv[optind-1], nm.brcd);   //get barcode file name
                 brcdFile_supplied++;                        //increment number of barcode files supplied
+                break;
+            
+            //set custom linker
+            case 'l':
+                if (strlen(argv[optind-1]) <= MAX_LINKER) { //check that custom linker is not too long
+                    strcpy(cstm_lnkr, argv[optind-1]);      //store custom linker string
+                } else {
+                    printf("variant_maker: custom linker string exceeds maximum length (%d characters), aborting...\n", MAX_LINKER);
+                }
+                
+                if (strcmp(cstm_lnkr, "exclude")) {  //if the custom linker argument is not 'exclude'
+                    for (i = 0; cstm_lnkr[i]; i++) {    //check that the custom linker sequence only
+                        if (!isDNAbase(cstm_lnkr[i])) { //contains DNA bases
+                            printf("variant_maker: ERROR - custom linkers should only contain DNA bases. if the linker should be excluded, provide the argument 'exclude'\n");
+                        }
+                    }
+                }
+                break;
+            
+            //make fasta file
+            case 'f':
+                make_fasta = 1;
                 break;
                 
             default: printf("error: unrecognized option. Aborting program...\n"); abort();
@@ -216,7 +283,7 @@ int main(int argc, char *argv[])
         }
     }
     
-    print_output(&nm, &bmap[0], vTmpCnt, varCnt, out_dir);
+    print_output(&nm, &bmap[0], vTmpCnt, varCnt, out_dir, append_priming, append_barcode, fp_brcd, cstm_lnkr, make_fasta);
     sprintf(out_msg, "\n%llu variants were generated from %d variant template(s)\n", (long long unsigned int)(v_indx-vTmpCnt), vTmpCnt);
     printf2_scrn_n_fl(prcs_ofp, out_msg);
     /* ******* end of variant generation ******* */
@@ -274,124 +341,4 @@ void check_input(names * nm, int varFile_supplied, int brcdFile_supplied, int ap
     
     return;
 }
-
-/* print_output: print variants (without barcode) to output file */
-void print_output(names * nm, basemap * bmap, int vTmpCnt, int varCnt, char * out_dir)
-{
-    int i = 0; //general purpose index
-    int j = 0; //general purpose index
-    int k = 0; //general purpose index
-    int c = 0; //constant insertion index
-    int d = 0; //constant deletion index
-    
-    int ret = 0; //variable for storing snprintf return value
-    
-    int printed_vb = 0; //flag that first vb of a variant template was printed
-    
-    int filtered_tot = 0; //total number of variants after filtering
-    
-    for (i = 0; i < MAXREF; i++) {
-        filtered_tot += bmap[i].cnt[FILTERED];
-    }
-    
-    FILE * out_fp = NULL;        //output file pointer
-    char out_nm[MAX_LINE] = {0}; //output file name
-    
-    //construct variant output file name
-    ret = snprintf(out_nm, MAX_LINE, "./%s/%s_variants.txt", out_dir, nm->vTmp);
-    if (ret >= MAX_LINE || ret < 0) {
-        printf("print_output: error - error when constructing variant output file name. aborting...\n");
-        abort();
-    }
-    
-    char checkname[MAX_LINE] = {0};
-    
-    char vb_nm[MAX_VBASE_NAME_FIELD+1]={0}; //array for assembling variant attributes during name construction
-    
-    //generate output file
-    if ((out_fp = fopen(out_nm, "w")) == NULL) {
-        printf("print_output: ERROR - could not generate variants output file. Aborting program...\n");
-        abort();
-    }
-        
-    fprintf(out_fp, "variants:%d\n", filtered_tot); //print the number of variants in the output file (excluding reference variants)
-    
-    fprintf(out_fp, "WT:%s\t%s\n", bmap[0].wt->nm, bmap[0].wt->sq); //print wt name and sequence
-    
-    //print variants to the output file
-    for (i = 0, j = 0; i < v_indx; i++) {
-        if (strstr(vrnts[i].nm, "REF") != NULL) {
-            
-            //printing a reference sequence, append the number of targets
-            //that were generated by that reference to "REF"
-            if (j < vTmpCnt) { //check that basemap array bounds are not exceeded
-                
-                sprintf(checkname, "REF:%s_%s", bmap[j].wt->nm, bmap[j].nm);
-                if (strcmp(vrnts[i].nm, checkname)) {
-                    printf("print_output: error - unexpected reference target name. aborting...\n");
-                    abort();
-                }
-                
-                fprintf(out_fp, "%s|TPR:%d", vrnts[i].nm, bmap[j].cnt[FILTERED]); //print transcripts per reference
-                
-                //print list of variable bases in current reference
-                fprintf(out_fp, "|VBS:");
-                for (k = 0, printed_vb = 0; bmap[j].nts[k] && k < MAXLEN; k++) {
-                    if (bmap[j].nts[k] == '*') {  //if nucletide is variable
-                        if (printed_vb) {         //if a variable base has already been printed
-                            fprintf(out_fp, "_"); //print an underscore delimiter
-                        } else {                  //otherwise
-                            printed_vb = 1;       //set flag that the first variable base was printed
-                        }
-                        
-                        mk_vbase_nm(&bmap[j], k, vb_nm, MAX_VBASE_NAME_FIELD+1, '\0'); //assemble vbase name
-                        fprintf(out_fp, "%s", vb_nm); //print vbase name to file
-                    }
-                }
-                
-                if (bmap[j].ci_cnt || bmap[j].d_cnt) {
-                    fprintf(out_fp, "|const:");
-                    
-                    //print constant insertions
-                    for (c = 0; c < bmap[j].ci_cnt; c++) {
-                        mk_vbase_nm(&bmap[j], bmap[j].ci_ix[c], vb_nm, MAX_VBASE_NAME_FIELD+1, '\0'); //assemble vbase name
-                        fprintf(out_fp,"%s", vb_nm);                      //print vbase_name to file
-                        if (c+1 < bmap[j].ci_cnt || bmap[j].d_cnt) { //check if there are more constants to print
-                            fprintf(out_fp, "_");                    //if so, print '_' delimiter
-                        }
-                        
-                    }
-                    
-                    //print constant deletions
-                    for (d = 0; d < bmap[j].d_cnt; d++) {
-                        mk_vbase_nm(&bmap[j], bmap[j].d_ix[d], vb_nm, MAX_VBASE_NAME_FIELD+1, '\0'); //assemble vbase name
-                        fprintf(out_fp, "%s", vb_nm);    //print vbase_name to file
-                        if (d+1 < bmap[j].d_cnt) { //check if there are more deletions to print
-                            fprintf(out_fp, "_");  //if so, print '_' delimiter
-                        }
-                    }
-                }
-                
-                fprintf(out_fp, "\t%s\n", vrnts[i].sq); //print reference sequence
-                j++;                                    //increment basemap index
-                
-            } else {
-                printf("print_output: error - >%d reference targets were generated for %d variant templates. aborting...\n", j, vTmpCnt);
-                abort();
-            }
-        } else {
-            //printing a variant sequence
-            fprintf(out_fp, "%s\t%s\n", vrnts[i].nm, vrnts[i].sq);
-        }
-    }
-    
-    //close output file
-    if (fclose(out_fp) == EOF) {
-        printf("print_output: error - error occurred when closing variant output file. Aborting program...\n");
-        abort();
-    }
-    
-    return;
-}
-
 

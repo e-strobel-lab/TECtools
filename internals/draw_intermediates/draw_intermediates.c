@@ -97,7 +97,7 @@ int main(int argc, char *argv[])
                 get_file(&fp_mtrx, argv[optind-1]);            //set file pointer to matrix file
                 get_sample_name(argv[optind-1], &mtrx.fn[0]);  //set input file name
                 strcpy(mtrx.nm, mtrx.fn);                      //set input file name as default matrix name
-                store_mtrx(fp_mtrx, &mtrx);                     //store matrix in cotrans_mtrx struct
+                store_mtrx(fp_mtrx, &mtrx);                    //store matrix in cotrans_mtrx struct
                 
                 mtrx_cnt++; //increment matrix counter
                 break;

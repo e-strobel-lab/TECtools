@@ -30,3 +30,15 @@ gcc -Wall -o process_TECprobeVL_profiles ../internals/process_TECprobe_profiles/
 #
 #
 #
+#build assemble_TECprobeLM_data
+gcc -Wall -o assemble_TECprobeLM_data ../internals/assemble_TECprobeLM_data/assemble_TECprobeLM_data.c  ../internals/utils/debug.c ../internals/utils/io_management.c  ../internals/assemble_TECprobeLM_data/store_ipt_name.c ../internals/assemble_TECprobeLM_data/validate_input.c ../internals/assemble_TECprobeLM_data/count_delims_2_col.c ../internals/assemble_TECprobeLM_data/get_value.c ../internals/assemble_TECprobeLM_data/print_input_filenames.c ../internals/assemble_TECprobeLM_data/print_reactivity_output.c ../internals/assemble_TECprobeLM_data/print_length_dist_output.c ../internals/cotrans_preprocessor/run_script_gen/MLT/config_MLT_struct.c ../internals/process_TECprobe_profiles/VL/parse_VL_sample_name.c ../internals/cotrans_preprocessor/run_script_gen/MLT/mk_MLT_run_nm.c
+#
+#
+#
+#
+#build draw_intermediates
+gcc -Wall -o draw_intermediates ../internals/draw_intermediates/draw_intermediates.c ../internals/utils/io_management.c ../internals/mkmtrx/cotrans_mtrx.c ../internals/seq_utils/parse_fasta.c ../internals/seq_utils/isDNAbase.c
+#
+#
+#
+#
