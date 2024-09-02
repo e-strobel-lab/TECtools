@@ -237,8 +237,8 @@ void print_barcoded_variant(FILE * fp_brcd, FILE * out_fp, FILE * fasta_fp, int 
     
     if (crrnt_var == 1) {                          //if processing first variant
         read_bcFile(fp_brcd, HEADER, lnkr);        //parse barcode file header
-        
-        if (cstm_lnkr) {                           //if using custom linker
+                
+        if (cstm_lnkr[0]) {                        //if using custom linker
             if (!strcmp(cstm_lnkr, "exclude")) {   //if excluding linker
                 incld_lnkr = 0;                    //set include linker flag to false
             } else {

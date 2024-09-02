@@ -127,6 +127,11 @@ int main(int argc, char *argv[])
             
             //run barcode generation
             case 'b':
+                if (mode) {
+                    printf("variant_maker: ERROR - cannot run variant maker in more than one mode. aborting...\n");
+                    abort();
+                }
+                
                 printf("\nWARNING: barcode generation should only be performed on machines with >=64GB of RAM.\n\nproceed with barcode generation (yes/no)? \n");
                 
                 while (!resp_provided) {
@@ -180,12 +185,14 @@ int main(int argc, char *argv[])
                     strcpy(cstm_lnkr, argv[optind-1]);      //store custom linker string
                 } else {
                     printf("variant_maker: custom linker string exceeds maximum length (%d characters), aborting...\n", MAX_LINKER);
+                    abort();
                 }
                 
                 if (strcmp(cstm_lnkr, "exclude")) {  //if the custom linker argument is not 'exclude'
                     for (i = 0; cstm_lnkr[i]; i++) {    //check that the custom linker sequence only
                         if (!isDNAbase(cstm_lnkr[i])) { //contains DNA bases
                             printf("variant_maker: ERROR - custom linkers should only contain DNA bases. if the linker should be excluded, provide the argument 'exclude'\n");
+                            abort();
                         }
                     }
                 }
