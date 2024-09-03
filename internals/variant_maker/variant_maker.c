@@ -41,7 +41,7 @@
 
 /* check_input: check that correct input files were supplied for
  variant generation and print input file information to file*/
-void check_input(names * nm, int varFile_supplied, int brcdFile_supplied, int append_barcode, char * out_dir);
+void check_input(names * nm, int varFile_supplied, int brcdFile_supplied, int append_barcode, int first_bc_2_use, char * out_dir);
 
 //variant storage
 fasta *vrnts = NULL;  //pointer to fasta structures used when generating variants
@@ -82,6 +82,7 @@ int main(int argc, char *argv[])
     int brcdFile_supplied = 0; //flag that barcode file was provided
     int brcds2mk = 0;          //number of barcodes to make
     int append_barcode = 0;    //flag to append barcodes to variants
+    int first_bc_2_use = 1;    //first barcode id to use. default = 1
     int append_priming = 0;    //flag to append C3-SC1 and VRA3 priming sites
     int make_fasta = 0;        //flag to make fasta file
     
@@ -106,14 +107,15 @@ int main(int argc, char *argv[])
             {"mk-variants",     required_argument,  0,  'v'},  //variant template input file, sets MAKE_VARIANTS mode
             /* WARNING: mk-barcodes mode should only be run on systems with >= 64 GB of RAM */
             {"mk-barcodes",     required_argument,  0,  'b'},  //flag to make barcode file
-            {"append_priming",  required_argument,  0,  'p'},  //append priming sites
-            {"append_barcode",  required_argument,  0,  'a'},  //flag to append barcodes to variants
-            {"custom_linker",   required_argument,  0,  'l'},  //use custom linker/exclude linker
+            {"append-priming",  required_argument,  0,  'p'},  //append priming sites
+            {"append-barcode",  required_argument,  0,  'a'},  //flag to append barcodes to variants
+            {"first-bc-2-use",  required_argument,  0,  'i'},  //first barcode id to use
+            {"custom-linker",   required_argument,  0,  'l'},  //use custom linker/exclude linker
             {"make_fasta",      no_argument,        0,  'f'},  //make fasta file
             {0, 0, 0, 0}
         };
         
-        c = getopt_long(argc, argv, "v:b:p:a:l:f", long_options, &option_index);
+        c = getopt_long(argc, argv, "v:b:p:a:i:l:f", long_options, &option_index);
         
         if (c == -1) {
             break;
@@ -194,6 +196,17 @@ int main(int argc, char *argv[])
                 brcdFile_supplied++;                        //increment number of barcode files supplied
                 break;
             
+            //set first barcode id to use
+            case 'i':
+                for (i = 0; argv[optind-1][i]; i++) {
+                    if (!isdigit(argv[optind-1][i])) {
+                        printf("variant_maker: ERROR - argument for first barcode to use must be composed of digits. aborting...\n");
+                        abort();
+                    }
+                }
+                first_bc_2_use = atoi(argv[optind-1]);
+                break;
+                
             //set custom linker
             case 'l':
                 if (strlen(argv[optind-1]) <= MAX_LINKER) { //check that custom linker is not too long
@@ -246,7 +259,8 @@ int main(int argc, char *argv[])
         abort();
     }
     
-    check_input(&nm, varFile_supplied, brcdFile_supplied, append_barcode, out_dir); //check and print input files
+    //check and print input files
+    check_input(&nm, varFile_supplied, brcdFile_supplied, append_barcode, first_bc_2_use, out_dir);
     
     /* ******* make variants ******* */
     struct wt_source wt  =  {0};         //storage for wt name and sequence
@@ -305,7 +319,7 @@ int main(int argc, char *argv[])
         }
     }
     
-    print_output(&nm, &bmap[0], vTmpCnt, varCnt, out_dir, append_priming, append_barcode, fp_brcd, cstm_lnkr, make_fasta);
+    print_output(&nm, &bmap[0], vTmpCnt, varCnt, out_dir, append_priming, append_barcode, fp_brcd, first_bc_2_use, cstm_lnkr, make_fasta);
     sprintf(out_msg, "\n%llu variants were generated from %d variant template(s)\n", (long long unsigned int)(v_indx-vTmpCnt), vTmpCnt);
     printf2_scrn_n_fl(prcs_ofp, out_msg);
     /* ******* end of variant generation ******* */
@@ -319,7 +333,7 @@ int main(int argc, char *argv[])
 
 /* check_input: check that correct input files were supplied for
  variant generation and print input file information to file*/
-void check_input(names * nm, int varFile_supplied, int brcdFile_supplied, int append_barcode, char * out_dir)
+void check_input(names * nm, int varFile_supplied, int brcdFile_supplied, int append_barcode, int first_bc_2_use, char * out_dir)
 {
     FILE * out_fp = NULL;         //output file pointer
     char out_nm[MAX_LINE] = {0};  //output file name
@@ -352,6 +366,20 @@ void check_input(names * nm, int varFile_supplied, int brcdFile_supplied, int ap
         fprintf(out_fp, "barcodes: %s\n", nm->iptB);
     } else if (brcdFile_supplied > 1) {
         printf("check_input: error - incorrect number of barcode files (%d). expected 1. aborting...\n", brcdFile_supplied);
+        abort();
+    }
+    
+    //check that barcode file was provided alongside first barcode id to use option and that
+    if (first_bc_2_use > 1) {
+        fprintf(out_fp, "first BC id: %d\n", first_bc_2_use);
+        
+        if (!brcdFile_supplied) {
+            printf("check_input: error - first barcode to use was set but no barcode file was provided. aborting...\n");
+            abort();
+        }
+    //check that first barcode id to use was not set to zero
+    } else if (!first_bc_2_use) {
+        printf("check_input: error - the first barcode id to use cannot be 0. aborting...\n");
         abort();
     }
     
