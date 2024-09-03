@@ -330,7 +330,7 @@ int get_rndm_brcds(target ** brcd_out, target * pf_brcds, uint64_t passed_filter
     int j = 0;  //general purpose index
     int r = 0;  //randomized index for selecting barcodes
     
-    const char brcd_lnkr[10] = "AAACCAACT"; //barcode linker sequence //TODO: confirm finalized
+    const char brcd_lnkr[10] = "aaaccaact"; //barcode linker sequence //TODO: confirm finalized
     
                         //NNNNNNNNSloopSNNNNNNNNtKKtKYYgRYgRtcNNloopNN
     char rPos[45] =     {"*************..........**.***.**.*..******.."}; //randomized positions
@@ -396,10 +396,10 @@ int get_rndm_brcds(target ** brcd_out, target * pf_brcds, uint64_t passed_filter
         }
         
         if (!too_close) { //barcode is sufficiently different than all previously output barcodes
-            brcd_out[brcd_cnt] = &pf_brcds[r];                            //set output pointer to current barcode
-            printf("%d\t%s\n",brcd_cnt+1, brcd_out[brcd_cnt]->sq);        //print barcode to screen
-            fprintf(out_fp, "%d\t%s\n",brcd_cnt, brcd_out[brcd_cnt]->sq); //print barcode to file
-            brcd_cnt++;                                                   //increment barcode count
+            brcd_out[brcd_cnt] = &pf_brcds[r];                //set output pointer to current barcode
+            printf("%d\t%s\n",brcd_cnt+1, brcd_out[brcd_cnt]->sq);          //print barcode to screen
+            fprintf(out_fp, "%d\t%s\n",brcd_cnt+1, brcd_out[brcd_cnt]->sq); //print barcode to file
+            brcd_cnt++;                                                     //increment barcode count
         }
     }
     

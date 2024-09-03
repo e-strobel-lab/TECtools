@@ -52,10 +52,14 @@ char prcs_out_nm[MAX_LINE] = {0}; //name of processing message output file
 char out_msg[MAX_LINE] = {0};     //output message
 
 //priming sites
-//const char c3sc1[34] = "ATTCGGTGCTCTTCTCTTCGGCCTTCGGGCCAA";
-//const char vra3[27]  = "GATCGTCGGACTGTAGAACTCTGAAC";
-const char c3sc1[34] = "attcggtgctcttctcttcggccttcgggccaa";
-const char vra3[27]  = "gatcgtcggactgtagaactctgaac";
+//char c3sc1[34] = "ATTCGGTGCTCTTCTCTTCGGCCTTCGGGCCAA";
+//char vra3[27]  = "GATCGTCGGACTGTAGAACTCTGAAC";
+char pra1_sc1[41] = "acctctggcggtgataatggttgcatggccttcgggccaa";
+char c3sc1[34]    = "attcggtgctcttctcttcggccttcgggccaa";
+char vra3[27]     = "gatcgtcggactgtagaactctgaac";
+
+char * fwd2use = NULL;
+char * rev2use = NULL;
 
 /* end of global variables */
 
@@ -102,14 +106,14 @@ int main(int argc, char *argv[])
             {"mk-variants",     required_argument,  0,  'v'},  //variant template input file, sets MAKE_VARIANTS mode
             /* WARNING: mk-barcodes mode should only be run on systems with >= 64 GB of RAM */
             {"mk-barcodes",     required_argument,  0,  'b'},  //flag to make barcode file
-            {"append_priming",  no_argument,        0,  'p'},  //append C3-SC1 and VRA3 priming sites
+            {"append_priming",  required_argument,  0,  'p'},  //append priming sites
             {"append_barcode",  required_argument,  0,  'a'},  //flag to append barcodes to variants
             {"custom_linker",   required_argument,  0,  'l'},  //use custom linker/exclude linker
             {"make_fasta",      no_argument,        0,  'f'},  //make fasta file
             {0, 0, 0, 0}
         };
         
-        c = getopt_long(argc, argv, "v:b:pa:l:f", long_options, &option_index);
+        c = getopt_long(argc, argv, "v:b:p:a:l:f", long_options, &option_index);
         
         if (c == -1) {
             break;
@@ -157,7 +161,7 @@ int main(int argc, char *argv[])
                 
                 //check that brcds2mk does not exceed barcode generation cap
                 if (brcds2mk > MAX_BRCDS_2_MK) {
-                    printf("main: error - the maximum number of barcodes to make is currently %d. aborting...\n", MAX_BRCDS_2_MK);
+                    printf("variant_maker: error - the maximum number of barcodes to make is currently %d. aborting...\n", MAX_BRCDS_2_MK);
                     abort();
                 }
                 
@@ -168,6 +172,17 @@ int main(int argc, char *argv[])
             //append C3-SC1 and VRA3 priming sites to variants
             case 'p':
                 append_priming = 1;
+                                
+                if (!strcmp(argv[optind-1], "TECdisplay")) {      //use TECdisplay priming sites
+                    fwd2use = &c3sc1[0];
+                    rev2use = &vra3[0];
+                } else if (!strcmp(argv[optind-1], "TECprobe")) { //use TECprobe priming sites
+                    fwd2use = &pra1_sc1[0];
+                    rev2use = &vra3[0];
+                } else {
+                    printf("variant_maker: ERROR - unrecognized priming site set. aborting...\n");
+                    abort();
+                }
                 break;
             
             //append pre-generated barcodes to variants

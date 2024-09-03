@@ -183,8 +183,8 @@ void print_standard_variant(FILE * out_fp, FILE * fasta_fp, int append_priming, 
     extern fasta *vrnts;    //array of variant sequences
     extern uint64_t v_indx; //index for vrnts array
     
-    extern const char c3sc1[34]; //C3-SC1 leader sequence
-    extern const char vra3[27];  //VRA3 sequence
+    extern char * fwd2use;  //forward priming site to use
+    extern char * rev2use;  //reverse priming site to use
         
     int i = 0; //general purpose index
      
@@ -193,7 +193,7 @@ void print_standard_variant(FILE * out_fp, FILE * fasta_fp, int append_priming, 
     
     //calculate output sequence length
     len += strlen(vrnts[crrnt_var].sq);
-    len += append_priming ? (strlen(c3sc1) + strlen(vra3)) : 0;
+    len += append_priming ? (strlen(fwd2use) + strlen(rev2use)) : 0;
     
     if (len >= MAX_LINE) { //check that output sequence will fit in array
         printf("print_barcoded_variant: ERROR - sequence is too long (%d nucleotides). aborting\n", len);
@@ -201,13 +201,13 @@ void print_standard_variant(FILE * out_fp, FILE * fasta_fp, int append_priming, 
 
     //assemble output sequence
     if (append_priming) {             //if appending priming sites
-        strcat(seq, c3sc1);           //append the C3-SC1 leader sequence
+        strcat(seq, fwd2use);         //append the forward priming site sequence
     }
     
     strcat(seq, vrnts[crrnt_var].sq); //append variant sequence
     
     if (append_priming) {             //if appending priming sites
-        strcat(seq, vra3);            //append the VRA3 sequence
+        strcat(seq, rev2use);         //append the reverse priming site sequence
     }
     
     //print output sequence to file(s)
@@ -224,8 +224,8 @@ void print_barcoded_variant(FILE * fp_brcd, FILE * out_fp, FILE * fasta_fp, int 
     extern fasta *vrnts;    //array of variant sequences
     extern uint64_t v_indx; //index for vrnts array
     
-    extern const char c3sc1[34]; //C3-SC1 leader sequence
-    extern const char vra3[27];  //VRA3 sequence
+    extern char * fwd2use;  //forward priming site to use
+    extern char * rev2use;  //reverse priming site to use
     
     int i = 0; //general purpose index
     
@@ -261,7 +261,7 @@ void print_barcoded_variant(FILE * fp_brcd, FILE * out_fp, FILE * fasta_fp, int 
         } else {
             //calculate output sequence length
             len += strlen(vrnts[crrnt_var].sq);
-            len += append_priming ? (strlen(c3sc1) + strlen(vra3)) : 0;
+            len += append_priming ? (strlen(fwd2use) + strlen(rev2use)) : 0;
             len += incld_lnkr ? strlen(lnkr) : 0;
             len += strlen(crrnt_bc);
             
@@ -271,7 +271,7 @@ void print_barcoded_variant(FILE * fp_brcd, FILE * out_fp, FILE * fasta_fp, int 
 
             //assemble output sequence
             if (append_priming) {             //if appending priming sites
-                strcat(seq, c3sc1);           //append the C3-SC1 leader sequence
+                strcat(seq, fwd2use);         //append the forward priming site sequence
             }
             strcat(seq, vrnts[crrnt_var].sq); //append variant sequence
             if (incld_lnkr) {                 //if including linker sequence
@@ -279,7 +279,7 @@ void print_barcoded_variant(FILE * fp_brcd, FILE * out_fp, FILE * fasta_fp, int 
             }
             strcat(seq, crrnt_bc);            //append barcode
             if (append_priming) {             //if appending priming sites
-                strcat(seq, vra3);            //append the VRA3 sequence
+                strcat(seq, rev2use);         //append the reverse priming site sequence
             }
             
             
