@@ -1,5 +1,5 @@
 //
-//  print_reactivity_output.c
+//  print_linebar_output.c
 //  
 //
 //  Created by Eric Strobel on 2/7/24.
@@ -9,10 +9,10 @@
 #include "./assemble_TECprobeLM_data_defs.h"
 #include "./assemble_TECprobeLM_data_structs.h"
 
-#include "print_reactivity_output.h"
+#include "print_linebar_output.h"
 
-/* print_reactivity_output: print a reactivity output file */
-void print_reactivity_output(char * out_dir, char * out_nm, mode_parameters * mode_params, int ipt_cnt[TOT_SAMPLES], int nrchd_len[TOT_SAMPLES], double vals[MAX_TRANSCRIPT][TOT_SAMPLES][MAX_IPT])
+/* print_linebar_output: print a reactivity output file */
+void print_linebar_output(char * out_dir, char * out_nm, mode_parameters * mode_params, int ipt_cnt[TOT_SAMPLES], int nrchd_len[TOT_SAMPLES], double vals[MAX_TRANSCRIPT][TOT_SAMPLES][MAX_IPT])
 {
     double average[MAX_TRANSCRIPT][TOT_SAMPLES] = {0}; //array to store average values for each sample
     
@@ -42,9 +42,9 @@ void print_reactivity_output(char * out_dir, char * out_nm, mode_parameters * mo
     
     
     //generate output files
-    sprintf(out_fn, "%s/%s_LMP_reactivity.txt", out_dir, out_nm); //generate output filename
+    sprintf(out_fn, "%s/%s_LMP_reactivity_linebars.txt", out_dir, out_nm); //generate output filename
     if ((out_fp = fopen(out_fn, "w")) == NULL) {                  //open  output file
-        printf("print_reactivity_output: error - failed to open output file. aborting...");
+        printf("print_linebar_output: error - failed to open output file. aborting...");
         abort();
     }
     
@@ -116,7 +116,7 @@ void print_reactivity_output(char * out_dir, char * out_nm, mode_parameters * mo
    
     //close the output file
     if (fclose(out_fp) == EOF) {
-        printf("print_reactivity_output: error - failed to close output file. Aborting program...\n");
+        printf("print_linebar_output: error - failed to close output file. Aborting program...\n");
         abort();
     }
     

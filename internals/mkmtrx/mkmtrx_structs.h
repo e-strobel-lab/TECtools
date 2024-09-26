@@ -34,28 +34,5 @@ typedef struct alignment_stats { //stores alignment stats from bowtie2 output
     double calc[2];    //overall alignment rate (calculated)
 } alignment_stats;
 
-typedef struct rdat_metadata {   //stores metadata for rdat generation
-    char fn[MAX_MD_STRING+1];    //output rdat file name
-    char nm[MAX_MD_STRING+1];    //sample name
-    char str[MAX_MD_STRING+1];   //structure
-    int  offset;                 //sequence position offset
-    int  smooth;                 //flag to indicate if neighboring transcript smoothing was applied
-    char xtype[MAX_MD_STRING+1]; //experiment type
-    char xmeth[MAX_MD_STRING+1]; //experiment method
-    char probe[MAX_MD_STRING+1]; //chemical probe
-    char tris[MAX_MD_STRING+1];  //tris concentration
-    char KCl[MAX_MD_STRING+1];   //KCl concentration
-    char EDTA[MAX_MD_STRING+1];  //EDTA concentration
-    char DTT[MAX_MD_STRING+1];   //DTT concentration
-    char MgCl2[MAX_MD_STRING+1]; //MgCl2 concentration
-    char NTPs[MAX_MD_STRING+1];  //NTP concentration
-    char BSA[MAX_MD_STRING+1];   //BSA concentration
-    char other_chem[MAX_OTHER_CHEM][MAX_MD_STRING+1]; //array of other chemicals in reaction
-    char temp[MAX_MD_STRING+1];  //temperature
-    char comment[MAX_COMMENTS][MAX_LINE]; //array to store user-supplied comments
-    int oc_cnt;                  //count of other chemical entries provided
-    int cmnt_cnt;                //count of user-supplied comments provided
-} rdat_metadata;
-
 
 #endif /* mkmtrx_structs_h */

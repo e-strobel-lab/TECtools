@@ -315,7 +315,17 @@ int parse_profile(char * prfl_loc, int len, cotrans_matrix * mtrx, int rct_typ)
             abort();
         }
     }
-
+    
+    //allocate memory for storing the number of values in the current row
+    char len_str[MAX_LINE] = {0};            //length string
+    sprintf(len_str, "%d", val_cnt[RCT]-1);  //convert length from integer to string
+    
+    array2use = &mtrx->vals[len][0]; //set storage location to vals index zero of current row and allocate memory
+    if (((*array2use) = malloc((strlen(len_str)+1) * sizeof(**array2use))) == NULL) {
+        printf("store_mtrx: error - memory allocation for matrix field value failed. aborting...\n");
+        abort();
+    }
+    strcpy(*array2use, len_str);    //store length string
     
     if (fclose(prfl_p) == EOF) { //close shapemapper output file
         fprintf(prfl_p, "parse_profile: error - failed to close shapemapper output file. Aborting program...\n");

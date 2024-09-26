@@ -14,6 +14,6 @@
 #include "./assemble_TECprobeLM_data_defs.h"
 #include "./assemble_TECprobeLM_data_structs.h"
 
-int count_delims_2_col(FILE * ipt,  mode_parameters * mode_params, int nrchd_len, int * delims2col);
+int count_delims_2_col(FILE * ipt,  mode_parameters * mode_params, int nrchd_len, int * delims2col, int * delims2seq);
 
 #endif /* count_delims_2_col_h */

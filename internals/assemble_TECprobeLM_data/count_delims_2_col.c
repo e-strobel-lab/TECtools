@@ -13,13 +13,17 @@
 
 /* count_delims_2_col: count the number of delimiters observed before
  the target column header is reached */
-int count_delims_2_col(FILE * ipt, mode_parameters * mode_params, int nrchd_len, int * delims2col)
+int count_delims_2_col(FILE * ipt, mode_parameters * mode_params, int nrchd_len, int * delims2col, int * delims2seq)
 {
     int i = 0;                            //general purpose index
     int j = 0;                            //general purpose index
     
     char c = '\0';                        //current character of the line
-     
+    
+    char seq_col[10] = "Sequence_";       //string to identify sequence columns
+
+    int found_val = 0;                    //flag that value column was found
+    int found_seq = 0;                    //flag that sequence column was found
     int found_end = 0;                    //flag that end of line was found
     
     char crnt_col_nm[MAX_NAME+1] = {0}; //array to store column name TODO: allocate dynamically?
@@ -62,12 +66,27 @@ int count_delims_2_col(FILE * ipt, mode_parameters * mode_params, int nrchd_len,
                 
                 *delims2col = i; //set the number of delimiters that precede the target column
                 
-                if (c != '\n' && c != EOF) {                           //if the current line character is not a newline or EOF
-                    while ((c = fgetc(ipt)) != '\n' && c != EOF) { ; } //iterate to the end of the line
-                }
-                
-                return 1; //return success
+                found_val = 1;
             }
+            
+        } else if ((trgt_hdr_strt = strstr(crnt_col_nm, seq_col)) != NULL) {
+            
+            trgt_len_strt = &trgt_hdr_strt[strlen(seq_col)];
+            
+            if (atoi(trgt_len_strt) == nrchd_len) {
+                *delims2seq = i;
+                found_seq = 1;
+            }
+        }
+        
+        if ((mode_params->mod == REACTIVITY && (found_val && found_seq)) ||
+            (mode_params->mod == LEN_DIST && found_val)) {
+            
+            while (c != '\n' && c != EOF) { //iterate to the end of the line
+                c = fgetc(ipt);
+            }
+            
+            return 1; //return success
         }
     }
     

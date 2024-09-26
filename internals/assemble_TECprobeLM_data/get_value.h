@@ -14,6 +14,6 @@
 #include "./assemble_TECprobeLM_data_defs.h"
 #include "./assemble_TECprobeLM_data_structs.h"
 
-int get_value(FILE * ipt,  mode_parameters * mode_params, int delims2col, double * val);
+int get_value(FILE * ipt,  mode_parameters * mode_params, int delims2col, int delims2seq, double * val, char ** val_str, char * seq);
 
 #endif /* get_value_h */

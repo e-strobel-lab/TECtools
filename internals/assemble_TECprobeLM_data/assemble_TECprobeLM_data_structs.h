@@ -23,7 +23,7 @@ typedef struct mode_parameters {
     int offset;         //amount to offset array indices when printing nucleotide
 } mode_parameters;
 
-/* sample_names: structure for storing sample names */
+/* input_data: structure for storing input files and data attributes */
 typedef struct input_data {
     FILE * fp[TOT_SAMPLES][MAX_IPT]; //input file pointers
     char * fn[TOT_SAMPLES][MAX_IPT]; //array to store input file names

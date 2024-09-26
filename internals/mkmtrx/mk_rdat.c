@@ -23,14 +23,15 @@
 
 /* mk_rdat: manages rdata config parsing/checking and
  construction of output rdat file*/
-int mk_rdat(FILE * fp_config, cotrans_matrix * mtrx, int mode)
+int mk_rdat(FILE * fp_config, cotrans_matrix * mtrx, int mode, int reps)
 {
-    rdat_metadata rdat_meta = {{0}};          //struct for rdat metadata
-    rdat_meta.smooth = -1;                    //initialize smooth to -1 because true/false is 1/0
+    rdat_metadata rdat_meta = {{0}}; //struct for rdat metadata
+    rdat_meta.rtype = -1;            //intialize rtype to -1 because possible values are >= 0
+    rdat_meta.smooth = -1;           //initialize smooth to -1 because true/false is 1/0
     
     parse_rdat_config(fp_config, &rdat_meta); //parse rdat config file
     check_rdat_config(&rdat_meta, mtrx);      //check that config contains required info
-    print_rdat(&rdat_meta, mtrx, mode);       //print rdat file
+    print_rdat(&rdat_meta, mtrx, mode, reps); //print rdat file
     return 1;
 }
 
@@ -119,6 +120,17 @@ int parse_rdat_config(FILE * ifp, rdat_metadata * rdat_meta)
                     }
                     rdat_meta->offset = atoi(val);
                 
+                //set reactivity type
+                } else if (!strcmp(setting, "REACTIVITY_TYPE")) {
+                    if (!strcmp(val, "RAW")) {
+                        rdat_meta->rtype = RAW;
+                    } else if (!strcmp(val, "NORMALIZED")) {
+                        rdat_meta->rtype = NORMALIZED;;
+                    } else {
+                        printf("parse_rdat_config: error - unrecognized reactivity type. reactiviity type must be 'RAW' or 'NORMALIZED'. aborting...");
+                        abort();
+                    }
+                    
                 //set smooth
                 } else if (!strcmp(setting, "SMOOTHED")) {
                     set_TF_value(val, setting, &(rdat_meta->smooth));
@@ -256,6 +268,20 @@ int check_rdat_config(rdat_metadata * rdat_meta, cotrans_matrix * mtrx)
         fprintf(out_fp, "offset\t\t%d\n", rdat_meta->offset);
     }
     
+    //check that reactivity type was set
+    if (rdat_meta->rtype < 0 || rdat_meta->rtype > 1) {
+        printf("check_rdat_config: error - invalid value for reactivity type. aborting\n");
+        abort();
+    } else {
+        if (rdat_meta->rtype == RAW) {
+            printf("reactivity\tRAW\n");
+            fprintf(out_fp, "reactivity\tRAW\n");
+        } else if (rdat_meta->rtype == NORMALIZED) {
+            printf("reactivity\tNORMALIZED\n");
+            fprintf(out_fp, "reactivity\tNORMALIZED\n");
+        }
+    }
+    
     //check that smoothing flag was set to OFF (0) or ON (1)
     if (rdat_meta->smooth != 0 && rdat_meta->smooth != 1) {
         printf("check_rdat_config: error - invalid value for smoothed. aborting\n");
@@ -263,10 +289,10 @@ int check_rdat_config(rdat_metadata * rdat_meta, cotrans_matrix * mtrx)
     } else {
         if (rdat_meta->smooth) {
             printf("smoothed\tTRUE\n");
-            fprintf(out_fp, "smoothed\t\tTRUE\n");
+            fprintf(out_fp, "smoothed\tTRUE\n");
         } else {
             printf("smoothed\tFALSE\n");
-            fprintf(out_fp, "smoothed\t\tFALSE\n");
+            fprintf(out_fp, "smoothed\tFALSE\n");
         }
     }
     
@@ -388,7 +414,7 @@ int check_rdat_config(rdat_metadata * rdat_meta, cotrans_matrix * mtrx)
 }
 
 /* print_rdat: print rdat file */
-int print_rdat(rdat_metadata * rdat_meta, cotrans_matrix * mtrx, int mode)
+int print_rdat(rdat_metadata * rdat_meta, cotrans_matrix * mtrx, int mode, int reps)
 {
     int i = 0; //general purpose index
     int j = 0; //general purpose index
@@ -467,7 +493,11 @@ int print_rdat(rdat_metadata * rdat_meta, cotrans_matrix * mtrx, int mode)
     
     fprintf(out_fp, "COMMENT\tMutation mapping and reactivity calculation was performed using shapemapper2 (Busan and Weeks,  DOI: 10.1261/rna.061945.117)\n");
     
-    fprintf(out_fp, "COMMENT\tReactivity values are raw backround-subtracted mutations rates\n");
+    if (rdat_meta->rtype == RAW) {
+        fprintf(out_fp, "COMMENT\tReactivity values are raw backround-subtracted mutations rates\n");
+    } else if (rdat_meta->rtype == NORMALIZED) {
+        fprintf(out_fp, "COMMENT\tReactivity values were normalized as described in section 3.2.1 of Low and Weeks, 2010, DOI: 10.1016/j.ymeth.2010.06.007\n");
+    }
     
     fprintf(out_fp,"COMMENT\tThe leading SC1 hairpin sequence (5-ATGGCCTTCGGGCCAA), which is masked by a primer, was trimmed\n");
     if (mode == SINGLE) {
@@ -487,24 +517,51 @@ int print_rdat(rdat_metadata * rdat_meta, cotrans_matrix * mtrx, int mode)
     fprintf(out_fp, "\n");
     
     //print data annotations
-    int a_indx = 0; //annotation index
+    int a_indx = 0;  //annotation index
+    int col_cnt = 0; //number of columns in current row
+    
+    int cRep = 0;    //current replicate index
+    
     for (i = mtrx->tl[MIN], a_indx = 1; i <= mtrx->tl[MAX]; i++) {
         
         //print REACTIVITY ANNOTATION
-        fprintf(out_fp, "DATA_ANNOTATION:%d\tsequence:", a_indx++);
-        for (j = mtrx->nt[MIN]; j <= i; j++) {
-            fprintf(out_fp, "%c", mtrx->sq[j]);
+        col_cnt = atoi(mtrx->vals[i][0]); //set column count, which is stored at index zero of the row
+        
+        //print a data annotation line for each replicate
+        for (cRep = 0; cRep < reps; cRep++) {
+            fprintf(out_fp, "DATA_ANNOTATION:%d\tsequence:", a_indx++);
+            for (j = mtrx[cRep].nt[MIN]; j < mtrx[cRep].nt[MIN]+col_cnt; j++) {
+                fprintf(out_fp, "%c", mtrx[cRep].sq[j]);
+            }
+            fprintf(out_fp, "\tdatatype:REACTIVITY\t%s\tID:Length%d", rdat_meta->probe, col_cnt);
+            
+            if (mode == LM_RDAT) {
+                fprintf(out_fp, "_Sample%d", i);
+            }
+            
+            if (reps > 1) {
+                fprintf(out_fp, "_Rep%d", cRep+1);
+            }
+            
+            fprintf(out_fp, "\n");
         }
-        fprintf(out_fp, "\tdatatype:REACTIVITY\t%s\tID:Length%d\n", rdat_meta->probe, i);
+        
+        
     }
     
     for (i = mtrx->tl[MIN], a_indx = 1; i <= mtrx->tl[MAX]; i++) {
+        
         //print REACTIVITY data
-        fprintf(out_fp, "DATA:%d", a_indx++);
-        for (j = mtrx->nt[MIN]; j <= i; j++) {
-            fprintf(out_fp, "\t%s", mtrx->vals[i][j]);
+        col_cnt = atoi(mtrx->vals[i][0]); //set column count, which is stored at index zero of the row
+        
+        //print a data line for each replicate
+        for (cRep = 0; cRep < reps; cRep++) {
+            fprintf(out_fp, "DATA:%d", a_indx++);
+            for (j = mtrx[cRep].nt[MIN]; j < mtrx[cRep].nt[MIN]+col_cnt; j++) {
+                fprintf(out_fp, "\t%s", mtrx[cRep].vals[i][j]);
+            }
+            fprintf(out_fp, "\n");
         }
-        fprintf(out_fp, "\n");
     }
     
     //close output file

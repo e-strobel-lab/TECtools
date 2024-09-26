@@ -31,8 +31,4 @@
 #define MULTI 0               //flag that data is from TECprobe-ML experiment
 #define SINGLE 1              //flag that data is from TECprobe-SL experiment
 
-#define MAX_MD_STRING 512     //max metadata string length
-#define MAX_OTHER_CHEM 32     //max number of other chemical strings
-#define MAX_COMMENTS 32       //max number of user-supplied comments
-
 #endif /* mkmtrx_defs_h */

@@ -237,8 +237,17 @@ int main(int argc, char *argv[])
     
     mk_linebars(prnt_dir, smpl_nm, &mtrx); //format data for linebar plots
     
-    if (rdat_config_provided) {
-        mk_rdat(fp_config, &mtrx, mode); //generate rdat file
+    //if make rdat option was set, generate rdat file
+    int rdat_type = 0; //type of rdat to generate
+    
+    if (rdat_config_provided) {       //set rdat type
+        if (mode == MULTI) {
+            rdat_type = VL_RDAT;      //rdat is for TECprobe-VL experiment
+        } else if (mode == SINGLE) {
+            rdat_type = SL_RDAT;      //rdat is for TECprobe-SL experiment
+        }
+        
+        mk_rdat(fp_config, &mtrx, rdat_type, 1); //generate rdat file
     }
 }
 

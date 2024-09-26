@@ -24,21 +24,31 @@
 #include "./get_value.h"
 
 #include "./print_input_filenames.h"
-#include "./print_reactivity_output.h"
+#include "./print_linebar_output.h"
 #include "./print_length_dist_output.h"
 
 #include "../cotrans_preprocessor/run_script_gen/MLT/config_MLT_struct.h"
-
+#include "../mkmtrx/mk_rdat.h"
 
 int main(int argc, char *argv[])
 {
-    input_data ipt = {{{0}}};
+    input_data ipt = {{{0}}}; //structure for storing input files and data attributes
     
-    mode_parameters mode_params = {0};             //mode parameters
-    mode_params.mod = MODE_INIT;                   //intialize mode
+    mode_parameters mode_params = {0};  //mode parameters
+    mode_params.mod = MODE_INIT;        //intialize mode
     
-    int nrchd_len[TOT_SAMPLES] = {0};              //array to store enriched transcript length values (one per sample)
-    int delims2col[TOT_SAMPLES][MAX_IPT] = {0};    //number of delimiters to reach the target data column
+    cotrans_matrix * mtrx = NULL; //cotrans matrix structure for rdat generation
+    
+    //allocate memory for cotrans matrix structure
+    if ((mtrx = calloc(MAX_IPT, sizeof(*mtrx))) == NULL) {
+        printf("assemble_TECprobeLM_data: error - matrix memory allocation failed. aborting...\n");
+        abort();
+    }
+    
+    int nrchd_len[TOT_SAMPLES] = {0}; //array to store enriched transcript length values (one per sample)
+    
+    FILE * fp_config = NULL;      //pointer to rdat config file
+    int rdat_config_provided = 0; //flag that rdat config was provided
     
     double vals[MAX_TRANSCRIPT][TOT_SAMPLES][MAX_IPT] = {{{0}}}; //array to store values from the target data columns
     
@@ -61,10 +71,11 @@ int main(int argc, char *argv[])
             {"data2",      required_argument,  0,  'y'}, //input file for sample 2
             {"data3",      required_argument,  0,  'z'}, //input file for sample 3
             {"out-name",   required_argument,  0,  'o'}, //output file name
+            {"make_rdat",  required_argument,  0,  'r'}, //make rdat file
             {0, 0, 0, 0}
         };
         
-        c = getopt_long(argc, argv, "m:a:b:c:x:y:z:o:", long_options, &option_index);
+        c = getopt_long(argc, argv, "m:a:b:c:x:y:z:o:r:", long_options, &option_index);
         
         if (c == -1) {
             break;
@@ -166,6 +177,16 @@ int main(int argc, char *argv[])
                 }
                 
                 break;
+                
+            case 'r': //make rdat file
+                if (!rdat_config_provided) {
+                    get_file(&fp_config, argv[optind-1]); //set file pointer to input rdat config file
+                    rdat_config_provided++;               //count rdat config files provided
+                } else {
+                    printf("assemble_TECprobeLM_data: error - more than one rdat config file was provided. aborting...\n");
+                    abort();
+                }
+                break;
             
             default: printf("error: unrecognized option. Aborting program...\n"); abort();
         }
@@ -197,6 +218,11 @@ int main(int argc, char *argv[])
         abort();
     }
     
+    if (mode_params.mod == LEN_DIST && rdat_config_provided) {
+        printf("assemble_TECprobeLM_data: error - an RDAT configuration file should not be provided in LEN_DIST mode. aborting...\n");
+        abort();
+    }
+    
     //validate input files
     validate_input(&ipt, mode_params.mod);
     
@@ -222,11 +248,14 @@ int main(int argc, char *argv[])
     int j = 0; //general purpose index
     int k = 0; //general purpose index
         
+    int delims2col[TOT_SAMPLES][MAX_IPT] = {0}; //number of delimiters to reach the target data column
+    int delims2seq[TOT_SAMPLES][MAX_IPT] = {0}; //number of delimiters to reach seq columns
+    
     //for every input file of every sample, count the number of delimiters
     //it takes to reach the column that contains the desired values
     for (i = 0; i < TOT_SAMPLES; i++) {
         for (j = 0; j < ipt.cnt[i]; j++) {
-            if (!count_delims_2_col(ipt.fp[i][j], &mode_params, nrchd_len[i], &(delims2col[i][j]))) {
+            if (!count_delims_2_col(ipt.fp[i][j], &mode_params, nrchd_len[i], &(delims2col[i][j]), &(delims2seq[i][j]))) {
                 printf("assemble_TECprobeLM_data: error - delim count failed. aborting...\n");
                 abort();
             }
@@ -237,6 +266,16 @@ int main(int argc, char *argv[])
     int line_term = 0; //terminating character of the current line
     int ipt0_term = 0; //terminating character of the current line in the first input file that was assessed
     int max_index = 0; //maximum index after parsing alignment rate file (== max transcript length - 1)
+    
+    char len_str[MAX_LINE] = {0}; //array to store current transcript length as a character string
+    
+    //initialize cotrans matrix values. in all cases, rows 1-3 of the matrix will be used to
+    //store TECprobe-LM reactivity data, and the first nucleotide will be in column 1
+    for (k = 0; k < ipt.cnt[0]; k++) {
+        mtrx[k].tl[MIN] = 1;
+        mtrx[k].tl[MAX] = 3;
+        mtrx[k].nt[MIN] = 1;
+    }
     
     for (i = 0; i < MAX_TRANSCRIPT && (i < nrchd_len[S3] || mode_params.mod == LEN_DIST) && !found_end; i++) {
         //the loop is run until either:
@@ -255,11 +294,19 @@ int main(int argc, char *argv[])
                 //but this zero is not in compiled matrix file
                 
                 for (k = 0; k < ipt.cnt[j]; k++) { //for each input file of the current sample
+                        
+                    //store transcript length at index 0 of the current matrix row
+                    sprintf(len_str, "%d", nrchd_len[j]);  //convert length from integer to string
+                    if ((mtrx[k].vals[j+1][0] = malloc((strlen(len_str)+1) * sizeof(*mtrx[k].vals[j+1][0]))) == NULL) {
+                        printf("store_mtrx: error - memory allocation for matrix field value failed. aborting...\n");
+                        abort();
+                    }
+                    strcpy(mtrx[k].vals[j+1][0], len_str); //store length string
                     
                     //get the value of the target column from the current line
-                    if ((line_term = get_value(ipt.fp[j][k], &mode_params, delims2col[j][k], &(vals[i][j][k])))) {
+                    if ((line_term = get_value(ipt.fp[j][k], &mode_params, delims2col[j][k], delims2seq[j][k], &(vals[i][j][k]), &(mtrx[k].vals[j+1][i+1]), &mtrx[k].sq[i+1]))) {
                         
-                        if (k == 0) {               //if processing the first input file of the current sample
+                        if (k == 0) { //if processing the first input file of the current sample
                             ipt0_term = line_term;  //set the terminating character of the current line
                             if (line_term == EOF) { //if the terminating character is EOF
                                 found_end = 1;      //set flag that the end of the file was found
@@ -271,11 +318,11 @@ int main(int argc, char *argv[])
                             }
                         }
                         
-                        if (!found_end) {                             //if the end of the file was not found
-                            if (j == 0 && k == 0) {                   //if processing the first input file of the first sample
+                        if (!found_end) {           //if the end of the file was not found
+                            if (j == 0 && k == 0) { //if processing the first input file of the first sample
                                 printf("%d", i+mode_params.offset); //print the id of the current line (nucleotide or transcript)
                             }
-                            printf("\t%10.6f", vals[i][j][k]);        //print the value of the target column
+                            printf("\t%10.6f", vals[i][j][k]); //print the value of the target column
                         }
                         
                     } else { //throw error if no value was found
@@ -299,7 +346,30 @@ int main(int argc, char *argv[])
     }
     
     if (mode_params.mod == REACTIVITY) { //if in reactivity mode, print reactivity output
-        print_reactivity_output(out_dir, out_nm, &mode_params, ipt.cnt, nrchd_len, vals);
+        print_linebar_output(out_dir, out_nm, &mode_params, ipt.cnt, nrchd_len, vals);
+        
+        if (rdat_config_provided) { //if rdat config was provided, generate rdat file
+            mk_rdat(fp_config, mtrx, LM_RDAT, ipt.cnt[0]);
+        }
+        
+        /*printf("\n\n");
+        for (i = 1; i <= nrchd_len[S3]; i++) {
+            printf("%d\t", i);
+            for (k = 0; k < ipt.cnt[0]; k++) {
+                printf("%c", mtrx[k].sq[i]);
+            }
+            
+            for (j = 0; j < TOT_SAMPLES; j++) {
+                for (k = 0; k < ipt.cnt[j]; k++) {
+                    if (mtrx[k].vals[j+1][i] != NULL) {
+                        printf("\t%10s", mtrx[k].vals[j+1][i]);
+                    } else {
+                        printf("\t    --    ");
+                    }
+                }
+            }
+            printf("\n");
+        }*/
         
     } else if (mode_params.mod == LEN_DIST) { //if in LEN_DIST mode, print length distribution output
         max_index = i - 1; //set maximum data-containing line index

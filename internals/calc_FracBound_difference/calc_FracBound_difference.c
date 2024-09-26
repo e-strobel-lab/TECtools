@@ -211,7 +211,7 @@ void calc_FracBound_difference(values_input * ipt, char * out_nm)
         }
     }
     fprintf(vals_merged, "\tdiff");
-    //fprintf(vals_merged, "\ttot1\ttot2");
+    //fprintf(vals_merged, "\ttot1\ttot2\ttot_all");
     fprintf(vals_merged, "\n");
 
     for (line_cnt = 0; proceed; line_cnt++) {   //iterate through each line of the input files
@@ -269,7 +269,7 @@ void calc_FracBound_difference(values_input * ipt, char * out_nm)
             }
             
             fprintf(vals_merged, "\t%.4f", crrnt_frc[tMIN] - crrnt_frc[tSUB]);
-            //fprintf(vals_merged, "\t%d\t%d", crrnt_bnd[tMIN] + crrnt_unb[tMIN], crrnt_bnd[tSUB] + crrnt_unb[tSUB]);
+            //fprintf(vals_merged, "\t%d\t%d\t%d", crrnt_bnd[tMIN] + crrnt_unb[tMIN], crrnt_bnd[tSUB] + crrnt_unb[tSUB], crrnt_bnd[tMIN] + crrnt_unb[tMIN] + crrnt_bnd[tSUB] + crrnt_unb[tSUB]);
             fprintf(vals_merged, "\n");
             
         }
