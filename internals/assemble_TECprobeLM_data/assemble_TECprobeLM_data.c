@@ -24,6 +24,7 @@
 #include "./get_value.h"
 
 #include "./print_input_filenames.h"
+#include "./print_reactivity_output.h"
 #include "./print_linebar_output.h"
 #include "./print_length_dist_output.h"
 
@@ -275,6 +276,7 @@ int main(int argc, char *argv[])
         mtrx[k].tl[MIN] = 1;
         mtrx[k].tl[MAX] = 3;
         mtrx[k].nt[MIN] = 1;
+        mtrx[k].sq[0] = '>';
     }
     
     for (i = 0; i < MAX_TRANSCRIPT && (i < nrchd_len[S3] || mode_params.mod == LEN_DIST) && !found_end; i++) {
@@ -317,60 +319,31 @@ int main(int argc, char *argv[])
                                 abort();
                             }
                         }
-                        
-                        if (!found_end) {           //if the end of the file was not found
-                            if (j == 0 && k == 0) { //if processing the first input file of the first sample
-                                printf("%d", i+mode_params.offset); //print the id of the current line (nucleotide or transcript)
-                            }
-                            printf("\t%10.6f", vals[i][j][k]); //print the value of the target column
-                        }
-                        
                     } else { //throw error if no value was found
                         printf("\n\nerror: no value found. aborting...\n");
                         abort();
                     }
                 }
-                
-            } else { //if there is no target value to get
-                
-                if (j == 0) {                             //if processing the first sample
-                    printf("%d", i+mode_params.offset);   //print the id of the current line (nucleotide or transcript
-                }
-                
-                for (k = 0; k < ipt.cnt[j]; k++) {        //for every input file of the current sample
-                    printf("\t    --    ");               //print a spacer
-                }
             }
         }
-        printf("\n");
+    }
+    
+    //check that all replicate inputs contain the same sequence
+    for (k = 0; k < ipt.cnt[0]; k++) {
+        mtrx[k].sq[i+1] = '\0';
+        if (strcmp(mtrx[k].sq, mtrx[0].sq)) {
+            printf("assemble_TECprobeLM_data: error - replicate input files contain discordant sequences. aborting...");
+            abort();
+        }
     }
     
     if (mode_params.mod == REACTIVITY) { //if in reactivity mode, print reactivity output
+        print_reactivity_output(out_dir, out_nm, &mode_params, ipt.cnt, nrchd_len, vals, mtrx[0].sq);
         print_linebar_output(out_dir, out_nm, &mode_params, ipt.cnt, nrchd_len, vals);
         
         if (rdat_config_provided) { //if rdat config was provided, generate rdat file
             mk_rdat(fp_config, mtrx, LM_RDAT, ipt.cnt[0]);
         }
-        
-        /*printf("\n\n");
-        for (i = 1; i <= nrchd_len[S3]; i++) {
-            printf("%d\t", i);
-            for (k = 0; k < ipt.cnt[0]; k++) {
-                printf("%c", mtrx[k].sq[i]);
-            }
-            
-            for (j = 0; j < TOT_SAMPLES; j++) {
-                for (k = 0; k < ipt.cnt[j]; k++) {
-                    if (mtrx[k].vals[j+1][i] != NULL) {
-                        printf("\t%10s", mtrx[k].vals[j+1][i]);
-                    } else {
-                        printf("\t    --    ");
-                    }
-                }
-            }
-            printf("\n");
-        }*/
-        
     } else if (mode_params.mod == LEN_DIST) { //if in LEN_DIST mode, print length distribution output
         max_index = i - 1; //set maximum data-containing line index
         print_length_dist_output(out_dir, out_nm, &mode_params, ipt.cnt, max_index, vals);
