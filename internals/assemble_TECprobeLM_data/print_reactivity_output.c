@@ -24,7 +24,7 @@ void print_reactivity_output(char * out_dir, char * out_nm, mode_parameters * mo
     char out_fn[MAX_NAME] = {0}; //output file name
     
     //generate reactivity output file
-    sprintf(out_fn, "%s/%s_LMP_reactivity.txt", out_dir, out_nm); //generate output filename
+    sprintf(out_fn, "%s/%s_LM_reactivity.txt", out_dir, out_nm); //generate output filename
     if ((out_fp = fopen(out_fn, "w")) == NULL) {                  //open output file
         printf("assemble_TECprobeLM_data: error - failed to open output file. aborting...");
         abort();

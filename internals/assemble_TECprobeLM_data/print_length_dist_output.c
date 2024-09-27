@@ -26,7 +26,7 @@ void print_length_dist_output(char * out_dir, char * out_nm, mode_parameters * m
     char out_fn[MAX_NAME] = {0};  //output file name
     
     //generate output files
-    sprintf(out_fn, "%s/%s_LMP_lenDist.txt", out_dir, out_nm); //generate output filename
+    sprintf(out_fn, "%s/%s_LM_lenDist.txt", out_dir, out_nm); //generate output filename
     if ((out_fp = fopen(out_fn, "w")) == NULL) {               //open  output file
         printf("print_length_dist_output: error - failed to open  output file. aborting...");
         abort();
