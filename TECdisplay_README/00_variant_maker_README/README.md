@@ -72,3 +72,11 @@ Variant ids exclude constant insertions and deletions, which are recorded in the
 
   - constant deletion:             d<position><base>
 ```
+
+### Running variant_maker using the example variant template
+
+'variant_maker' can be run using the provided example variant template using the command:
+
+`variant_maker -v <path_to_00_variant_maker_variant_template_example.txt>`
+
+This will generate a list of the 32,768 variants that are encoded in the pfl ZTP riboswitch Ultramer 4 library.
