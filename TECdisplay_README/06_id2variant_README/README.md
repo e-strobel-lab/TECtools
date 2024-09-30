@@ -40,4 +40,4 @@ This will generate a directory that contains both individual FASTA files for eac
 
 `id2variant -v <path_to_03_id2variant_variants_input_example.txt> -o id2variant_example_out`
 
-This will generate the directory 'id2variant_example_out' which contains individual fasta files for all variant ids in the input file and a file in which the fasta files are aggregated.
+This will generate the directory `id2variant_example_out` which contains individual fasta files for all variant ids in the input file and a file in which the fasta files are aggregated.
