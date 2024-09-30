@@ -34,3 +34,10 @@ To reconstruct variant sequences from variant ids using `id2variant`, run the co
 
 This will generate a directory that contains both individual FASTA files for each variant and an aggregate FASTA file that contains every variant.
 
+### Running id2variant using the example input file
+
+'id2variant' can be run using the provided example input file using the command:
+
+`id2variant -v <path_to_03_id2variant_variants_input_example.txt> -o id2variant_example_out`
+
+This will generate the directory 'id2variant_example_out' which contains individual fasta files for all variant ids in the input file and a file in which the fasta files are aggregated.
