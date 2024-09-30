@@ -50,7 +50,7 @@ The command above will filter the input values file by each of the three constra
 ### Running TECdisplay_Hnav using the example data and constraints files
 'TECdisplay_Hnav' can be run using the provided example data set and constraints file using the command: 
 
-`TECdisplay_Hnav -p <path_to_TECdisplay_navigator> -v <path_to_01_pflZTP_U17_doseCurve_example_data.txt> -c <path_to_02_TECdisplay_nav_constraint_example_U17.txt> -o <example_Hnav_out> -f <pflZTP_U17>`
+`TECdisplay_Hnav -p <path_to_TECdisplay_navigator> -v <path_to_01_pflZTP_U17_doseCurve_example_data.txt> -c <path_to_02_TECdisplay_nav_constraint_example_U17.txt> -o example_Hnav_out -f pflZTP_U17`
 
 This command will generate the output directory 'example_Hnav_out'. The subdirectory 'layer_1' contains dose curves for the wild type, flip, strong, and weak pseudoknot variants of the pfl ZTP riboswitch Ultramer 17 TECdisplay library.
 
