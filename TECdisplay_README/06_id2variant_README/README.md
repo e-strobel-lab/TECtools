@@ -36,7 +36,7 @@ This will generate a directory that contains both individual FASTA files for eac
 
 ### Running id2variant using the example input file
 
-'id2variant' can be run using the provided example input file using the command:
+`id2variant` can be run using the provided example input file using the command:
 
 `id2variant -v <path_to_03_id2variant_variants_input_example.txt> -o id2variant_example_out`
 
