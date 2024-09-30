@@ -233,7 +233,7 @@ int main(int argc, char *argv[])
     int j = 0; //general purpose indexs
     
     for (i = 0; i < layr_cnt; i++) {
-        printf("layer %d output files:\n", i);
+        printf("layer %d output files:\n", i+1);
         for (j = 0; j < out_fns[i].f_cnt; j++) {
             printf("%s\n", out_fns[i].fn[j]);
         }

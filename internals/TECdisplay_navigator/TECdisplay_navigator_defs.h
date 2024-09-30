@@ -14,7 +14,7 @@
 
 #define MAX_VALS 32         //maximum number of input values files
 #define MAX_CONSTRAINTS 32  //maximum number of constraints in constraints file
-#define MAX_NAME 128        //maximum name length
+#define MAX_NAME 256        //maximum name length
 #define MAX_CODE 8
 #define MAX_VBASES 256      //maximum number of base constraints; larger than SEQ2BIN_MAX for constant indels storage
 #define MAX_PAIRS 256       //maximum number of base pair constraints
