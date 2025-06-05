@@ -21,7 +21,7 @@
 #include "print_output.h"
 
 /* print_output: print variants (without barcode) to output file */
-void print_output(names * nm, basemap * bmap, int vTmpCnt, int varCnt, char * out_dir, int append_priming, int append_barcode, FILE * fp_brcd, int first_bc_2_use, char * cstm_lnkr, int make_fasta)
+void print_output(names * nm, basemap * bmap, int vTmpCnt, int varCnt, char * out_dir, int append_priming, int append_barcode, FILE * fp_brcd, int first_bc_2_use, char * lnkr, int make_fasta)
 {
     extern fasta *vrnts;    //array of variant sequences
     extern uint64_t v_indx; //index for vrnts array
@@ -153,7 +153,7 @@ void print_output(names * nm, basemap * bmap, int vTmpCnt, int varCnt, char * ou
             }
         } else {
             if (append_barcode) { //print variant sequence that contains a barcode
-                print_barcoded_variant(fp_brcd, out_fp, fasta_fp, append_priming, cstm_lnkr, vTmpCnt, i, bcs_per_var, first_bc_2_use, make_fasta);
+                print_barcoded_variant(fp_brcd, out_fp, fasta_fp, append_priming, lnkr, vTmpCnt, i, bcs_per_var, first_bc_2_use, make_fasta);
             } else { //print variant sequence that does not contain a barcode
                 print_standard_variant(out_fp, fasta_fp, append_priming, i, make_fasta);
             }
@@ -219,7 +219,7 @@ void print_standard_variant(FILE * out_fp, FILE * fasta_fp, int append_priming, 
 }
 
 /* print_barcoded_variant: print variant that contains barcode */
-void print_barcoded_variant(FILE * fp_brcd, FILE * out_fp, FILE * fasta_fp, int append_priming, char * cstm_lnkr, int vTmpCnt, int crrnt_var, int bcs_per_var, int first_bc_2_use, int make_fasta)
+void print_barcoded_variant(FILE * fp_brcd, FILE * out_fp, FILE * fasta_fp, int append_priming, char * lnkr, int vTmpCnt, int crrnt_var, int bcs_per_var, int first_bc_2_use, int make_fasta)
 {
     extern fasta *vrnts;    //array of variant sequences
     extern uint64_t v_indx; //index for vrnts array
@@ -235,10 +235,9 @@ void print_barcoded_variant(FILE * fp_brcd, FILE * out_fp, FILE * fasta_fp, int 
     static int bc_indx = 0;             //current barcode index
     
     static int incld_lnkr = 1;          //flag to include linker
-    static char lnkr[MAX_LINE+1] = {0}; //linker sequence
     
     if (crrnt_var == 1) {                            //if processing first variant
-        bc_cnt = read_bcFile(fp_brcd, HEADER, lnkr); //parse barcode file header
+        bc_cnt = read_bcFile(fp_brcd, HEADER, NULL); //parse barcode file header
         
         if (first_bc_2_use > bc_cnt) { //check that first barcode id to use is less than max barcode id
             printf("print_barcoded_variant: ERROR - id of first barcode to use cannot be greater than the number of barcodes provided in the barcodes file. aborting...\n");
@@ -253,12 +252,8 @@ void print_barcoded_variant(FILE * fp_brcd, FILE * out_fp, FILE * fasta_fp, int 
         }
         
         //set linker
-        if (cstm_lnkr[0]) {                        //if using custom linker
-            if (!strcmp(cstm_lnkr, "exclude")) {   //if excluding linker
-                incld_lnkr = 0;                    //set include linker flag to false
-            } else {
-                strcpy(lnkr, cstm_lnkr);           //otherwise, set custom linker
-            }
+        if (!strcmp(lnkr, "exclude")) {   //if excluding linker
+            incld_lnkr = 0;               //set include linker flag to false
         }
     }
     

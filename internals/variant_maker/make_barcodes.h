@@ -31,30 +31,15 @@
 
 #define BC_BLOCK_SIZE 65536
 
-#define BARCODE_TEMPLATES 4   //number of variant templates used for barcode generation
-#define STEM1BOT_N_STRT 0     //start of stem 1 bottom N stretch
-#define STEM1BOT_N_END  3     //  end of stem 1 bottom N stretch
-#define STEM1TOP_N_STRT 4     //start of stem 1 top N stretch
-#define STEM1TOP_N_END  7     //  end of stem 1 top N stretch
-#define STEM2BOT_STRT   27
-#define STEM2BOT_END    28
-#define STEM2TOP_STRT   36
-#define STEM2TOP_END    37
+#define BARCODE_TEMPLATES 1      //number of variant templates used for barcode generation
 
 //barcode parameter definitions
-#define HOMOPOL_LIMIT 2       //maximum length of a homopolymeric stretch
-#define S1BOT_GC_MIN 1        //maximum number of AT pairs allowed at the base of stem 1
-#define S1BOT_GC_MAX 3        //maximum number of GC pairs allowed at the base of stem 1
-#define S1TOP_GC_MIN 1        //maximum number of AT pairs allowed at the top of stem 1
-#define S1TOP_GC_MAX 3        //maximum number of GC pairs allowed at the top of stem 1
-#define S1ALL_GC_MIN 3        //minimum number of GC pairs allowed in stem 1
-#define S1ALL_GC_MAX 4        //maximum number of GC pairs allowed in stem 1
-#define S2BOT_GC_LIMIT 1      //maximum number of GC pairs allowed at the base of stem 2
-#define S2TOP_GC_LIMIT 1      //maximum number of GC pairs allowed at the top of stem 2
-#define BRCD_GC_MIN 20        //minimum GC content
-#define BRCD_GC_MAX 24        //maximum GC content
+#define HOMOPOL_LIMIT 2          //maximum length of a homopolymeric stretch
+#define STRONG_HETEROPOL_LIMIT 3 //maximum length of strong base pair stretch
+#define BRCD_GC_MIN 6            //minimum GC content ( 6 for 16N)
+#define BRCD_GC_MAX 10           //maximum GC content (10 for 16N)
 
-/* barcode bank: storage for passed filter barcodes during barcode generation. bank is a doubly linked list */
+/* barcode_bank: storage for passed filter barcodes during barcode generation. bank is a doubly linked list */
 typedef struct barcode_bank {
     fasta *fa;                 //fasta struct pointer for barcode sequence storage allocation
     struct barcode_bank *nxt;  //pointer to next barcode bank
@@ -62,11 +47,19 @@ typedef struct barcode_bank {
     int cnt;                   //number of barcodes in bank
 } barcode_bank;
 
+/* barcode_template: storage for barcode generation parameters */
+typedef struct barcode_template {
+    char nm[128];
+    char sq[128];
+    char pr[128];
+    char rnd[128];
+} barcode_template;
+
 /* mk_brcds: coordinates barcode generation */
 int mk_brcds(int brcds2mk);
 
 /* init_brcd_tmplts: initialize variant templates for barcode sequences */
-int init_brcd_tmplts(wt_source * brcd_src, basemap * brcd_bmap);
+int init_brcd_tmplts(wt_source * brcd_src, basemap * brcd_bmap, barcode_template brcd_tmplt[BARCODE_TEMPLATES]);
 
 /* xpnd brcd_tmplts: expand barcode templates to generate all possible barcode variants */
 uint64_t xpnd_brcd_tmplts(basemap * brcd_bmap);
@@ -78,7 +71,7 @@ int filter_barcode(char * sq);
 int store_pf_brcds(target * pf_brcds, uint64_t passed_filter);
 
 /* get_rndom_brcds: select random passed filter barcodes to output*/
-int get_rndm_brcds(target ** brcd_out, target * pf_brcds, uint64_t passed_filter, int brcds2mk);
+int get_rndm_brcds(target ** brcd_out, target * pf_brcds, uint64_t passed_filter, int brcds2mk, barcode_template brcd_tmplt[BARCODE_TEMPLATES]);
 
 /* init_barcode_bank: initialize new barcode bank */
 void init_barcode_bank(barcode_bank * bc_bnk, barcode_bank * prev);

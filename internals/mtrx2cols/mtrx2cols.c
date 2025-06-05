@@ -27,7 +27,7 @@ typedef struct filter {             //constraints for filtering cotranscriptiona
 
 int apply_aliases(FILE * ifp, cotrans_matrix * mtrx);  //replace default matrix names with user-provided aliases
 int parse_filter(FILE * ifp, filter * fltr);           //parse filter file for included nucleotides and windows
-int filter_mtrx(cotrans_matrix * mtrx, filter * fltr, char * output_name); //filter matrices and print output to file
+int filter_mtrx(cotrans_matrix * mtrx, filter * fltr, char * output_name, int offset); //filter matrices and print output to file
 
 int main(int argc, char *argv[])
 {
@@ -41,6 +41,7 @@ int main(int argc, char *argv[])
     cotrans_matrix * crrnt_mtrx = &mtrx; //set crrnt_mtrx pointer to point to root cotrans_matrix
     int mtrx_cnt = 0;                    //counts number of supplied matrices
     int alias_supplied = 0;              //flag that alias file was supplied
+    int offset = 0;
     
     filter fltr = {0};      //struct to store filter constraints
     int fltr_supplied = 0;  //flag that filter file was supplied
@@ -60,10 +61,11 @@ int main(int argc, char *argv[])
             {"filter",        required_argument,  0,  'f'},  //filter file input
             {"alias",         required_argument,  0,  'a'},  //alias  file input
             {"output",        required_argument,  0,  'o'},  //output file name
+            {"offset",        required_argument,  0,  'n'},  //numbering offset
             {0, 0, 0, 0}
         };
         
-        c = getopt_long(argc, argv, "m:f:a:o:", long_options, &option_index);
+        c = getopt_long(argc, argv, "m:f:a:o:n:", long_options, &option_index);
         
         if (c == -1) {
             break;
@@ -119,11 +121,28 @@ int main(int argc, char *argv[])
             case 'o': //output file name supplied
                 ret = snprintf(output_name, MAX_NAME, "%s.txt", argv[optind-1]);
                 if (ret >= MAX_NAME || ret < 0) {
-                    printf("average_TECprobe_matrices: error - error when storing output name. aborting...\n");
+                    printf("mtrx2cols: error - error when storing output name. aborting...\n");
                     abort();
                 }
                 break;
             
+            case 'n': //numbering offset supplied
+                if (offset) { //check that offset was not provided previously
+                    printf("mtrx2cols: error - only one offset value can be supplied.\n");
+                    abort();
+                }
+                
+                //check that offset is an integer
+                for (i = 0; argv[optind-1][i]; i++) {
+                    if (!isdigit(argv[optind-1][i]) && argv[optind-1][i] != '-') {
+                        printf("mtrx2cols: error - offset must be an integer. aborting...");
+                        abort();
+                    }
+                }
+                
+                offset = atoi(argv[optind-1]); //set offset
+                break;
+                
             default: printf("error: unrecognized option. Aborting program...\n"); abort();
         }
     }
@@ -176,7 +195,7 @@ int main(int argc, char *argv[])
     }
     /* end print input details */
     
-    filter_mtrx(&mtrx, &fltr, output_name); //filter matrices and generate output file
+    filter_mtrx(&mtrx, &fltr, output_name, offset); //filter matrices and generate output file
 }
   
 /* apply_aliases: set nm variable in cotrans_matrix struct
@@ -392,7 +411,7 @@ int parse_filter(FILE * ifp, filter * fltr)
 /* filter_mtrx: filter cotranscriptional RNA structure probing matrix using
  user supplied constraint. print values that pass filter to an output file */
 
-int filter_mtrx(cotrans_matrix * mtrx, filter * fltr, char * output_name) {
+int filter_mtrx(cotrans_matrix * mtrx, filter * fltr, char * output_name, int offset) {
     
     int m = 0;   //matrix index
     int w = 0;   //window index
@@ -419,7 +438,7 @@ int filter_mtrx(cotrans_matrix * mtrx, filter * fltr, char * output_name) {
                        crrnt_mtrx->nm,                //matrix name and...
                        fltr->wndw[w][MIN],            //minimum transcript length and...
                        fltr->wndw[w][MAX],            //maximum transcript length and...
-                       fltr->nts[k]);                 //nucleotide numberand...
+                       fltr->nts[k]-offset);          //nucleotide number - offset and...
             }
             if (w+1 < fltr->wcnt) {                   //if there are more windows
                 fprintf(out_fp, "\t");                //print a tab

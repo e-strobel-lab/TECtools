@@ -52,16 +52,7 @@ int read_bcFile(FILE * fp_brcd, int mode, char * str)
         bc_cnt = atoi(tmp_str); //set barcode count
         
         
-        get_line(line, fp_brcd);                         //get second header line
-        if (!memcmp(line, lnkr_tag, strlen(lnkr_tag))) { //check line for linker tag
-            p_str = &line[strlen(lnkr_tag)];             //set pointer to start of linker sequence
-            strcpy(str, p_str);                          //store linker sequence
-        } else {
-            printf("read_bcFile: ERROR - unexpected format for barcodes file. Could not find linker line. aborting...\n");
-            abort();
-        }
-        
-        get_line(line, fp_brcd);                           //get third header line
+        get_line(line, fp_brcd);                           //get second header line
         if (!memcmp(line, strct_tag, strlen(strct_tag))) { //check line for linker tag
             //not doing anything with this right now, just checking file format
         } else {

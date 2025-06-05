@@ -113,8 +113,13 @@ int parse_rdat_config(FILE * ifp, rdat_metadata * rdat_meta)
                 //set offset
                 } else if (!strcmp(setting, "OFFSET")) {
                     for (i = 0; val[i]; i++) {  //check that offset value is a string of digits
-                        if (!isdigit(val[i])) {
-                            printf("parse_rdat_config: error - offset value must be a string of digits. aborting...\n");
+                        if (!i) {
+                            if (!isdigit(val[i]) && val[i] != '-') {
+                                printf("parse_rdat_config: error - offset value must be a positive or negative string of digits. aborting...\n");
+                                abort();
+                            }
+                        } else if (!isdigit(val[i])) {
+                            printf("parse_rdat_config: error - offset value must be a positive or negative string of digits. aborting...\n");
                             abort();
                         }
                     }
@@ -260,7 +265,7 @@ int check_rdat_config(rdat_metadata * rdat_meta, cotrans_matrix * mtrx)
     //check that offset is not less than zero or >= sequence length
     //less than zero should be impossible, since input must be a string of digits, check here anyway
     //strlen(mtrx->sq)-1) is used because index zero of mtrx->sq is '>'
-    if (rdat_meta->offset < 0 || rdat_meta->offset >= (strlen(mtrx->sq)-1)) {
+    if (/*rdat_meta->offset < 0 ||*/ rdat_meta->offset >= (int)(strlen(mtrx->sq)-1)) {
         printf("check_rdat_config: error - invalid value for offset (%d). aborting\n", rdat_meta->offset);
         abort();
     } else {
@@ -504,7 +509,7 @@ int print_rdat(rdat_metadata * rdat_meta, cotrans_matrix * mtrx, int mode, int r
         fprintf(out_fp, "COMMENT\tTrailing Illumina adapter sequence (GATCGTCGGACTGTAGAACTCTGAAC-3), which is masked by a primer, was trimmed\n");
     }
     if (mode == MULTI) {
-        fprintf(out_fp, "COMMENT\tTranscripts from %d to %d and after %d were not enriched by template DNA strand biotin-streptavidin roadblocks and may be poor quality\n", mtrx->last_iStl+1, mtrx->frst_tStl-1, mtrx->last_tStl);
+        fprintf(out_fp, "COMMENT\tTranscripts from %d to %d and after %d were not enriched by template DNA strand biotin-streptavidin roadblocks and may be poor quality\n", mtrx->last_iStl+1-rdat_meta->offset, mtrx->frst_tStl-1-rdat_meta->offset, mtrx->last_tStl-rdat_meta->offset);
     }
     
     //print user supplied comments
