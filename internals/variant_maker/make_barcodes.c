@@ -337,9 +337,9 @@ int get_rndm_brcds(target ** brcd_out, target * pf_brcds, uint64_t passed_filter
     brcd_cnt++;                                                     //increment barcode count
     
     //select barcodes until brcds2mk barcodes have been output
-    //or until 1000000 barcodes have been tested without outputting a barcode
+    //or until 100000 barcodes have been tested without outputting a barcode
     //TODO: add linear search that is performed after cnsctv_seen limit is reached?
-    while ((brcd_cnt < brcds2mk) && cnsctv_seen < 1000000) {
+    while ((brcd_cnt < brcds2mk) && cnsctv_seen < 100000) {
         
         too_close = 0;              //set too_close flag to zero
         r = rand() % passed_filter; //select barcode index
@@ -377,6 +377,7 @@ int get_rndm_brcds(target ** brcd_out, target * pf_brcds, uint64_t passed_filter
     }
     
     //print output
+    i = 0;
     fprintf(out_fp, "%d barcodes\n", brcd_cnt); //first line of file is number of barcodes
     fprintf(out_fp, "bStruct=%s\n", brcd_tmplt[i].pr); //second line of file is the barcode secondary structure
     
