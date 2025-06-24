@@ -57,6 +57,7 @@ int seq2bin_long(char * hash_seq, binary_seq * bin_seq, int array_max);
 struct compact_h_node** srch_ctrg_htbl(binary_seq * bin_seq, uint64_t hash, compact_h_node **htbl, int trace_search);
 void print_bin_seq(char * ipt);
 void fprint_bin_seq(FILE * out_fp, char * ipt);
-
+void bin2seq(char * seq, binary_seq * bsq, int len);
+void copy_binary_seq(binary_seq * bsq1, binary_seq * bsq2);
 
 #endif /* seq2bin_long_h */
