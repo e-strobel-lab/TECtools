@@ -18,10 +18,11 @@
 #include "call_fastp.h"
 
 /* call_fastp: performs a system call to initiate fastp preprocessing, opens resulting files */
-int call_fastp(names * nm, FILE ** ifp, fastp_params prms)
+int call_fastp(char * fq1, char * fq2, FILE ** ifp, fastp_params prms)
 {
     static const char umi_MLT[38] = " --umi --umi_loc=per_read --umi_len=9";			//multi-length UMI settings
     static const char umi_SGL[35] = " --umi --umi_loc=read2 --umi_len=9";				//single length UMI settings
+    static const char umi_MUX[39] = " --umi --umi_loc=per_read --umi_len=16";           //multiplex UMI settings
     static const char smRNA_adpt1[41] = "--adapter_sequence=TGGAATTCTCGGGTGCCAAGG";		//small RNA adapter 1
     static const char smRNA_adpt2[44] = "--adapter_sequence_r2=GATCGTCGGACTGTAGAACTC";	//small RNA adapter 2
     static const char ovrlp_len_req[25] = "--overlap_len_require=15";
@@ -41,14 +42,15 @@ int call_fastp(names * nm, FILE ** ifp, fastp_params prms)
             ovrlp_len_req,		//overlap length
             crrct,				//error correction flag
             ipt1,				//input 1 flag
-            nm->file[READ1],	//filename for read 1
+            fq1,	            //filename for read 1
             ipt2,				//input 2 flag
-            nm->file[READ2],	//filename for read 2
+            fq2,	            //filename for read 2
             outFiles);			//option for output files
     
     switch (prms.mode) {
-        case MULTI:  strcat(command, umi_MLT); break;
-        case SINGLE: strcat(command, umi_SGL); break;
+        case MULTI:     strcat(command, umi_MLT); break;
+        case SINGLE:    strcat(command, umi_SGL); break;
+        case MULTIPLEX: strcat(command, umi_MUX); break;
         default:
             printf("call_fastp: error - unexpected processing mode. aborting...\n");
             abort();

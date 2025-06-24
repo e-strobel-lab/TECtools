@@ -21,6 +21,6 @@
  generate configuration file for use make_shapemapper2_run_script executable
  this config file is used to generate a shell script that run commands for
  shapemapper2 analysis */
-void mk_MLT_config(names * nm, target3p_params trg_prms);
+void mk_MLT_config(TPROBE_names * nm, target3p_params trg_prms);
 
 #endif /* mk_MLT_config_h */

@@ -21,17 +21,23 @@
 #include "cotrans_preprocessor_defs.h"
 #include "cotrans_preprocessor_structs.h"
 #include "../utils/io_management.h"
+#include "../seq_utils/seq2bin_hash.h"
+#include "../seq_utils/seq2bin_long.h"
 #include "../seq_utils/parse_fasta.h"
 #include "../seq_utils/mk_fasta.h"
 #include "./MLT_trgt_gen/mk_MLT_trgts.h"
 #include "./SGL_trgt_gen/mk_SGL_target.h"
 #include "./prcs_rds/MLT/prcs_MLT_cotrans.h"
+#include "./prcs_rds/MUX/prcs_MUX_cotrans.h"
+#include "./prcs_rds/MLT/testdata3pEnd_analysis.h"
+#include "./prcs_rds/MUX/testdataMUX_analysis.h"
 #include "./run_script_gen/MLT/mk_MLT_run_script.h"
 #include "../utils/debug.h"
 
 extern int debug;			//flag to run debug mode
 extern int debug_S2B_hash;	//seq2bin_hash-specific debug flag
-extern struct testdata_3pEnd_vars testdata_3pEnd; //structure containing test data analysis variables
+extern struct testdata_3pEnd_vars testdata_3pEnd; //3pend test data analysis variables
+extern struct testdata_MUX_vars testdata_MUX;     //MUX test data analysis variables
 
 /* set_run_mode: set run mode using mode argument string */
 int set_run_mode(char * mode_arg, int * run_mode, fastp_params * fastp_prms);
@@ -39,7 +45,7 @@ int set_run_mode(char * mode_arg, int * run_mode, fastp_params * fastp_prms);
 //functions to check that required input files were supplied for each mode
 int check_make_fasta(int fa_nm_provided, int fa_sq_provided);
 int check_make_3pEnd_targets(int fa_provided);
-int check_standard_cotrans(int fq1_provided, int fq2_provided, int ends_provided, int fa_ref_provided, fastp_params fastp_prms);
+int check_standard_cotrans(int fq1_provided, int fq2_provided, int ends_provided, int fa_ref_provided, int MUX_trgs_provided, fastp_params fastp_prms, int making_testdata);
 int check_make_SM2_run_script(int config_provided);
 
 //other functions
@@ -49,8 +55,9 @@ int get_target_len(FILE * ifp);
 int main(int argc, char *argv[])
 {
     FILE *fp_fasta = NULL;			//pointer to fasta file
-    FILE *fp_3pEnd = NULL;			//pointer for 3' ends file
-    FILE *fp_faRef = NULL;          //pointer for fasta reference file, used for TECprobe-SL
+    FILE *fp_3pEnd = NULL;			//pointer to 3' ends file
+    FILE *fp_faRef = NULL;          //pointer to fasta reference file, used for TECprobe-SL
+    FILE *fp_MUXtrgs = NULL;        //pointer to TECprobe-MX target fasta file
     FILE *fp_config_MLT = NULL;		//pointer to config file
     
     int run_mode = -1;				//run mode setting
@@ -73,6 +80,7 @@ int main(int argc, char *argv[])
     int fq2_provided = 0;			//tracks number of read2 files provided
     int ends_provided = 0;			//tracks number of provided 3' end files
     int fa_ref_provided = 0;        //tracks number of provided fasta reference files
+    int MUX_trgs_provided = 0;      //tracks number of provided TECprobe-MX fasta target files
     int fastp_path_provided = 0;	//tracks number of fastp paths provided
     int fa_provided = 0;			//tracks number of fasta files provided
     int config_MLT_provided = 0;	//tracks number of config files provided
@@ -81,8 +89,8 @@ int main(int argc, char *argv[])
     int ends_option_provided = 0;   //flag that 3' ends generation option was provided
     int prcs_option_provided = 0;   //flag that read processing option was provided
     int cnfg_option_provided = 0;   //flag that run script config option was provided
-    
-    names nm = {{{0}}};				//file and sample names
+        
+    TPROBE_names nm = {{{0}}};				    //file and sample names
     fastp_params fastp_prms = {"fastp", -1, 0}; //parameters for fastp processing
     
     /****** parse options using getopt_long ******/
@@ -114,6 +122,7 @@ int main(int argc, char *argv[])
             {"read2",        required_argument,  0,  'I'},	//read 2 input
             {"3pEnd", 		 required_argument,  0,  'e'},	//3' end file input
             {"fasta-ref",    required_argument,  0,  'a'},  //fasta for single length data processing
+            {"barcodes",     required_argument,  0,  'b'},  //fasta for TECprobe-MUX targets
             {"fastp-path",   required_argument,  0,  'p'},  //provide path to fastp executable
             {"debug",        no_argument,        0,  'd'},  //turn on debug mode
             {"testdata",     no_argument,        0,  't'},  //turn on test data read analysis mode
@@ -124,7 +133,7 @@ int main(int argc, char *argv[])
             {0, 0, 0, 0}
         };
         
-        c = getopt_long(argc, argv, "m:n:s:A:E:S:TU:Ri:I:e:a:p:dtl:c:", long_options, &option_index);
+        c = getopt_long(argc, argv, "m:n:s:A:E:S:TU:Ri:I:e:a:b:p:dtl:c:", long_options, &option_index);
         
         if (c == -1) {
             break;
@@ -225,13 +234,11 @@ int main(int argc, char *argv[])
                 strcpy(nm.file[READ2], argv[optind-1]);	//store read 2 filename
                 prcs_option_provided = 1;
                 break;
-            
-            
                 
             /* get 3' end targets input file */
             case 'e':
                 ends_provided++;						//count 3' end targets files provided
-                strcpy(nm.ends, argv[optind-1]);		//store 3' end targets filename
+                strcpy(nm.trgts, argv[optind-1]);		//store 3' end targets filename
                 get_file(&(fp_3pEnd), argv[optind-1]);	//set file pointer to input 3' ends target file
                 prcs_option_provided = 1;
                 break;
@@ -242,6 +249,15 @@ int main(int argc, char *argv[])
                 prcs_option_provided = 1;
                 break;
                 
+                
+            case 'b':
+                MUX_trgs_provided++;                      //count MUX targets files provided
+                strcpy(nm.trgts, argv[optind-1]);         //store barcode targets filename
+                get_sample_name(nm.trgts, nm.trgts_prfx); //get targets sample name
+                get_file(&(fp_MUXtrgs), argv[optind-1]);  //set file pointer to input fasta MUX target file
+                prcs_option_provided = 1;
+                break;
+                  
             /* set path to fastp executable */
             case 'p':
                 fastp_path_provided++;
@@ -259,7 +275,22 @@ int main(int argc, char *argv[])
                 
             /* turn on test data read analysis mode */
             case 't':
-                testdata_3pEnd.run = 1;
+                if (fastp_prms.mode == -1) {
+                    printf("cotrans_preprocessor: error - run mode option must be provided before test data option. aborting...\n");
+                    abort();
+                    
+                } else if (fastp_prms.mode == MULTI) {
+                    testdata_3pEnd.run = 1;
+                    
+                } else if (fastp_prms.mode == MULTIPLEX) {
+                    testdata_MUX.run = 1;
+                    
+                } else {
+                    //TODO: is there a way to assess test data for TECprobe-SL? not sure if I've tried this
+                    printf("cotrans_preprocessor: error - testdata analysis is not implemented for current run mode. aborting...\n");
+                    abort();
+                }
+                
                 prcs_option_provided = 1;
                 break;
             
@@ -361,11 +392,10 @@ int main(int argc, char *argv[])
                 abort();
             }
             
-            //standard cotrans read processing
-            if (fastp_prms.mode == MULTI || fastp_prms.mode == SINGLE) {
+            if (fastp_prms.mode == MULTI || fastp_prms.mode == SINGLE) { //standard cotrans read processing
                 
                 //check that required arguments were provided correctly
-                check_standard_cotrans(fq1_provided, fq2_provided, ends_provided, fa_ref_provided, fastp_prms);
+                check_standard_cotrans(fq1_provided, fq2_provided, ends_provided, fa_ref_provided, MUX_trgs_provided, fastp_prms, 0); //TODO: may want to automate testdata generation for VL too
                 if (testdata_3pEnd.run) {
                     check_testdata_ipt(&nm);
                 }
@@ -379,6 +409,14 @@ int main(int argc, char *argv[])
                 
                 //start sequencing read processing
                 prcs_MLT_cotrans(&nm, fp_3pEnd, fastp_prms);
+                
+            } else if (fastp_prms.mode == MULTIPLEX) { //TECprobe-MX read procesing
+                
+                //check that required arguments were provided correctly
+                check_standard_cotrans(fq1_provided, fq2_provided, ends_provided, fa_ref_provided, MUX_trgs_provided, fastp_prms, testdata_MUX.run);
+                
+                //start sequencing read processing
+                prcs_MUX_cotrans(&nm, fp_MUXtrgs, fastp_prms, &testdata_MUX);
             }
             
             break;
@@ -437,11 +475,15 @@ int set_run_mode(char * mode_arg, int * run_mode, fastp_params * fastp_prms)
         *run_mode = PRCS_READS;
         fastp_prms->mode = SINGLE;
         return 1;
+    } else if (!strcmp(mode_arg, "PROCESS_MULTIPLEX")) {
+        *run_mode = PRCS_READS;
+        fastp_prms->mode = MULTIPLEX;
+        return 1;
     } else if (!strcmp(mode_arg, "MAKE_RUN_SCRIPT")) {
         *run_mode = MK_RUN_SCRIPT;
         return 1;
     } else {
-        printf("set_run_mode: error - unrecognized mode. please use MAKE_FASTA, MAKE_3pEND_TARGETS, MAKE_SINGLE_TARGET, PROCESS_MULTI, or PROCESS_SINGLE to indicate run mode.\n");
+        printf("set_run_mode: error - unrecognized mode. please use MAKE_FASTA, MAKE_3pEND_TARGETS, MAKE_SINGLE_TARGET, PROCESS_MULTI, PROCESS_SINGLE, PROCESS_MULTIPLEX, or MAKE_RUN_SCRIPT to indicate run mode.\n");
         abort();
     }
 }
@@ -475,16 +517,16 @@ int check_make_3pEnd_targets(int fa_provided)
 }
 
 /* check_standard_cotrans: check that required inputs for standarrd cotrans preprocessing were provided */
-int check_standard_cotrans(int fq1_provided, int fq2_provided, int ends_provided, int fa_ref_provided, fastp_params fastp_prms)
+int check_standard_cotrans(int fq1_provided, int fq2_provided, int ends_provided, int fa_ref_provided, int MUX_trgs_provided, fastp_params fastp_prms, int making_testdata)
 {
     //check that only one read1 fastq file was provided
-    if (fq1_provided != 1) {
+    if (fq1_provided != 1 && !making_testdata) {
         printf("cotrans_preprocessor_main: error - incorrect number (%d) of read 1 fastq files provided\n", fq1_provided);
         abort();
     }
     
     //check that only one read2 fastq file was provided
-    if (fq2_provided != 1) {
+    if (fq2_provided != 1 && !making_testdata) {
         printf("cotrans_preprocessor_main: error - incorrect number (%d) of read 2 fastq files provided\n", fq2_provided);
         abort();
     }
@@ -510,6 +552,18 @@ int check_standard_cotrans(int fq1_provided, int fq2_provided, int ends_provided
     //throw error if fasta reference file was provided but single length option was not set
     if (fa_ref_provided && fastp_prms.mode != SINGLE) {
         printf("cotrans_preprocessor_main: error - fasta reference provided but run mode was not set to SINGLE\n");
+        abort();
+    }
+    
+    //check that only one barcode targets file was provided if experiment is multiplex
+    if (MUX_trgs_provided != 1 && fastp_prms.mode == MULTIPLEX) {
+        printf("cotrans_preprocessor_main: error - incorrect number (%d) of barcode targets files provided\n", MUX_trgs_provided);
+        abort();
+    }
+    
+    //throw error if barcode targets file was provided but multiplex option was not set
+    if (MUX_trgs_provided && fastp_prms.mode != MULTIPLEX) {
+        printf("cotrans_preprocessor_main: error - barcode targets provided but run mode was not set to MULTIPLEX\n");
         abort();
     }
     

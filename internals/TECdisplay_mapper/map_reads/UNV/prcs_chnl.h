@@ -23,7 +23,7 @@
  modified  = RRRYY
  untreated = YYYRR
  */
-int prcs_chnl(char * read1_ID, metrics  * met, int * chnl_match_type);
+int prcs_chnl(char * read1_ID, TDSPLY_metrics  * met, int * chnl_match_type);
 
 #endif /* prcs_chnl_h */
 

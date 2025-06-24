@@ -18,7 +18,7 @@
 #include "../TECdisplay_mapper_defs.h"
 
 /* mk_test_data: coordinates test data generation */
-int mk_test_data(names * nm, target *refs, target *trgts, target_params *trg_prms);
+int mk_test_data(TDSPLY_names * nm, target *refs, target *trgts, target_params *trg_prms);
 
 /* mk_rndmzd_bc: generate a randomized channel barcode with variable channel and match settings. */
 void mk_rndmzd_bc(char * bc, int chnl, int mtch);

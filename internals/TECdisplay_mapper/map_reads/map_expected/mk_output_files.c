@@ -57,7 +57,7 @@ void print_output_header(FILE * out_fp, char * out_nm)
 }
 
 /* print_output: print data output file */
-void print_output(target * trgts, target_params * trg_prms, names * nm)
+void print_output(target * trgts, target_params * trg_prms, TDSPLY_names * nm)
 {
     extern const char TECdsply_clmn_hdrs[4][32]; //column headers from TECdisplay_output_column_headers.c
     
@@ -147,7 +147,7 @@ void print_output(target * trgts, target_params * trg_prms, names * nm)
 }
 
 /* print_metrics: print read mapping metrics */
-void print_metrics(target * trgts, target_params * trg_prms, metrics * met, names * nm)
+void print_metrics(target * trgts, target_params * trg_prms, TDSPLY_metrics * met, TDSPLY_names * nm)
 {
     //generate output file
     FILE * out_fp = NULL; //output file pointer

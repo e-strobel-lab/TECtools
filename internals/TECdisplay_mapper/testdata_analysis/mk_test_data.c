@@ -26,7 +26,7 @@
 extern int debug;
 
 /* mk_test_data: coordinates test data generation */
-int mk_test_data(names * nm, target *refs, target *trgts, target_params *trg_prms)
+int mk_test_data(TDSPLY_names * nm, target *refs, target *trgts, target_params *trg_prms)
 {
     
     srand(time(NULL)); //seed pseudorandom number generator
@@ -47,14 +47,22 @@ int mk_test_data(names * nm, target *refs, target *trgts, target_params *trg_prm
     FILE * out_rd2 = NULL;    //read 2 file pointer
 
     //generate read 1 output file
-    sprintf(nm->file[READ1], "./%s/%s_testdata_R1.fq", out_dir, nm->trgs_prefix);
+    ret = snprintf(nm->file[READ1], MAX_LINE, "./%s/%s_testdata_R1.fq", out_dir, nm->trgs_prefix);
+    if (ret >= MAX_LINE || ret < 0) {
+        printf("mk_test_data: error - error when constructing read one output file name. aborting...\n");
+        abort();
+    }
     if ((out_rd1 = fopen(nm->file[READ1], "w")) == NULL) {
         printf("mk_test_data: error - could not generate test data read one file. Aborting program...\n");
         abort();
     }
     
     //generate read 2 output file
-    sprintf(nm->file[READ2], "./%s/%s_testdata_R2.fq", out_dir, nm->trgs_prefix);
+    ret = snprintf(nm->file[READ2], MAX_LINE, "./%s/%s_testdata_R2.fq", out_dir, nm->trgs_prefix);
+    if (ret >= MAX_LINE || ret < 0) {
+        printf("mk_test_data: error - error when constructing read two output file name. aborting...\n");
+        abort();
+    }
     if ((out_rd2 = fopen(nm->file[READ2], "w")) == NULL) {
         printf("mk_test_data: error - could not generate test data read two file. Aborting program...\n");
         abort();
@@ -213,15 +221,15 @@ void mk_rndmzd_bc(char * bc, int chnl, int mtch)
             
             //check if random barcode meets chnl and mtch specifications
             if (chnl == ERR) { //ERR barcode (<3/4 position match to expected sequence)
-                if (bnd_cnt < MIN_MATCH && unb_cnt < MIN_MATCH) {
+                if (bnd_cnt < TDSPLY_MIN_MATCH && unb_cnt < TDSPLY_MIN_MATCH) {
                     bc_made = 1;
                 }
             } else if (chnl == BND && mtch == PART) { //partial barcodes require a 3/4 match
-                if (bnd_cnt == MIN_MATCH) {
+                if (bnd_cnt == TDSPLY_MIN_MATCH) {
                     bc_made = 1;
                 }
             } else if (chnl == UNB && mtch == PART) { //partial barcodes require a 3/4 match
-                if (unb_cnt == MIN_MATCH) {
+                if (unb_cnt == TDSPLY_MIN_MATCH) {
                     bc_made = 1;
                 }
             } else {

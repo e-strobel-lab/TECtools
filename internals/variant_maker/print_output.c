@@ -237,14 +237,14 @@ void print_barcoded_variant(FILE * fp_brcd, FILE * out_fp, FILE * fasta_fp, int 
     static int incld_lnkr = 1;          //flag to include linker
     
     if (crrnt_var == 1) {                            //if processing first variant
-        bc_cnt = read_bcFile(fp_brcd, HEADER, NULL); //parse barcode file header
+        bc_cnt = read_bcFile(fp_brcd, HEADER, crrnt_bc, MAX_LINE+1); //parse barcode file header
         
         if (first_bc_2_use > bc_cnt) { //check that first barcode id to use is less than max barcode id
             printf("print_barcoded_variant: ERROR - id of first barcode to use cannot be greater than the number of barcodes provided in the barcodes file. aborting...\n");
             abort();
         } else {
             for (i = 1; i < first_bc_2_use; i++) {
-                if ((bc_indx = read_bcFile(fp_brcd, BC_LINE, crrnt_bc)) == -1) { //get barcode
+                if ((bc_indx = read_bcFile(fp_brcd, BC_LINE, crrnt_bc, MAX_LINE+1)) == -1) { //get barcode
                     printf("print_output: ERROR - too few barcodes. %llu barcodes are required to barcode each variant %d times. aborting...\n", (long long unsigned int)((v_indx-vTmpCnt)*bcs_per_var), bcs_per_var);
                     abort();
                 }
@@ -264,7 +264,7 @@ void print_barcoded_variant(FILE * fp_brcd, FILE * out_fp, FILE * fasta_fp, int 
         
         seq[0] = '\0'; //reset seq array
         
-        if ((bc_indx = read_bcFile(fp_brcd, BC_LINE, crrnt_bc)) == -1) { //get barcode
+        if ((bc_indx = read_bcFile(fp_brcd, BC_LINE, crrnt_bc, MAX_LINE+1)) == -1) { //get barcode
             printf("print_output: ERROR - too few barcodes. %llu barcodes are required to barcode each variant %d times. aborting...\n", (long long unsigned int)((v_indx-vTmpCnt)*bcs_per_var), bcs_per_var);
             abort();
             

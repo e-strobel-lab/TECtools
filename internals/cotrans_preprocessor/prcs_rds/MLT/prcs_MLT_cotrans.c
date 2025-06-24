@@ -17,9 +17,9 @@
 #include "parse_3pEnd_trgts.h"
 #include "../UNV/call_fastp.h"
 #include "../UNV/prcs_chnl.h"
+#include "../UNV/print_splitting_metrics.h"
 #include "../../../seq_utils/appnd_att.h"
 #include "../../../seq_utils/isDNAbase.h"
-#include "printQC_prcsMLT.h"
 #include "testdata3pEnd_analysis.h"
 #include "mk_smooth_script.h"
 #include "mk_MLT_config.h"
@@ -31,7 +31,7 @@ extern int debug;								  //flag to run debug mode
 extern struct testdata_3pEnd_vars testdata_3pEnd; //structure containing test data read analysis variables
 
 /*  prcs_MLT_cotrans: prcs_MLT_cotrans manage the functions that are required to split fastq files from multi-length cotranscriptional RNA structure probing experiments into separate fastq files based on the channel barcode and the RNA 3' end. */
-int prcs_MLT_cotrans(names * nm, FILE * fp_3pEnd, fastp_params fastp_prms)
+int prcs_MLT_cotrans(TPROBE_names * nm, FILE * fp_3pEnd, fastp_params fastp_prms)
 {
     FILE *ifp[READ_MAX] = {NULL};	//pointers for input fastq files
     metrics  met = {0};				//read processing metrics storage
@@ -95,7 +95,7 @@ int prcs_MLT_cotrans(names * nm, FILE * fp_3pEnd, fastp_params fastp_prms)
     
     /************* process and split sequencing reads **************/
     mk_out_dir("split");					//make directory for output files
-    call_fastp(nm, &ifp[0], fastp_prms);	//fastp pre-processing
+    call_fastp(nm->file[READ1], nm->file[READ2], &ifp[0], fastp_prms);	//fastp pre-processing
     
     //split input fastq by channel and 3' end
     split_reads_3pEnd(&ifp[0], htbl_3end, nm, &met, trg_prms, fastp_prms.mode);
@@ -108,7 +108,7 @@ int prcs_MLT_cotrans(names * nm, FILE * fp_3pEnd, fastp_params fastp_prms)
         print_len_dist(&met, trg_prms);		//print the distribution of 3' end lengths
     }
     
-    print_metrics(nm, &met, fastp_prms);	//print channel and 3' end pre-processing metrics
+    print_splitting_metrics(nm, &met, fastp_prms);	//print channel and 3' end pre-processing metrics
     if (testdata_3pEnd.run) {
         print_3pEnd_testdata_analysis(&met, trg_prms, trgts);	//print a report of test data read analysis
     }
@@ -225,10 +225,16 @@ int map_3pEnd(char * read, h_node **htbl, char * end_str, metrics * met, int trg
         //code that follows significantly more readable
         crnt_3pOpt = (opt_3pEnd *)(*p_rdnd)->trg->opt;
         
-        if (crnt_3pOpt->typ == NAT) { 		 //track reads that map with no mutation
-            met->native_cnt++;
-        } else if (crnt_3pOpt->typ == SUB) { //track reads that map with a substitution
-            met->sub_cnt++;
+        //TODO: edit metrics output to report insertions and deletions too
+        switch (crnt_3pOpt->typ) {
+            case NAT: met->nat_cnt++; break;
+            case SUB: met->sub_cnt++; break;
+            case INS: met->ins_cnt++; break;
+            case DEL: met->del_cnt++; break;
+            default:
+                printf("map_3pEnd: error - unrecognized 3' end mutant type. aborting...\n");
+                abort();
+                break;
         }
         
         //store transcript length as char string to append to read ids later
@@ -249,9 +255,9 @@ int map_3pEnd(char * read, h_node **htbl, char * end_str, metrics * met, int trg
         }
         
         //sanity check that all mapped queries match the node sequence
-        met->end_hits++;							 //count number of hash table target hits
+        met->hits++;                                 //count number of hash table target hits
         if (!strcmp(rd_3pEnd, (*p_rdnd)->trg->rc)) { //count number of hits with expected seq (expect 100%)
-            met->end_matches++;
+            met->matches++;
         } else {
             printf("map_3pEnd: error - query string does not match hash table entry. aborting...\n");
             abort();
@@ -338,7 +344,7 @@ int verify_read(char (*rd)[MAX_LINE])
  structure probing experiments into modified and untreated channels
  for each RNA 3' end length
  */
-int split_reads_3pEnd(FILE **ifp, h_node **htbl, names * nm, metrics  * met, target3p_params trg_prms, int mode)
+int split_reads_3pEnd(FILE **ifp, h_node **htbl, TPROBE_names * nm, metrics  * met, target3p_params trg_prms, int mode)
 {
     printf("\nsplitting reads\n");
     
@@ -383,11 +389,11 @@ int split_reads_3pEnd(FILE **ifp, h_node **htbl, names * nm, metrics  * met, tar
             sprintf(out_nm[READ2], "./split/%s_%s_%03d_R2.fq", nm->smpl[READ2], chnl_code[i], j);
             
             if ((out_fp[i][j][READ1] = fopen(out_nm[READ1], "w")) == NULL) {
-                printf("split_reads_3pEnd: ERROR - could not generate %s file. try increasing ulimit to >8000. Aborting program...\n", out_nm[READ1]);
+                printf("split_reads_3pEnd: ERROR - could not generate %s file. try increasing ulimit -n to >8000. Aborting program...\n", out_nm[READ1]);
                 abort();
             }
             if ((out_fp[i][j][READ2] = fopen(out_nm[READ2], "w")) == NULL) {
-                printf("split_reads_3pEnd: ERROR - could not generate %s file. try increasing ulimit to >8000. Aborting program...\n", out_nm[READ2]);
+                printf("split_reads_3pEnd: ERROR - could not generate %s file. try increasing ulimit -n to >8000. Aborting program...\n", out_nm[READ2]);
                 abort();
             }
         }
@@ -477,7 +483,7 @@ int split_reads_3pEnd(FILE **ifp, h_node **htbl, names * nm, metrics  * met, tar
             //is removed from the read during fastp UMI processing and appended to the read id
             //line (line 1) of reads 1 and 2
             
-            channel = prcs_chnl(&read1[LINE1][0], met);
+            channel = prcs_chnl(&read1[LINE1][0], met, mode);
             switch (channel) {
                 case UNT: sprintf(chan_str, "UNT"); break;
                 case MOD: sprintf(chan_str, "MOD"); break;
@@ -494,10 +500,10 @@ int split_reads_3pEnd(FILE **ifp, h_node **htbl, names * nm, metrics  * met, tar
                 end = map_3pEnd(&read1[LINE2][0], htbl, end_str, met, trg_prms.sdLen);
                 if (debug) { printf("return:\t%3d\nstring:\t%s\n\n", end, end_str);}
                 if (end > 0) {
-                    met->mapped_ends++;		//track number of mapped ends
+                    met->mapped++;		    //track number of mapped ends
                     met->len_dist[end]++;	//track distribution of mapped ends across transcripts
                 } else {
-                    met->unmapped_ends++;	//track number of unmapped ends
+                    met->unmapped++;	    //track number of unmapped ends
                 }
                 
                 /* if running test data read analysis, track 3' end mapping accuracy */

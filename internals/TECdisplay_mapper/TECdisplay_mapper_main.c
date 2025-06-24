@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
     int min_vbase_qscore_set = 0;   //tracks if min variable base qscore was set
     int min_cbase_qscore_set = 0;   //tracks if min constant base qscore was set
     
-    names nm = {{{0}}};             //file and sample names
+    TDSPLY_names nm = {{{0}}};                  //file and sample names
     fastp_params fastp_prms = {"fastp", -1, 0}; //parameters for fastp processing
     
     char min_qscore[2] = {0};     //array of quality score thresholds

@@ -22,7 +22,7 @@
  shapemapper2 analysis
 */
 
-void mk_MLT_config(names * nm, target3p_params trg_prms)
+void mk_MLT_config(TPROBE_names * nm, target3p_params trg_prms)
 {
     FILE * out_fp = NULL;
     

@@ -23,6 +23,6 @@
  intermediate targets are concatenated as: n-1, n, n+1
  */
 
-void mk_smooth_script(names * nm, target3p_params trg_prms);	//generate script for transcript length smoothing
+void mk_smooth_script(TPROBE_names * nm, target3p_params trg_prms);	//generate script for transcript length smoothing
 
 #endif /* mk_smooth_script_h */

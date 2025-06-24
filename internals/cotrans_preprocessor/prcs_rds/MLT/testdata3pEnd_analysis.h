@@ -36,7 +36,7 @@ struct testdata_3pEnd_vars {	//structure containing variables for testdata metri
 };
 
 /* check_testdata_ipt: verify testdata analysis input files */
-int check_testdata_ipt(names * nm);
+int check_testdata_ipt(TPROBE_names * nm);
 
 /* get_testdata_3pEND: get 3' end info from testdata read id */
 void get_testdata_3pEND(char * id);

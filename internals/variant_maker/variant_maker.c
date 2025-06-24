@@ -20,6 +20,7 @@
 #include "../global/global_defs.h"
 #include "../global/global_structs.h"
 
+#include "../utils/debug.h"
 #include "../utils/io_management.h"
 #include "../utils/gen_utils.h"
 #include "../seq_utils/ispair.h"
@@ -30,6 +31,7 @@
 
 #include "./variant_maker_defs.h"
 #include "./variant_maker_structs.h"
+#include "./constant_seqs.h"
 #include "./read_varFile.h"
 #include "./count_variants.h"
 #include "./expand_variant_template.h"
@@ -51,14 +53,6 @@ FILE * prcs_ofp = NULL;           //output file pointer for processing messages
 char prcs_out_nm[MAX_LINE] = {0}; //name of processing message output file
 char out_msg[MAX_LINE] = {0};     //output message
 
-//priming sites
-//char c3sc1[34] = "ATTCGGTGCTCTTCTCTTCGGCCTTCGGGCCAA";
-//char vra3[27]  = "GATCGTCGGACTGTAGAACTCTGAAC";
-char pra1_sc1[41]        = "acctctggcggtgataatggttgcatggccttcgggccaa";
-char c3sc1[34]           = "attcggtgctcttctcttcggccttcgggccaa";
-char vra3[27]            = "gatcgtcggactgtagaactctgaac";
-char RLA29synch_3p11[34] = "aaacaccaccaAcatcaccatcatcctgactag";
-
 char * fwd2use = NULL;
 char * rev2use = NULL;
 
@@ -66,12 +60,19 @@ char * rev2use = NULL;
 
 int main(int argc, char *argv[])
 {
+    extern int debug; //flag for running debug mode
+    
     extern fasta *vrnts;       //pointer to fasta structures used when generating variants
     extern uint64_t v_indx;    //index of current variant
     
     extern FILE * prcs_ofp;            //output file pointer for processing messages
     extern char prcs_out_nm[MAX_LINE]; //name of processing message output file
     extern char out_msg[MAX_LINE];     //output message
+    
+    extern char pra1_sc1[41];
+    extern char c3sc1[34];
+    extern char vra3[27];
+    extern char RLA29synch_3p11[34]; //v2
     
     FILE * fp_var = NULL;      //pointer to variant parameters file
     FILE * fp_brcd = NULL;     //pointer to barcode sequences file
@@ -117,10 +118,11 @@ int main(int argc, char *argv[])
             {"first-bc-2-use",  required_argument,  0,  'i'},  //first barcode id to use
             {"custom-linker",   required_argument,  0,  'l'},  //use custom linker
             {"make_fasta",      no_argument,        0,  'f'},  //make fasta file
+            {"debug",           no_argument,        0,  'd'},  //run debug mode
             {0, 0, 0, 0}
         };
         
-        c = getopt_long(argc, argv, "v:b:p:a:i:l:f", long_options, &option_index);
+        c = getopt_long(argc, argv, "v:b:p:a:i:l:fd", long_options, &option_index);
         
         if (c == -1) {
             break;
@@ -172,9 +174,7 @@ int main(int argc, char *argv[])
                     abort();
                 }
                 
-                mk_brcds(brcds2mk); //generate barcodes
-                return 1;           //end program after barcodes are made
-                break;              //leaving this in case I decide to remove the return later
+                break;
                 
             //append C3-SC1 and VRA3 priming sites to variants
             case 'p':
@@ -247,10 +247,20 @@ int main(int argc, char *argv[])
                 make_fasta = 1;
                 break;
                 
+            case 'd':
+                printf("turning debug mode on\n");
+                debug = 1;
+                break;
+                
             default: printf("error: unrecognized option. Aborting program...\n"); abort();
         }
     }
     /* ******* end of options parsing ******* */
+    
+    if (mode == MAKE_BARCODES) {
+        mk_brcds(brcds2mk); //generate barcodes
+        return 1;           //end program after barcodes are made
+    }
     
     if (MUX_library && strcmp(cstm_lnkr, "exclude")) {
         printf("variant_maker: error - custom linker sequences cannot be used in TECprobe-MUX libraries. aborting...\n");

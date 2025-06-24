@@ -14,6 +14,8 @@
 #include "../../cotrans_preprocessor_defs.h"
 #include "../../cotrans_preprocessor_structs.h"
 
+#include "../../../variant_maker/make_barcodes.h"
+
 #include "prcs_chnl.h"
 
 /* prcs_chnl: identify channel code from read 1 ID.
@@ -22,7 +24,7 @@
  modified  = RRRYY
  untreated = YYYRR
  */
-int prcs_chnl(char * read1_ID, metrics  * met)
+int prcs_chnl(char * read1_ID, metrics  * met, int mode)
 {
     extern int debug;    //flag to turn on debug mode
     
@@ -32,16 +34,32 @@ int prcs_chnl(char * read1_ID, metrics  * met)
     int UNT_mtch = 0;    //number of matches to UNT channel barcode
     int MOD_mtch = 0;    //number of matches to MOD channel barcode
     
-    char barcode[CHANNEL_BC_LENGTH+1] = {0}; //array to start channel barcode sequence
+    char barcode[VL_CHNL_BC_LEN+1] = {0}; //array to start channel barcode sequence
+    
+    int offset; //number of characters from the first space in the read id to the first base of the channel barcode
+    
+    if (mode == MULTI) {            //in PROCESS_MULTI mode, use TECprobe-VL UMI length
+        offset = VL_UMI_LENGTH;
+        
+    } else if (mode == MULTIPLEX) { //in PROCESS_MULTIPLEX mode, use maximum barcode length
+        offset = MAX_BARCODE_LEN;
+        
+    } else {
+        printf("prcs_chnl: error -unrecognized mode. aborting...\n");
+        abort();
+    }
     
     //for compatibility with cotranscriptional structure probing, we pull the channel barcode as a
-    //9 nt UMI even though the channel barcode is only 5 nts. The remaining 4 nt are constant sequence
+    //9 nt or 16 nt UMI even though the channel barcode is only 5 nts. The remaining 4/11 nt are constant sequence
     //and are ignored in the processing below
     //
-    //format:                           vvvvv-channel barcode
+    //TECprobe-VL format:               vvvvv-channel barcode
     //[illumina read id info]_NNNNNNNNN_NNNNNATGG [illumina read id info]
     //                        |R1 head| |R2 head|
     //
+    //TECprobe-MUX format:                      vvvvv-channel barcode
+    //[illumina read id info]_NNNNNNNNNNNNNNNN_NNNNNATGGCCTTCGG [illumina read id info]
+    //                        |---R1 head----| |----R2 head---|
     
     if (debug) {
         printf(">channel determination\n");
@@ -55,15 +73,15 @@ int prcs_chnl(char * read1_ID, metrics  * met)
     if (!read1_ID[i]) { //check that loop did not exit on null character
         printf("prcs_chnl: error - unexpected read1 id line format. aborting...\n");
         abort();
-    } else if (i <= UMI_LENGTH) {//check that 1-UMI_Length will be positive
+    } else if (i <= offset) {//check that 1-offset will not be negative
         printf("prcs_chnl: error - unexpected short read1 id line. aborting...\n");
         abort();
     }
     
-    i -= UMI_LENGTH; //start of channel barcode is UMI_LENGTH chars before first space in read 1 name
+    i -= offset; //start of channel barcode is <offset> chars before first space in read 1 name
     
     //copy channel barcode to barcode array
-    for (j = 0; j < CHANNEL_BC_LENGTH; j++, i++) {
+    for (j = 0; j < VL_CHNL_BC_LEN; j++, i++) {
         barcode[j] = read1_ID[i];
     }
     barcode[j] = '\0';
@@ -73,7 +91,7 @@ int prcs_chnl(char * read1_ID, metrics  * met)
     //determine whether channel barcode bases match MOD or UNT channels
     //UNT = YYYRR
     //MOD = RRRYY
-    for (i = 0; i < CHANNEL_BC_LENGTH && barcode[i]; i++) {
+    for (i = 0; i < VL_CHNL_BC_LEN && barcode[i]; i++) {
         switch (barcode[i]) {
             case 'A':
                 (i <= 2) ? MOD_mtch++ : UNT_mtch++;
@@ -103,13 +121,13 @@ int prcs_chnl(char * read1_ID, metrics  * met)
     if (debug) {printf("\nuntBC:\t%d\nmodBC:\t%d\n",UNT_mtch, MOD_mtch);}
     
     //check if the observed barcode is a match to an expected barcode
-    //MIN_MATCH is currently set to 4 (4/5 bases must match expected barcode)
-    if (UNT_mtch >= MIN_MATCH) {
-        (UNT_mtch == MAX_MATCH) ? met->full_match[UNT]++ : met->part_match[UNT]++;
+    //VL_MIN_MATCH is currently set to 4 (4/5 bases must match expected barcode)
+    if (UNT_mtch >= VL_MIN_MATCH) {
+        (UNT_mtch == VL_MAX_MATCH) ? met->full_match[UNT]++ : met->part_match[UNT]++;
         if (debug) {printf("chan:\tuntreated\n\n");}
         return UNT;
-    } else if (MOD_mtch >= MIN_MATCH) {
-        (MOD_mtch == MAX_MATCH) ? met->full_match[MOD]++ : met->part_match[MOD]++;
+    } else if (MOD_mtch >= VL_MIN_MATCH) {
+        (MOD_mtch == VL_MAX_MATCH) ? met->full_match[MOD]++ : met->part_match[MOD]++;
         if (debug) {printf("chan:\tmodified\n\n");}
         return MOD;
     } else {

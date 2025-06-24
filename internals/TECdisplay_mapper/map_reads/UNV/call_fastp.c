@@ -18,7 +18,7 @@
 #include "call_fastp.h"
 
 /* call_fastp: performs a system call to initiate fastp preprocessing, opens resulting files */
-int call_fastp(names * nm, fastp_params prms)
+int call_fastp(TDSPLY_names * nm, fastp_params prms)
 {
     static const char smRNA_adpt1[41] = "--adapter_sequence=TGGAATTCTCGGGTGCCAAGG";		//small RNA adapter 1
     static const char smRNA_adpt2[44] = "--adapter_sequence_r2=GATCGTCGGACTGTAGAACTC";	//small RNA adapter 2

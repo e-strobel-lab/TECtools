@@ -13,6 +13,10 @@
 #include "../global/global_defs.h"
 #include "../global/global_structs.h"
 
+#include "../seq_utils/fastp_params.h"
+#include "../seq_utils/seq2bin_hash.h"
+#include "../seq_utils/seq2bin_long.h"
+
 #include "cotrans_preprocessor_defs.h"
 
 /* NOTE: the structures used for the hash table are defined in seq2bin_hash.h */
@@ -47,39 +51,47 @@ typedef struct target3p_params {
 } target3p_params;
 
 
-/* names: structure containing key names during seq read processing */
-typedef struct names {
-    char file[READ_MAX][MAX_LINE];	//array to store read 1 and 2 filenames
-    char smpl[READ_MAX][MAX_LINE];	//array to store read 1 and 2 sample names
-    char ends[MAX_LINE];			//array to store 3' end targets filename
-    int len;                        //length of single length target
-} names;
+/* opt_BC: structure for storing barcode target-specific variables */
+typedef struct opt_BC {
+    compact_target * ref;              //pointer to reference target, for native targets this points to self
+    FILE * ofp[CHANNEL_MAX][READ_MAX]; //output file pointer (only used for native targets)
+    uint64_t mpd;                      //number of reads that mapped to native+mutant targets (used for native targets)
+    uint64_t cnt;                      //number of reads that mapped to the current target
+    char * tsq;                        //template sequence
+    int typ;                           //target type (NAT, SUB, INS, DEL)
+} opt_BC;
+
+
+/* TPROBE_names: structure containing key names during seq read processing */
+typedef struct TPROBE_names {
+    char file[READ_MAX][MAX_LINE+1]; //array to store read 1 and 2 filenames
+    char smpl[READ_MAX][MAX_LINE+1]; //array to store read 1 and 2 sample names
+    char trgts[MAX_LINE+1];          //array to store 3' end targets filename
+    char trgts_prfx[MAX_LINE+1];     //barcode filename prefix
+    int len;                         //length of single length target
+} TPROBE_names;
 
 
 /* metrics: structure containing seq read processing metrics */
 typedef struct metrics {
+    int srcTrgs;                    //number of source barcode targets
+    int targets;                    //number of barcode targets, including mutated barcodes
+    int blacklisted;                //number of blacklisted targets
     int reads_processed;			//number of processed reads
     int chan_count[CHANNEL_MAX];	//count of reads from each channel
     int full_match[CHANNEL_MAX];	//counts number of full channel matches
     int part_match[CHANNEL_MAX];	//counts number of partial channel matches
-    int end_hits;					//tracks number of ends that were mapped by hash table
-    int end_matches;				//tracks number of end hits with expected sequence (should be 100%)
-    int native_cnt;					//tracks number of observed 3' ends that match native targets
-    int sub_cnt;					//tracks number of observed 3' ends that match substitution targets
-    int mapped_ends;				//mapped ends count
-    int unmapped_ends;				//count of ends that failed to map
+    int hits;					    //tracks number of ends that were mapped by hash table
+    int matches;				    //tracks number of end hits with expected sequence (should be 100%)
+    int nat_cnt;					//tracks number of reads that match native targets
+    int sub_cnt;					//tracks number of reads that match substitution targets
+    int ins_cnt;                    //tracks number of reads that match insertion targets
+    int del_cnt;                    //tracks number of reads that match deletion targets
+    int mapped;				        //mapped reads count
+    int bl_mapped;                  //blacklisted mapped reads count
+    int unmapped;				    //unmapped reads count
     int read_matches[READ_MAX];		//count of post-processing verified reads
     int len_dist[MAX_LINE];			//array for tracking the length distribution of UNT, MOD, and ERR reads
 } metrics;
-
-
-/* fastp_params: structure containing parameters for fastp processing */
-typedef struct fastp_params {
-    char path[MAX_LINE];            //path to fastp executable
-    int mode;						//processing mode (multi-length or single-length)
-    int limit;						//limit on number of reads to process
-} fastp_params;						//NOTE: processing mode is also used by functions unrelated to fastp
-
-
 
 #endif /* cotrans_preprocessor_structs_h */
