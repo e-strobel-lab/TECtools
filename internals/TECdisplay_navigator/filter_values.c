@@ -54,6 +54,13 @@ int filter_values(FILE * ipt, constraints * cons, int cons_cnt, basemap * bmap, 
     
     /**** parse first line of values file to get column headers ****/
     get_line(line, ipt); //get first line of values file
+    
+    //non-standard format data that is organized in excel likely has a
+    //carriage return at the end of the string, which should be removed
+    if (line[strlen(line)-1] == '\r') {
+        line[strlen(line)-1] = '\0';
+    }
+    
     strcpy(tmp_line, line);
     
     if (!nonstandard) {  //input data is standard TECdisplay format

@@ -24,7 +24,7 @@
  
  in TECdisplay experiments the channel barcode is the first four nucleotides of read2
  */
-int prcs_chnl(char * read_ID, metrics  * met, int * chnl_match_type)
+int prcs_chnl(char * read_ID, TDSPLY_metrics  * met, int * chnl_match_type)
 {
     extern int debug;    //flag to turn on debug mode
     
@@ -34,7 +34,7 @@ int prcs_chnl(char * read_ID, metrics  * met, int * chnl_match_type)
     int BND_mtch = 0;    //number of matches to BND channel barcode
     int UNB_mtch = 0;    //number of matches to UNB channel barcode
     
-    char barcode[CHANNEL_BC_LENGTH+1] = {0}; //array to start channel barcode sequence
+    char barcode[TDSPLY_CHNL_BC_LEN+1] = {0}; //array to start channel barcode sequence
     
     if (debug) {
         printf(">channel determination\n");
@@ -48,15 +48,15 @@ int prcs_chnl(char * read_ID, metrics  * met, int * chnl_match_type)
     if (!read_ID[i]) { //check that loop did not exit on null character
         printf("prcs_chnl: error - unexpected read id line format. aborting...\n");
         abort();
-    } else if (i <= UMI_LENGTH) {//check that 1-UMI_Length will not be negative
+    } else if (i <= TDSPLY_UMI_LENGTH) {//check that 1-TDSPLY_UMI_LENGTH will not be negative
         printf("prcs_chnl: error - unexpected short read id line. aborting...\n");
         abort();
     }
     
-    i -= UMI_LENGTH; //start of channel barcode is UMI_LENGTH chars before first space in read 1 name
+    i -= TDSPLY_UMI_LENGTH; //start of channel barcode is TDSPLY_UMI_LENGTH chars before first space in read 1 name
     
     //copy channel barcode to barcode array
-    for (j = 0; j < CHANNEL_BC_LENGTH; j++, i++) {
+    for (j = 0; j < TDSPLY_CHNL_BC_LEN; j++, i++) {
         barcode[j] = read_ID[i];
     }
     barcode[j] = '\0';
@@ -66,7 +66,7 @@ int prcs_chnl(char * read_ID, metrics  * met, int * chnl_match_type)
     //determine whether channel barcode bases match MOD or UNT channels
     //BND = RYYY
     //UNB = YRRR
-    for (i = 0; i < CHANNEL_BC_LENGTH && barcode[i]; i++) {
+    for (i = 0; i < TDSPLY_CHNL_BC_LEN && barcode[i]; i++) {
         switch (barcode[i]) {
             case 'A':
                 (i < 1) ? BND_mtch++ : UNB_mtch++;
@@ -96,26 +96,26 @@ int prcs_chnl(char * read_ID, metrics  * met, int * chnl_match_type)
     if (debug) {printf("\nbndBC:\t%d\nunbBC:\t%d\n",BND_mtch, UNB_mtch);}
     
     //check if the observed barcode is a match to an expected barcode
-    //MIN_MATCH is currently set to 3 (3/4 bases must match expected barcode)
-    if (UNB_mtch >= MIN_MATCH) {          //read is an unbound channel match
-        if (UNB_mtch == MAX_MATCH) {      //read is a full match
-            met->full_match[UNB]++;       //increment unbound full match counter
-            *chnl_match_type = FULL;      //set channel match type to FULL
-        } else {                          //read is a part match
-            met->part_match[UNB]++;       //increment unbound part match counter
-            *chnl_match_type = PART;      //set channel match type to PART
+    //TDSPLY_MIN_MATCH is currently set to 3 (3/4 bases must match expected barcode)
+    if (UNB_mtch >= TDSPLY_MIN_MATCH) {      //read is an unbound channel match
+        if (UNB_mtch == TDSPLY_MAX_MATCH) {  //read is a full match
+            met->full_match[UNB]++;          //increment unbound full match counter
+            *chnl_match_type = FULL;         //set channel match type to FULL
+        } else {                             //read is a part match
+            met->part_match[UNB]++;          //increment unbound part match counter
+            *chnl_match_type = PART;         //set channel match type to PART
         }
         
         if (debug) {printf("chan:\tunbound\n\n---------------\n\n");}
         return UNB;
         
-    } else if (BND_mtch >= MIN_MATCH) {   //read is a bound channel match
-        if (BND_mtch == MAX_MATCH) {      //read is a full match
-            met->full_match[BND]++;       //increment bound full match counter
-            *chnl_match_type = FULL;      //set channel match type to FULL
-        } else {                          //read is a part match
-            met->part_match[BND]++;       //increment bound part match counter
-            *chnl_match_type = PART;      //set channel match type to PART
+    } else if (BND_mtch >= TDSPLY_MIN_MATCH) {  //read is a bound channel match
+        if (BND_mtch == TDSPLY_MAX_MATCH) {     //read is a full match
+            met->full_match[BND]++;             //increment bound full match counter
+            *chnl_match_type = FULL;            //set channel match type to FULL
+        } else {                                //read is a part match
+            met->part_match[BND]++;             //increment bound part match counter
+            *chnl_match_type = PART;            //set channel match type to PART
         }
         
         if (debug) {printf("chan:\tbound\n\n---------------\n\n");}

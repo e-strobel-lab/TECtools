@@ -24,7 +24,7 @@
 struct testdata_3pEnd_vars testdata_3pEnd = {0}; //structure containing test data read analysis variables
 
 /* check_testdata_ipt: verify testdata analysis input files */
-int check_testdata_ipt(names * nm)
+int check_testdata_ipt(TPROBE_names * nm)
 {
     //when using test data, check whether the supplied reads are actually test data fastq files and
     //whether the test data reads contain native or randomized 3' ends
@@ -79,7 +79,7 @@ int check_testdata_ipt(names * nm)
     
     //get end target length values from ends targets filename
     //set pointer to start of string that follows two-digit end target length value
-    if ((trg_len_ptr = strstr(nm->ends, "ntLong.txt")) != NULL) {
+    if ((trg_len_ptr = strstr(nm->trgts, "ntLong.txt")) != NULL) {
         
         //copy end target length from filenames to tmp_trg_len array
         tmp_trg_len[0] = trg_len_ptr[-2];
@@ -215,18 +215,18 @@ void print_3pEnd_testdata_analysis(metrics *met, target3p_params trg_prms, targe
     printf2_scrn_n_fl(testdata_fp, out_str);
     
     //report 3' end mapping efficiency
-    pf_ptr = (met->mapped_ends == met->reads_processed) ? &pass[0] : &fail[0];
+    pf_ptr = (met->mapped == met->reads_processed) ? &pass[0] : &fail[0];
     sprintf(out_str, ">  3' end - %s %10.6f%% (expected 100%%) of sequences mapped to a 3' end target\n",
-            pf_ptr, ((float)(met->mapped_ends)/(float)(met->reads_processed))*100);
+            pf_ptr, ((float)(met->mapped)/(float)(met->reads_processed))*100);
     printf2_scrn_n_fl(testdata_fp, out_str);
     
     //report native target mapping efficiency when using native test data reads
     if (testdata_3pEnd.mode == TESTDATA_NAT) {
         
         //report whether all test data reads mapped to native 3' end targets
-        pf_ptr = (met->native_cnt == met->reads_processed) ? &pass[0] : &fail[0];
+        pf_ptr = (met->nat_cnt == met->reads_processed) ? &pass[0] : &fail[0];
         sprintf(out_str, ">  3' end - %s %10.6f%% (expected 100%%) of sequences mapped to a native 3' end target\n",
-                pf_ptr, ((float)(met->native_cnt)/(float)(met->reads_processed))*100);
+                pf_ptr, ((float)(met->nat_cnt)/(float)(met->reads_processed))*100);
         printf2_scrn_n_fl(testdata_fp, out_str);
         
         //report whether all test data reads mapped with a 0nt distance from the expected target

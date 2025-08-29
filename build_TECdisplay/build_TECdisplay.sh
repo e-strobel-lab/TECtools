@@ -13,7 +13,7 @@ gcc ../internals/TECdisplay_mapper/TECdisplay_mapper_main.c ../internals/utils/d
 #
 #
 #build variant_maker
-gcc ../internals/variant_maker/variant_maker.c ../internals/utils/gen_utils.c ../internals/utils/io_management.c ../internals/seq_utils/ispair.c ../internals/seq_utils/isIUPACbase.c ../internals/seq_utils/isDNAbase.c ../internals/seq_utils/seq2bin_hash.c ../internals/seq_utils/seq2bin_long.c ../internals/seq_utils/test_possible_pairs.c ../internals/seq_utils/basemap.c  ../internals/variant_maker/count_variants.c ../internals/variant_maker/read_varFile.c  ../internals/variant_maker/expand_variant_template.c ../internals/variant_maker/filter_variants.c ../internals/variant_maker/mk_variant_nm.c  ../internals/variant_maker/make_barcodes.c ../internals/variant_maker/read_bcFile.c ../internals/variant_maker/print_output.c -lm -o variant_maker
+gcc ../internals/variant_maker/variant_maker.c ../internals/utils/debug.c ../internals/utils/gen_utils.c ../internals/utils/io_management.c ../internals/seq_utils/ispair.c ../internals/seq_utils/isIUPACbase.c ../internals/seq_utils/isDNAbase.c ../internals/seq_utils/seq2bin_hash.c ../internals/seq_utils/seq2bin_long.c ../internals/seq_utils/test_possible_pairs.c ../internals/seq_utils/basemap.c ../internals/variant_maker/constant_seqs.c ../internals/variant_maker/count_variants.c  ../internals/variant_maker/read_varFile.c  ../internals/variant_maker/expand_variant_template.c ../internals/variant_maker/filter_variants.c ../internals/variant_maker/mk_variant_nm.c  ../internals/variant_maker/make_barcodes.c ../internals/variant_maker/read_bcFile.c ../internals/variant_maker/print_output.c -lm -o variant_maker
 #
 #
 #

@@ -14,14 +14,17 @@
 #include "../../cotrans_preprocessor_defs.h"
 #include "../../cotrans_preprocessor_structs.h"
 #include "../../../utils/gen_utils.h"
-#include "testdata3pEnd_analysis.h"
 
-#include "printQC_prcsMLT.h"
+#include "../MLT/testdata3pEnd_analysis.h"
+#include "../MUX/testdataMUX_analysis.h"
 
-/*print_metrics: prints a report of channel and 3' end processing metrics*/
-void print_metrics(names * nm, metrics  * met, fastp_params fastp_prms)
+#include "print_splitting_metrics.h"
+
+/* print_metrics: prints a report of channel and 3' end processing metrics */
+void print_splitting_metrics(TPROBE_names * nm, metrics  * met, fastp_params fastp_prms)
 {
     extern struct testdata_3pEnd_vars testdata_3pEnd; //structure containing test data read analysis variables
+    extern struct testdata_MUX_vars testdata_MUX;     //structure containing test data read analysis variables
     
     //(MAX_LINE*3)+512 should exceed the max string printed to out_str
     char out_str[(MAX_LINE*3)+512] = {0};
@@ -37,7 +40,7 @@ void print_metrics(names * nm, metrics  * met, fastp_params fastp_prms)
     printf("\n");
     
     //print input file paths
-    sprintf(out_str, "input files\nread1: %s\nread2: %s\n ends: %s\n", nm->file[READ1], nm->file[READ2], nm->ends);
+    sprintf(out_str, "input files\nread1: %s\nread2: %s\ntrgts: %s\n", nm->file[READ1], nm->file[READ2], nm->trgts);
     printf2_scrn_n_fl(log_fp, out_str);
     
     sprintf(out_str, "\nsample names\nread1: %s\nread2: %s\n", nm->smpl[READ1], nm->smpl[READ2]);
@@ -60,7 +63,7 @@ void print_metrics(names * nm, metrics  * met, fastp_params fastp_prms)
             met->chan_count[UNT],
             met->full_match[UNT], ((float)(met->full_match[UNT])/(float)(met->chan_count[UNT]))*100,
             met->part_match[UNT], ((float)(met->part_match[UNT])/(float)(met->chan_count[UNT]))*100,
-            MIN_MATCH, MAX_MATCH);
+            VL_MIN_MATCH, VL_MAX_MATCH);
     printf2_scrn_n_fl(log_fp, out_str);
     
     //print treated channel barcode mapping metrics
@@ -68,24 +71,25 @@ void print_metrics(names * nm, metrics  * met, fastp_params fastp_prms)
             met->chan_count[MOD],
             met->full_match[MOD], ((float)(met->full_match[MOD])/(float)(met->chan_count[MOD]))*100,
             met->part_match[MOD], ((float)(met->part_match[MOD])/(float)(met->chan_count[MOD]))*100,
-            MIN_MATCH, MAX_MATCH);
+            VL_MIN_MATCH, VL_MAX_MATCH);
     printf2_scrn_n_fl(log_fp, out_str);
     
-    //3' end mapping metrics for multi-length cotranscriptional structure probing experiments
+    
     if (fastp_prms.mode == MULTI) {
+        //3' end mapping metrics for multi-length cotranscriptional structure probing experiments
         
         //3' end mapping efficiency metrics
         sprintf(out_str, "3' end:\n  total assessed: %d reads\n  mapped:   %6.2f%% (%9d reads)\n  unmapped: %6.2f%% (%9d reads)\n",
                 met->reads_processed,
-                ((float)(met->mapped_ends)   / (float)(met->reads_processed))*100, met->mapped_ends,
-                ((float)(met->unmapped_ends) / (float)(met->reads_processed))*100, met->unmapped_ends);
+                ((float)(met->mapped)   / (float)(met->reads_processed))*100, met->mapped,
+                ((float)(met->unmapped) / (float)(met->reads_processed))*100, met->unmapped);
         printf2_scrn_n_fl(log_fp, out_str);
         
         //test data analysis-specific error indicating that <100% of test data reads were mappable
         //this is also reported from the print_3pEnd_testdata_analysis function, however this failure is
         //so severe that it is worth printing more than once
         if (testdata_3pEnd.run) {
-            if ((met->reads_processed - met->mapped_ends) != 0) {
+            if ((met->reads_processed - met->mapped) != 0) {
                 sprintf(out_str, "TEST DATA ANALYSIS: error - expected 100%% of reads to map correctly.\n");
             }
             printf2_scrn_n_fl(log_fp, out_str);
@@ -93,10 +97,38 @@ void print_metrics(names * nm, metrics  * met, fastp_params fastp_prms)
         
         //3' end mapping quality metrics
         sprintf(out_str, "    of %d mapped reads,\n     %9d ends (%6.2f%%) mapped without substitutions or indels,\n     %9d ends (%6.2f%%) mapped without indels, and\n     %9d ends (%6.2f%%) match the expected sequence\n\n",
-                met->mapped_ends,
-                met->native_cnt, ((float)(met->native_cnt)/(float)(met->mapped_ends))*100,
-                met->native_cnt+met->sub_cnt, ((float)(met->native_cnt+met->sub_cnt)/(float)(met->mapped_ends))*100,
-                met->end_hits, ((float)(met->end_matches)/(float)(met->end_hits))*100);
+                met->mapped,
+                met->nat_cnt, ((float)(met->nat_cnt)/(float)(met->mapped))*100,
+                met->nat_cnt+met->sub_cnt, ((float)(met->nat_cnt+met->sub_cnt)/(float)(met->mapped))*100,
+                met->hits, ((float)(met->matches)/(float)(met->hits))*100);
+        printf2_scrn_n_fl(log_fp, out_str);
+        
+    } else if (fastp_prms.mode == MULTIPLEX) {
+        //barcode mapping metrics for multi-length cotranscriptional structure probing experiments
+        
+        //barcode mapping efficiency metrics
+        sprintf(out_str, "variant barcodes:\n  total assessed: %d reads\n  mapped:   %6.2f%% (%9d reads)\n  unmapped: %6.2f%% (%9d reads)\n",
+                met->reads_processed,
+                ((float)(met->mapped) / (float)(met->reads_processed))*100, met->mapped,
+                ((float)(met->unmapped) / (float)(met->reads_processed))*100, met->unmapped);
+        printf2_scrn_n_fl(log_fp, out_str);
+        
+        //test data analysis-specific error indicating that <100% of test data reads were mappable
+        //this is also reported from the print_MUX_testdata_analysis function, however this failure is
+        //so severe that it is worth printing more than once
+        if (testdata_MUX.run) {
+            if ((met->reads_processed - met->mapped) != 0) {
+                sprintf(out_str, "TEST DATA ANALYSIS: error - expected 100%% of reads to map correctly.\n");
+                printf2_scrn_n_fl(log_fp, out_str);
+            }
+        }
+        
+        //barcode mapping quality metrics
+        sprintf(out_str, "    of %d mapped reads,\n     %9d ends (%6.2f%%) mapped without substitutions or indels,\n     %9d ends (%6.2f%%) mapped without indels, and\n     %9d ends (%6.2f%%) match the expected sequence\n\n",
+                met->mapped,
+                met->nat_cnt, ((float)(met->nat_cnt)/(float)(met->mapped))*100,
+                met->nat_cnt+met->sub_cnt, ((float)(met->nat_cnt+met->sub_cnt)/(float)(met->mapped))*100,
+                met->hits, ((float)(met->matches)/(float)(met->hits))*100);
         printf2_scrn_n_fl(log_fp, out_str);
     }
     

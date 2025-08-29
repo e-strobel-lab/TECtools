@@ -127,7 +127,7 @@ void extend_h_bank(h_node_bank *crrnt_hn_bank)
     }
     crrnt_hn_bank = crrnt_hn_bank->nxt;
     if ((crrnt_hn_bank->hn = calloc(BLOCK_SIZE, sizeof(*(crrnt_hn_bank->hn)))) == NULL) {
-        printf("srch_h_tbl: error - hash table node bank memory allocation failed\n");
+        printf("srch_h_tbl: error - hash table node memory allocation failed\n");
         abort();
     }
 }

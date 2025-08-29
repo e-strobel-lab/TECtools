@@ -13,17 +13,17 @@
 #include "../global/global_defs.h"
 
 //mode values
-#define MAKE_VARIANTS 1     //make variants mode
-#define MAKE_BARCODES 2     //make barcodes mode
+#define MAKE_VARIANTS 1       //make variants mode
+#define MAKE_BARCODES 2       //make barcodes mode
 
-#define MAXREF 1024         //maximum number of references sequences
-#define MAX_COMPLEX 26      //maximum number of complex pairs
-#define MAX_BRCDS_2_MK 5000 //maximum number of barcodes to make
-#define MAX_LINKER 64       //maximum custom linker length
+#define MAXREF 1024           //maximum number of references sequences
+#define MAX_COMPLEX 26        //maximum number of complex pairs
+#define MAX_BRCDS_2_MK 100000 //maximum number of barcodes to make
+#define MAX_LINKER 64         //maximum custom linker length
 
-#define CALCULATED 0        //index for calculated variant count in basemap struct
-#define EXPANDED   1        //index for expanded variant count in basemap struct
-#define FILTERED   2        //index for filtered variant count in basemap struct  
+#define CALCULATED 0          //index for calculated variant count in basemap struct
+#define EXPANDED   1          //index for expanded variant count in basemap struct
+#define FILTERED   2          //index for filtered variant count in basemap struct  
 
 //basemap pairs array values
 #define CMPLX_PAIR_ROOT -1    //indicates base is the first mate in a complex pair

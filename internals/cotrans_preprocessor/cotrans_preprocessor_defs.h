@@ -34,6 +34,7 @@
 /* read processing modes */
 #define MULTI 0				//multi-length cotranscriptional mode
 #define SINGLE 1			//single length mode
+#define MULTIPLEX 2         //multiplex mode
 
 /* target parsing definitions */
 #define CNSTNT_STRT_NAT 7   //offset from last target id string to reach start of standardized target id (NAT)
@@ -52,14 +53,17 @@
 #define TRG_DIF_THRESHOLD 2	//max distance for 3' value of targets with the same sequence
 
 /* channel ID definitions */
-#define CHANNEL_BC_LENGTH 5	//length of the channel barcode at the head of read 1
-#define MIN_MATCH 4			//minimum channel barcode match (4/5 nucleotides)
-#define MAX_MATCH 5			//maximum possible channel barcode match (5/5 nucleotides)
-#define UMI_LENGTH 9		//length of the unique molecular identifier
+#define VL_CHNL_BC_LEN 5	//length of the channel barcode at the head of read 1
+#define VL_MIN_MATCH 4	    //minimum channel barcode match (4/5 nucleotides)
+#define VL_MAX_MATCH 5	    //maximum possible channel barcode match (5/5 nucleotides)
+#define VL_UMI_LENGTH 9		//length of the unique molecular identifier
 #define UNT 0				//specifies untreated sample
 #define MOD 1				//specifies modified sample
 #define ERR 2				//specifies undetermined channel barcode
 #define CHANNEL_MAX 3		//number of channel codes (UNT, MOD, ERR)
+
+/* barcode mapping definitions */
+#define MAX_BRCD_CNT 20000  //maximum number of TECprobe-MUX barcodes
 
 /* split output definitions */
 #define FILES_PER_LEN 4		//number of files generated per transcript length

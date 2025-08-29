@@ -21,7 +21,7 @@
  the maximum target is concatenated as: n-1, n.
  intermediate targets are concatenated as: n-1, n, n+1
  */
-void mk_smooth_script(names * nm, target3p_params trg_prms)
+void mk_smooth_script(TPROBE_names * nm, target3p_params trg_prms)
 {
     FILE * out_fp = NULL;	//output file pointer
     

@@ -13,6 +13,8 @@
 #include "../global/global_defs.h"
 #include "../global/global_structs.h"
 
+#include "../seq_utils/fastp_params.h"
+
 #include "./TECdisplay_mapper_defs.h"
 #include "../seq_utils/seq2bin_hash.h"
 
@@ -58,14 +60,14 @@ typedef struct target_params {
 
 
 /* names: structure containing key names used during seq read processing */
-typedef struct names {
+typedef struct TDSPLY_names {
     char file[READ_MAX][MAX_LINE];  //array to store read 1 and 2 filenames
     char smpl[READ_MAX][MAX_LINE];  //array to store read 1 and 2 sample names
     char mrg[MAX_LINE];             //array to store merged read sample name
     char trgs[MAX_LINE];            //array to store targets filename
     char trgs_prefix[MAX_LINE];     //array to store targets prefix
     char out_nm[MAX_LINE];          //array to store output file name
-} names;
+} TDSPLY_names;
 
 /* fasta: structure to store fasta entries */
 typedef struct fasta {
@@ -77,22 +79,14 @@ typedef struct fasta {
 } fasta;
 
 /* metrics: structure containing seq read processing metrics */
-typedef struct metrics {
+typedef struct TDSPLY_metrics {
     int reads_processed;            //number of processed reads
     int chan_count[CHANNEL_MAX];    //tracks number of reads from each channel
     int full_match[CHANNEL_MAX];    //tracks number of full channel matches
     int part_match[CHANNEL_MAX];    //tracks number of partial channel matches
     int hits;                       //tracks number of reads wit ha key that maps to the hash table
     int matches;                    //tracks number of reads with an exact target match
-} metrics;
-
-
-/* fastp_params: structure containing parameters for fastp processing */
-typedef struct fastp_params {
-    char path[MAX_LINE];            //path to fastp executable
-    int mode;                       //processing mode (multi-length or single-length)
-    int limit;                      //limit on number of reads to process
-} fastp_params;                     //NOTE: processing mode is also used by functions unrelated to fastp
+} TDSPLY_metrics;
 
 
 /* testdata_vars: structure containing variable for tracking test data processing metrics */

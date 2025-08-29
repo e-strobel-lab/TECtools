@@ -17,13 +17,13 @@
 #include "../utils/gen_utils.h"
 #include "../seq_utils/isDNAbase.h"
 
-#include "./variant_maker_defs.h"
-#include "./variant_maker_structs.h"
+//#include "./variant_maker_defs.h"
+//#include "./variant_maker_structs.h"
 
 #include "read_bcFile.h"
 
 /* read_bcFile: parse barcode file header and barcode lines */
-int read_bcFile(FILE * fp_brcd, int mode, char * str)
+int read_bcFile(FILE * fp_brcd, int mode, char * str, int array_len)
 {
     int i = 0;      //general purpose index
     int j = 0;      //general purpose index
@@ -39,7 +39,10 @@ int read_bcFile(FILE * fp_brcd, int mode, char * str)
     
     if (mode == HEADER) { //reading header lines
         
-        get_line(line, fp_brcd);                              //get first header line
+        if (!get_line(line, fp_brcd)) { //get first header line
+            return EOF;
+        }
+                                      
         for (i = 0; isdigit(line[i]) && i < MAX_LINE; i++) {  //store bc count string
             tmp_str[i] = line[i];
         }
@@ -52,18 +55,10 @@ int read_bcFile(FILE * fp_brcd, int mode, char * str)
         bc_cnt = atoi(tmp_str); //set barcode count
         
         
-        get_line(line, fp_brcd);                         //get second header line
-        if (!memcmp(line, lnkr_tag, strlen(lnkr_tag))) { //check line for linker tag
-            p_str = &line[strlen(lnkr_tag)];             //set pointer to start of linker sequence
-            strcpy(str, p_str);                          //store linker sequence
-        } else {
-            printf("read_bcFile: ERROR - unexpected format for barcodes file. Could not find linker line. aborting...\n");
-            abort();
-        }
-        
-        get_line(line, fp_brcd);                           //get third header line
+        get_line(line, fp_brcd);                           //get second header line
         if (!memcmp(line, strct_tag, strlen(strct_tag))) { //check line for linker tag
-            //not doing anything with this right now, just checking file format
+            p_str = &line[strlen(strct_tag)];
+            strcpy(str, p_str);
         } else {
             printf("read_bcFile: ERROR - unexpected format for barcodes file. Could not find barcode structure line. aborting...\n");
             abort();
@@ -74,13 +69,14 @@ int read_bcFile(FILE * fp_brcd, int mode, char * str)
     } else if (mode == BC_LINE) { //reading barcode lines
         
         if (!get_line(line, fp_brcd)) { //get barcode line
-            return -1;                  //no more barcodes to get
+            return EOF;                 //no more barcodes to get
             
         } else {
             for (i = 0; isdigit(line[i]) && i < MAX_LINE; i++) { } //iterate past bc index
             if (line[i] == '\t') {  //check that next char is a tab
                 line[i] = '\0';     //terminate bc index string
                 p_str = &line[i+1]; //set pointer to barcode sequence
+                //TODO: need array length check to ensure str is long enough
                 strcpy(str, p_str); //store barcode sequence in str
             } else {
                 printf("read_bcFile: ERROR - unexpected format for barcodes file. expected barcode index and sequence to be tab-separated. aborting...\n");

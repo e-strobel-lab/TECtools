@@ -132,7 +132,7 @@ int eval_testdata_mtch(testdata_vars * testdata, char * td_trg_id, int crnt_mut_
 
 /* print_testdata_analysis: assess testdata analysis
  outcomes and print results to a file and to the screen */
-void print_testdata_analysis(metrics *met, testdata_vars * testdata, target_params * trg_prms, target * trgts)
+void print_testdata_analysis(TDSPLY_metrics *met, testdata_vars * testdata, target_params * trg_prms, target * trgts)
 {
     int i = 0;                //general purpose index
     char out_str[8192] = {0}; //string for storing output line

@@ -20,9 +20,9 @@
 #include "parse_3pEnd_trgts.h"
 #include "../UNV/call_fastp.h"
 #include "../UNV/prcs_chnl.h"
+#include "../UNV/print_splitting_metrics.h"
 #include "../../../seq_utils/appnd_att.h"
 #include "../../../seq_utils/isDNAbase.h"
-#include "printQC_prcsMLT.h"
 #include "testdata3pEnd_analysis.h"
 #include "mk_smooth_script.h"
 #include "mk_MLT_config.h"
@@ -34,12 +34,12 @@
  channel barcode and the RNA 3' end.
  
  ***arguments***
- names * nm: contains input R1 and R2 fastq filenames and 3' end targets filename
+ TPROBE_names * nm: contains input R1 and R2 fastq filenames and 3' end targets filename
  FILE * fp_3pEND: pointer the 3' end targets file
  fastp_params fastp_prms: parameters for fastp processing
  
  */
-int prcs_MLT_cotrans(names * nm, FILE * fp_3pEnd, fastp_params fastp_prms);
+int prcs_MLT_cotrans(TPROBE_names * nm, FILE * fp_3pEnd, fastp_params fastp_prms);
 
 
 
@@ -87,13 +87,13 @@ int verify_read(char (*rd)[MAX_LINE]);
  ***arguments***
  FILE **ifp: pointer to read 1 and read 2 fastq file pointers
  h_node **htbl:  pointer to hash table node pointer array
- names * nm: contains sample names to use as prefix when generating output fastq files
+ TPROBE_names * nm: contains sample names to use as prefix when generating output fastq files
  metrics  * met: pointer metrics structure for read processing QC
  target3p_params trg_prms: 3' end targets parameters
  int mode: MULTI or SINGLE mode specification
  */
 
-int split_reads_3pEnd(FILE **ifp, h_node **htbl, names * nm, metrics  * met, target3p_params trg_prms, int mode);
+int split_reads_3pEnd(FILE **ifp, h_node **htbl, TPROBE_names * nm, metrics  * met, target3p_params trg_prms, int mode);
 
 
 #endif /* prcs_MLT_cotrans_h */

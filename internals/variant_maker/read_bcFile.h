@@ -20,13 +20,13 @@
 #include "../utils/gen_utils.h"
 #include "../seq_utils/isDNAbase.h"
 
-#include "./variant_maker_defs.h"
-#include "./variant_maker_structs.h"
+//#include "./variant_maker_defs.h"
+//#include "./variant_maker_structs.h"
 
 #define HEADER 0   //parsing barcode file header
 #define BC_LINE 1  //parsing barcode line
 
 /* read_bcFile: parse barcode file header and barcode lines */
-int read_bcFile(FILE * fp_brcd, int mode, char * str);
+int read_bcFile(FILE * fp_brcd, int mode, char * str, int array_len);
 
 #endif /* read_bcFile_h */

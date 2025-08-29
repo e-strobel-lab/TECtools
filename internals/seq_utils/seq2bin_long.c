@@ -47,7 +47,7 @@ int seq2bin_long(char * hash_seq, binary_seq * bin_seq, int array_max) {
         //allocate memory for storing 2-bit encoded sequence
         if ((bin_seq->sq = calloc(bin_seq->mx, sizeof(*bin_seq->sq))) == NULL) {
             printf("seq2bin_long: error - sequence memory allocation failed\n");
-            return 1;
+            abort();
         }
     }
 
@@ -143,7 +143,7 @@ int seq2bin_long(char * hash_seq, binary_seq * bin_seq, int array_max) {
     return 1;
 }
 
-/* srch_htbl_prehash: search hash table for sequence match */
+/* srch_ctrg_htbl: search hash table for sequence match */
 struct compact_h_node** srch_ctrg_htbl(binary_seq * bin_seq, uint64_t hash, compact_h_node **htbl, int trace_search)
 {
     if (trace_search) {
@@ -223,4 +223,78 @@ void fprint_bin_seq(FILE * out_fp, char * ipt)
     }
 }
 
+/* bin2seq: convert binary seq to character string */
+void bin2seq(char * seq, binary_seq * bsq, int len)
+{
+    int block = 0;     //block index
+    int i = 0;         //general purpose index
+    int mshft = 0;     //maximum bit shift value
+    int shft = 0;      //bit shift value for each iteration of loop
+    
+    //          vv-bits used for hash
+    //A 65 01000001 00
+    //C 67 01000011 01
+    //T 84 01010100 10
+    //G 71 01000111 11
+    //              ^^-two bit encoding
+    
+    char lkup[5] = {"ACTG"}; //sequence character lookup, see above
+    
+    uint64_t bits_1_0_mask = 0x0000000000000003; //mask to isolate bits 1 and 0
+    uint64_t bits_1_0 = 0;                       //variable for storing isolated bits 1 and 0
+    
+    mshft = (sizeof(bsq->sq[0]) << 3) - 2; //initialize maximum shift to number of bits - 2
+    
+    if (len < (bsq->ln + 1)) { //check that char array is long enough to store the binary-encoded sequence
+        printf("bin2seq: character array length is too short. aborting...\n");
+        abort();
+    }
+    
+    for (block = 0, i = 0; block < bsq->mx; block++) {                  //for each block of the binary-encoded sequence
+        for (shft = mshft; shft >= 0 && i < bsq->ln; shft -= 2, i++) {  //shift left by 2 while shft is >= 0
+            bits_1_0 = (bsq->sq[block] >> shft) & bits_1_0_mask;        //shift bits and isolate bits 1 and 0 using mask
+            seq[i] = lkup[bits_1_0];                                    //set character that corresponds to bits_1_0
+        }
+    }
+    seq[i] = '\0'; //set terminating null
+    
+    return;
+}
 
+/* copy_binary_seq: copy binary_seq structure*/
+void copy_binary_seq(binary_seq * bsq1, binary_seq * bsq2)
+{
+    if (bsq1->sq != NULL) { //check that pointer to binary-encoded sequence in struct to be set is NULL
+        printf("copy_binary_seq: error - pointer to binary encoded sequence must be null\n");
+        abort();
+    } else if ((bsq1->sq = calloc(bsq2->mx, sizeof(*(bsq1->sq)))) == NULL) { //allocate memory for binary-encoded sequence
+        printf("copy_binary_seq: error - failed to allocate memory for binary-encoded barcode sequence\n");
+        abort();
+    }
+    
+    int i = 0; //general purpose index
+    
+    for (i = 0; i < bsq2->mx; i++) {  //while i is less than the number of indices of the binary-encoded sequence to be copied
+        bsq1->sq[i] = bsq2->sq[i];    //copy binary-encoded sequence
+    }
+    
+    bsq1->ln = bsq2->ln; //copy binary-encoded sequence length
+    bsq1->mx = bsq2->mx; //copy binary-encoded sequence block count
+    bsq1->nn = bsq2->nn; //copy non-native flag
+    
+    return;
+}
+
+/* extend_ch_bank: used to increase the size of the compact target hash table node bank. */
+void extend_ch_bank(compact_h_node_bank *crrnt_chn_bank)
+{
+    if ((crrnt_chn_bank->nxt = calloc(1, sizeof(*(crrnt_chn_bank->nxt)))) == NULL) {
+        printf("extend_ch_bank: error - hash table node bank memory allocation failed\n");
+        abort();
+    }
+    crrnt_chn_bank = crrnt_chn_bank->nxt;
+    if ((crrnt_chn_bank->chn = calloc(BLOCK_SIZE, sizeof(*(crrnt_chn_bank->chn)))) == NULL) {
+        printf("extend_ch_bank: error - hash table node memory allocation failed\n");
+        abort();
+    }
+}

@@ -23,10 +23,10 @@
 #define Q_CONSTANT 1         //index of minimum constant base quality score
 
 /* channel ID definitions */
-#define CHANNEL_BC_LENGTH 4  //length of the channel barcode at the head of read 2
-#define MIN_MATCH 3          //minimum channel barcode match (3/4 nucleotides)
-#define MAX_MATCH 4          //maximum possible channel barcode match (4/4 nucleotides)
-#define UMI_LENGTH 16        //length of the unique molecular identifier
+#define TDSPLY_CHNL_BC_LEN 4 //length of the channel barcode at the head of read 2
+#define TDSPLY_MIN_MATCH 3   //minimum channel barcode match (3/4 nucleotides)
+#define TDSPLY_MAX_MATCH 4   //maximum possible channel barcode match (4/4 nucleotides)
+#define TDSPLY_UMI_LENGTH 16 //length of the unique molecular identifier
 #define BND 0                //specifies bound sample
 #define UNB 1                //specifies unbound sample
 #define ERR 2                //specifies undetermined channel barcode

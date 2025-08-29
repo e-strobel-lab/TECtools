@@ -17,13 +17,15 @@
 #include "../../cotrans_preprocessor_defs.h"
 #include "../../cotrans_preprocessor_structs.h"
 
+#include "../../../variant_maker/make_barcodes.h"
+
 /* prcs_chnl: identify channel code from read 1 ID.
  these barcodes are used to split reads into modified and untreated channels
  barcodes:
  modified  = RRRYY
  untreated = YYYRR
  */
-int prcs_chnl(char * read1_ID, metrics  * met);
+int prcs_chnl(char * read1_ID, metrics  * met, int mode);
 
 #endif /* prcs_chnl_h */
 

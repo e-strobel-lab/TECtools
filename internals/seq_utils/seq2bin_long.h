@@ -36,7 +36,9 @@ typedef struct compact_target {
     uint8_t mul;     //flag that sequence is identical to a prior target
     uint8_t bl;      //flag that target is blacklisted
     uint32_t cnt;    //number of reads that map to target
-    void * opt;
+    char * cid;      //character encoded id
+    char * csq;      //character-encoded sequence
+    void * opt;      //pointer to optional application specific values
 } compact_target;
 
 /* compact_h_node: hash table node for compact targets */
@@ -57,6 +59,8 @@ int seq2bin_long(char * hash_seq, binary_seq * bin_seq, int array_max);
 struct compact_h_node** srch_ctrg_htbl(binary_seq * bin_seq, uint64_t hash, compact_h_node **htbl, int trace_search);
 void print_bin_seq(char * ipt);
 void fprint_bin_seq(FILE * out_fp, char * ipt);
-
+void bin2seq(char * seq, binary_seq * bsq, int len);
+void copy_binary_seq(binary_seq * bsq1, binary_seq * bsq2);
+void extend_ch_bank(compact_h_node_bank *crrnt_chn_bank);
 
 #endif /* seq2bin_long_h */

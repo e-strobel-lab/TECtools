@@ -19,6 +19,6 @@
 #include "../../TECdisplay_mapper_structs.h"
 
 /* call_fastp: performs a system call to initiate fastp preprocessing, opens resulting files*/
-int call_fastp(names * nm, fastp_params prms);
+int call_fastp(TDSPLY_names * nm, fastp_params prms);
 
 #endif /* call_fastp_h */
