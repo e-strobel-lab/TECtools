@@ -22,6 +22,10 @@
 
 #include "mk_MLT_run_script.h"
 
+const char VL_LM_config_header[36] = "TECprobe-VL/TECprobe-LM config file";
+const char SL_config_header[24] = "TECprobe-SL config file";
+const char MUX_config_header[25] = "TECprobe-MUX config file";
+
 extern int debug; //flag to run debug mode
 
 /* mk_MLT_run_script: manages shapemapper2 run script generation for multilength cotranscriptional RNA
@@ -38,10 +42,11 @@ int mk_MLT_run_script(FILE * fp_config_MLT)
     config_MLT.cotranscriptional = -1;
     if (debug) {check_cnfgMLT_init(&config_MLT);} //in debug mode, check initialization of config struct
     
-    char sample_name[MAX_LINE] = {0}; 				//name that will be used for shapemapper2 analysis
+    int mode = -1;                    //mode variable that will be set based on config header
+    char sample_name[MAX_LINE] = {0}; //name that will be used for shapemapper2 analysis
     
-    parse_MLT_config(fp_config_MLT, &config_MLT);	//parse input config file
-    check_MLT_config(&config_MLT); //check global variables for each setting to confirm that they were set correctly
+    parse_MLT_config(fp_config_MLT, &config_MLT, &mode); //parse input config file
+    check_MLT_config(&config_MLT, mode); //check global variables for each setting to confirm that they were set correctly
     mk_MLT_run_nm(sample_name, &config_MLT);		//construct sample name for shapemapper2
     print_MLT_SM2_script(sample_name, &config_MLT); //generate shapemapper2 run script
     

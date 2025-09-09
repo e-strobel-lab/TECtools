@@ -21,11 +21,11 @@
 #include "../UNV/call_fastp.h"
 #include "../UNV/prcs_chnl.h"
 #include "../UNV/print_splitting_metrics.h"
+#include "../UNV/mk_config.h"
 #include "../../../seq_utils/appnd_att.h"
 #include "../../../seq_utils/isDNAbase.h"
 #include "testdata3pEnd_analysis.h"
 #include "mk_smooth_script.h"
-#include "mk_MLT_config.h"
 #include "../../../utils/debug.h"
 
 

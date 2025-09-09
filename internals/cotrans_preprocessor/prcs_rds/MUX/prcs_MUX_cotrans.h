@@ -33,7 +33,7 @@
 #include "prcs_MUX_cotrans.h"
 
 /* prcs_MUX_cotrans: manages processing of TECprobe-MUX data */
-int prcs_MUX_cotrans(TPROBE_names * nm, FILE * fp_MUXtrgs, fastp_params fastp_prms, testdata_MUX_vars * testdata_MUX);
+int prcs_MUX_cotrans(TPROBE_names * nm, FILE * fp_MUXtrgs, fastp_params fastp_prms, testdata_MUX_vars * testdata_MUX, int run_bypass_fastp);
 
 /* mk_htbl_MUX: makes compact target hash table */
 /* hash table has linked list buckets for possible collisions */

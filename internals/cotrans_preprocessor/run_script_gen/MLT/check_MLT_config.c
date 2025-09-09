@@ -19,7 +19,7 @@
 #include "check_MLT_config.h"
 
 //check_MLT_config: check that config_MLT variables have been set properly
-int check_MLT_config(configuration_MLT * config_MLT)
+int check_MLT_config(configuration_MLT * config_MLT, int mode)
 {
     int i = 0;
     
@@ -112,22 +112,25 @@ int check_MLT_config(configuration_MLT * config_MLT)
         fprintf(out_fp, "target_files_prefix\t%s\n", config_MLT->trg_files_prfx);
     }
     
-    //check min_target_length
-    if (config_MLT->min_target_length == -1) {
-        printf("check_MLT_config: error - min_target_length is not set. aborting\n");
-        abort();
-    } else {
-        printf("min_target_length\t%03d\n", config_MLT->min_target_length);
-        fprintf(out_fp, "min_target_length\t%03d\n", config_MLT->min_target_length);
-    }
-    
-    //check max_target_length
-    if (config_MLT->max_target_length == -1) {
-        printf("check_MLT_config: error - max_target_length is not set. aborting\n");
-        abort();
-    } else {
-        printf("max_target_length\t%03d\n\n", config_MLT->max_target_length);
-        fprintf(out_fp, "max_target_length\t%03d\n\n", config_MLT->max_target_length);
+    //only check min and max target length for VL/LM/SL experiments
+    if (mode == MULTI || mode == SINGLE) {
+        //check min_target_length
+        if (config_MLT->min_target_length == -1) {
+            printf("check_MLT_config: error - min_target_length is not set. aborting\n");
+            abort();
+        } else {
+            printf("min_target_length\t%03d\n", config_MLT->min_target_length);
+            fprintf(out_fp, "min_target_length\t%03d\n", config_MLT->min_target_length);
+        }
+        
+        //check max_target_length
+        if (config_MLT->max_target_length == -1) {
+            printf("check_MLT_config: error - max_target_length is not set. aborting\n");
+            abort();
+        } else {
+            printf("max_target_length\t%03d\n\n", config_MLT->max_target_length);
+            fprintf(out_fp, "max_target_length\t%03d\n\n", config_MLT->max_target_length);
+        }
     }
     
     //check input_name
@@ -247,22 +250,24 @@ int check_MLT_config(configuration_MLT * config_MLT)
     }
     
     //check smoothing
-    if (config_MLT->smoothing == -1) {
-        printf("check_MLT_config: error - smoothing is not set. aborting...\n");
-        abort();
-    } else {
-        printf("smoothing\t\t");
-        fprintf(out_fp, "smoothing\t\t");
-        switch (config_MLT->smoothing) {
-            case  0:
-                printf("FALSE\n\n");
-                fprintf(out_fp, "FALSE\n\n");
-                break;
-            case  1:
-                printf("TRUE\n\n");
-                fprintf(out_fp, "TRUE\n\n");
-                break;
-            default: break;
+    if (mode == MULTI) { //only check smoothing for VL/LM experiments
+        if (config_MLT->smoothing == -1) {
+            printf("check_MLT_config: error - smoothing is not set. aborting...\n");
+            abort();
+        } else {
+            printf("smoothing\t\t");
+            fprintf(out_fp, "smoothing\t\t");
+            switch (config_MLT->smoothing) {
+                case  0:
+                    printf("FALSE\n\n");
+                    fprintf(out_fp, "FALSE\n\n");
+                    break;
+                case  1:
+                    printf("TRUE\n\n");
+                    fprintf(out_fp, "TRUE\n\n");
+                    break;
+                default: break;
+            }
         }
     }
     

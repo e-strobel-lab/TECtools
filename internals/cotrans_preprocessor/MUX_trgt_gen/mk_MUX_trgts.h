@@ -41,10 +41,10 @@
 #define MAX_DEL_CODE 128  //maximum mutcode value for deletions
 
 /* mk_MUX_trgts: manages TECprobe-MUX target generation */
-int mk_MUX_trgts(compact_target * ctrg, opt_BC * BC_val, FILE * fp_MUXtrgs, int brcd_cnt, int clcd_ctrg_cnt);
+int mk_MUX_trgts(TPROBE_names * nm, compact_target * ctrg, opt_BC * BC_val, FILE * fp_MUXtrgs, int brcd_cnt, int clcd_ctrg_cnt);
 
 /* store_barcode_targets: stores input barcodes as compact targets */
-int store_barcode_targets(compact_target * ctrg, opt_BC * BC_val, int * brcd_len, FILE * fp_MUXtrgs, int brcd_cnt);
+int store_barcode_targets(TPROBE_names * nm,compact_target * ctrg, opt_BC * BC_val, int * brcd_len, FILE * fp_MUXtrgs, int brcd_cnt);
 
 /* set_BC_val: set optional values for barcode target */
 void set_BC_val(compact_target * ctrg, opt_BC * BC_val, char * tsq, compact_target * ntv, int mode);

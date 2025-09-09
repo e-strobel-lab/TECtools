@@ -39,12 +39,12 @@ void bypass_fastp(char * fq1, char * fq2, FILE ** ifp)
     }
     
     //open processed fastq output files
-    if ((fqout[READ1] = fopen("./split/fastp_bypass_R1.fq", "w")) == NULL) {
+    if ((fqout[READ1] = fopen("./split/R1out.fq", "w")) == NULL) {
         printf("bypass_fastp: error - could not open input read one file. Aborting program...\n");
         abort();
     }
     
-    if ((fqout[READ2] = fopen("./split/fastp_bypass_R2.fq", "w")) == NULL) {
+    if ((fqout[READ2] = fopen("./split/R2out.fq", "w")) == NULL) {
         printf("bypass_fastp: error - could not open input read two file. Aborting program...\n");
         abort();
     }
@@ -151,12 +151,12 @@ void bypass_fastp(char * fq1, char * fq2, FILE ** ifp)
     }
     
     //open newly generated fastq files as input files for demultiplexing
-    if ((ifp[READ1] = fopen("./split/fastp_bypass_R1.fq", "r")) == NULL) {
+    if ((ifp[READ1] = fopen("./split/R1out.fq", "r")) == NULL) {
         printf("bypass_fastp: error - could not open fastp_bypass_R1.fq as read one file. Aborting program...\n");
         abort();
     }
     
-    if ((ifp[READ2] = fopen("./split/fastp_bypass_R2.fq", "r")) == NULL) {
+    if ((ifp[READ2] = fopen("./split/R2out.fq", "r")) == NULL) {
         printf("bypass_fastp: error - could not open fastp_bypass_R2.fq as read two file.  Aborting program...\n");
         abort();
     }

@@ -22,8 +22,12 @@
 #include "parse_MLT_config.h"
 
 /* parse_MLT_config: set config_MLT structure variables to config file settings */
-int parse_MLT_config(FILE *ifp, configuration_MLT * config_MLT)
+int parse_MLT_config(FILE *ifp, configuration_MLT * config_MLT, int * mode)
 {
+    extern const char VL_LM_config_header[36];
+    extern const char SL_config_header[24];
+    extern const char MUX_config_header[25];
+    
     int i = 0;
     int j = 0;
     
@@ -32,6 +36,37 @@ int parse_MLT_config(FILE *ifp, configuration_MLT * config_MLT)
     char val[MAX_LINE] = {0};		//array for storing config file setting value
     
     char * setting_start = {NULL};	//pointer to start of confige file setting in input line
+    
+    get_line(line, ifp); //get file header line
+    
+    //set mode based on format indicated in the config header
+    //for SL and MUX experiments, also set smoothing variable to false
+    if (!strcmp(line, VL_LM_config_header)) {
+        *mode = MULTI;
+        
+    } else if (!strcmp(line, SL_config_header)) {
+        *mode = SINGLE;
+        set_TF_value("FALSE", "smoothing", &(config_MLT->smoothing));
+        
+    } else if (!strcmp(line, MUX_config_header)) {
+        *mode = MULTIPLEX;
+        set_TF_value("FALSE", "smoothing", &(config_MLT->smoothing));
+        
+    } else {
+        printf("parse_config: config format line was not detected. this config file is likely\n");
+        printf("              an old version. the config file can be updated as follows:\n\n");
+        printf("TECprobe-VL and TECprobe-LM experiments:\n");
+        printf("   1. add a line to the beginning of the file that contains the text:\n");
+        printf("      ""TECprobe-VL/TECprobe-LM config file"", without quotation marks.\n\n");
+        printf("TECprobe-SL:\n");
+        printf("   1. add a line to the beginning of the file that contains the text:\n");
+        printf("      ""TECprobe-SL config file"", without quotation marks.\n");
+        printf("   2. delete the section of the file that asks whether smoothing was applied.\n");
+        printf("      the line that begins with '>' must be deleted, and the other lines within\n");
+        printf("      that section can be deleted.\n\n");
+        printf("aborting...\n");
+        abort();
+    }
         
     //in each iteration, get a line from the config file, check if it contains
     //a setting, and set the corresponding value in the config_MLT struct

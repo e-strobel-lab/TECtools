@@ -23,6 +23,6 @@
 #include "config_MLT_struct.h"
 
 /* parse_MLT_config: set config_MLT structure variables to config file settings */
-int parse_MLT_config(FILE * ifp, configuration_MLT * config_MLT);
+int parse_MLT_config(FILE * ifp, configuration_MLT * config_MLT, int * mode);
 
 #endif /* parse_MLT_config_h */

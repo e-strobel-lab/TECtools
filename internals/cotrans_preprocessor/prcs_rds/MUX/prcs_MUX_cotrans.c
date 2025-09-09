@@ -35,7 +35,7 @@
 #include "prcs_MUX_cotrans.h"
 
 /* prcs_MUX_cotrans: manages processing of TECprobe-MUX data */
-int prcs_MUX_cotrans(TPROBE_names * nm, FILE * fp_MUXtrgs, fastp_params fastp_prms, testdata_MUX_vars * testdata_MUX)
+int prcs_MUX_cotrans(TPROBE_names * nm, FILE * fp_MUXtrgs, fastp_params fastp_prms, testdata_MUX_vars * testdata_MUX, int run_bypass_fastp)
 {
     printf("processing multiplex cotrans\n");
         
@@ -78,7 +78,7 @@ int prcs_MUX_cotrans(TPROBE_names * nm, FILE * fp_MUXtrgs, fastp_params fastp_pr
         abort();
     }
     
-    ctrg_cnt = mk_MUX_trgts(ctrg, BC_val, fp_MUXtrgs, brcd_cnt, clcd_ctrg_cnt); //generate barcode targets
+    ctrg_cnt = mk_MUX_trgts(nm, ctrg, BC_val, fp_MUXtrgs, brcd_cnt, clcd_ctrg_cnt); //generate barcode targets
     met.srcTrgs = brcd_cnt; //record number of source barcodes
     met.targets = ctrg_cnt; //record number of targets generated
     
@@ -119,7 +119,6 @@ int prcs_MUX_cotrans(TPROBE_names * nm, FILE * fp_MUXtrgs, fastp_params fastp_pr
     /************* process and split sequencing reads **************/
     mk_out_dir("split"); //make directory for output files
     
-    int run_bypass_fastp = 0;
     if (testdata_MUX->run && run_bypass_fastp) {
         bypass_fastp(nm->file[READ1], nm->file[READ2], &ifp[0]);
     } else {
@@ -134,6 +133,11 @@ int prcs_MUX_cotrans(TPROBE_names * nm, FILE * fp_MUXtrgs, fastp_params fastp_pr
     if (testdata_MUX->run) {
         print_MUX_testdata_analysis(&met, &ctrg[0]);
     }
+    
+    system("rm ./split/R*out.fq"); //remove fastp output files
+    system("gzip ./split/*.fq");   //compress split fastq files
+    
+    mk_config(nm, NULL, fastp_prms.mode); //make config file for run script generation
     
     return 1;
 }

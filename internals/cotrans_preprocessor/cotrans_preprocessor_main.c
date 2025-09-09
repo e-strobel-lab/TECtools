@@ -89,6 +89,10 @@ int main(int argc, char *argv[])
     int ends_option_provided = 0;   //flag that 3' ends generation option was provided
     int prcs_option_provided = 0;   //flag that read processing option was provided
     int cnfg_option_provided = 0;   //flag that run script config option was provided
+    
+    int run_bypass_fastp = 0; //flag to indicate that bypass_fastp function should be run during MUX test data processing
+    
+    char * trim_ptr = NULL; //pointer for trimming "_variants" from barcode targets sample name
         
     TPROBE_names nm = {{{0}}};				    //file and sample names
     fastp_params fastp_prms = {"fastp", -1, 0}; //parameters for fastp processing
@@ -124,6 +128,7 @@ int main(int argc, char *argv[])
             {"fasta-ref",    required_argument,  0,  'a'},  //fasta for single length data processing
             {"barcodes",     required_argument,  0,  'b'},  //fasta for TECprobe-MUX targets
             {"fastp-path",   required_argument,  0,  'p'},  //provide path to fastp executable
+            {"bypass-fastp", no_argument,        0,  'q'},  //run bypass_fastp function during MUX test data processing
             {"debug",        no_argument,        0,  'd'},  //turn on debug mode
             {"testdata",     no_argument,        0,  't'},  //turn on test data read analysis mode
             {"limit",        no_argument,        0,  'l'},  //set limit on the number of reads to process
@@ -133,7 +138,7 @@ int main(int argc, char *argv[])
             {0, 0, 0, 0}
         };
         
-        c = getopt_long(argc, argv, "m:n:s:A:E:S:TU:Ri:I:e:a:b:p:dtl:c:", long_options, &option_index);
+        c = getopt_long(argc, argv, "m:n:s:A:E:S:TU:Ri:I:e:a:b:p:qdtl:c:", long_options, &option_index);
         
         if (c == -1) {
             break;
@@ -251,9 +256,16 @@ int main(int argc, char *argv[])
                 
                 
             case 'b':
-                MUX_trgs_provided++;                      //count MUX targets files provided
-                strcpy(nm.trgts, argv[optind-1]);         //store barcode targets filename
-                get_sample_name(nm.trgts, nm.trgts_prfx); //get targets sample name
+                MUX_trgs_provided++;                           //count MUX targets files provided
+                strcpy(nm.trgts, argv[optind-1]);              //store barcode targets filename
+                get_sample_name(nm.trgts, nm.trgts_prfx);      //get targets sample name
+                trim_ptr = strstr(nm.trgts_prfx, "_variants"); //set pointer to "_variants" string for trimming
+                if (trim_ptr == NULL) { //if "_variants string was not found, throw error
+                    printf("cotrans_preprocessor_main: error - unrecognized format for barcode targets file name. name string should contain ""_variants"" ahead of the file suffix. aborting...\n");
+                    abort();
+                } else {
+                    trim_ptr[0] = '\0'; //if "_variants string was found, truncate string."
+                }
                 get_file(&(fp_MUXtrgs), argv[optind-1]);  //set file pointer to input fasta MUX target file
                 prcs_option_provided = 1;
                 break;
@@ -265,6 +277,11 @@ int main(int argc, char *argv[])
                 prcs_option_provided = 1;
                 break;
             
+            /* set flag to run bypass_fastp */
+            case 'q':
+                run_bypass_fastp = 1;
+                prcs_option_provided = 1;
+                break;
                 
             /* turn on debug mode */
             case 'd':
@@ -392,6 +409,12 @@ int main(int argc, char *argv[])
                 abort();
             }
             
+            //check that run_bypass_fastp is not being used in incompatible modes
+            if (run_bypass_fastp && !testdata_MUX.run) {
+                printf("cotrans_preprocessor_main: error - fastp can only be bypassed when processing TECprobe-MUX test data. aborting...\n");
+                abort();
+            }
+            
             if (fastp_prms.mode == MULTI || fastp_prms.mode == SINGLE) { //standard cotrans read processing
                 
                 //check that required arguments were provided correctly
@@ -416,7 +439,7 @@ int main(int argc, char *argv[])
                 check_standard_cotrans(fq1_provided, fq2_provided, ends_provided, fa_ref_provided, MUX_trgs_provided, fastp_prms, testdata_MUX.run);
                 
                 //start sequencing read processing
-                prcs_MUX_cotrans(&nm, fp_MUXtrgs, fastp_prms, &testdata_MUX);
+                prcs_MUX_cotrans(&nm, fp_MUXtrgs, fastp_prms, &testdata_MUX, run_bypass_fastp);
             }
             
             break;

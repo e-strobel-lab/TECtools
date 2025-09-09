@@ -18,11 +18,11 @@
 #include "../UNV/call_fastp.h"
 #include "../UNV/prcs_chnl.h"
 #include "../UNV/print_splitting_metrics.h"
+#include "../UNV/mk_config.h"
 #include "../../../seq_utils/appnd_att.h"
 #include "../../../seq_utils/isDNAbase.h"
 #include "testdata3pEnd_analysis.h"
 #include "mk_smooth_script.h"
-#include "mk_MLT_config.h"
 #include "../../../utils/debug.h"
 
 #include "prcs_MLT_cotrans.h"
@@ -122,7 +122,7 @@ int prcs_MLT_cotrans(TPROBE_names * nm, FILE * fp_3pEnd, fastp_params fastp_prms
     system("rm ./split/R*out.fq");			//remove fastp output files
     system("gzip ./split/*.fq");			//compress split fastq files
     
-    mk_MLT_config(nm, trg_prms);			//generate config file for shapemapper 2 analysis
+    mk_config(nm, &trg_prms, fastp_prms.mode); //generate config file for shapemapper 2 analysis
     
     /****** end of print metrics and utility scripts, clean up *****/
     

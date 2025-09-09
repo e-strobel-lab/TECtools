@@ -20,6 +20,6 @@
 #include "config_MLT_struct.h"
 
 //check_MLT_config: check that config_MLT variables have been set properly
-int check_MLT_config(configuration_MLT * config_MLT);
+int check_MLT_config(configuration_MLT * config_MLT, int mode);
 
 #endif /* check_MLT_config_h */

@@ -28,14 +28,14 @@ uint64_t trgt_ID_mask = 0xFFFFFFFFFFFF0000; //barcode id mask that isolates the 
 uint64_t mutcode_mask = 0x000000000000FFFF; //barcode id mask that isolates mutation code
 
 /* mk_MUX_trgts: manages TECprobe-MUX target generation */
-int mk_MUX_trgts(compact_target * ctrg, opt_BC * BC_val, FILE * fp_MUXtrgs, int brcd_cnt, int clcd_ctrg_cnt)
+int mk_MUX_trgts(TPROBE_names * nm, compact_target * ctrg, opt_BC * BC_val, FILE * fp_MUXtrgs, int brcd_cnt, int clcd_ctrg_cnt)
 {
     extern char RLA29synch_3p11[34]; //linker sequence for TECprobe-MUX experiments
     
     int brcd_len = 0;  //barcode length
     int ctrg_cnt = 0;  //number of barcode targets
     
-    ctrg_cnt = store_barcode_targets(ctrg, BC_val, &brcd_len, fp_MUXtrgs, brcd_cnt); //store input barcodes as compact targets
+    ctrg_cnt = store_barcode_targets(nm, ctrg, BC_val, &brcd_len, fp_MUXtrgs, brcd_cnt); //store input barcodes as compact targets
     printf("barcode count = %d\ncalc'd trg count = %d\n", brcd_cnt, clcd_ctrg_cnt);
     
     uint64_t i = 0;        //general purpose index
@@ -65,7 +65,7 @@ int mk_MUX_trgts(compact_target * ctrg, opt_BC * BC_val, FILE * fp_MUXtrgs, int 
 }
 
 /* store_barcode_targets: stores input barcodes as compact targets */
-int store_barcode_targets(compact_target * ctrg, opt_BC * BC_val, int * brcd_len, FILE * fp_MUXtrgs, int brcd_cnt)
+int store_barcode_targets(TPROBE_names * nm, compact_target * ctrg, opt_BC * BC_val, int * brcd_len, FILE * fp_MUXtrgs, int brcd_cnt)
 {
     uint64_t i = 0; //general purpose index
     
@@ -86,6 +86,32 @@ int store_barcode_targets(compact_target * ctrg, opt_BC * BC_val, int * brcd_len
     int L1 = 0; //variable for checking get fasta line 1 success
     int L2 = 0; //variable for checking get fasta line 2 success
     
+    FILE * fp_bcid = NULL; //pointer to barcode ids output file
+    FILE * fp_trgt = NULL; //pointer for handling output target files
+    
+    int ret = 0;                    //return value for error checking
+    char out_dir[MAX_LINE+1] = {0}; //output directory string
+    char out_str[MAX_LINE+1] = {0}; //general purpose output string
+    
+    //make barcode targets output directory
+    ret = snprintf(out_dir, MAX_LINE+1, "%s_barcode_targets", nm->trgts_prfx);
+    if (ret >= MAX_LINE || ret < 0) {
+        printf("store_barcode_targets: error - error when constructing barcode targets output directory name. aborting...\n");
+        abort();
+    }
+    mk_out_dir(out_dir);
+    
+    //make barcode ids output file
+    ret = snprintf(out_str, MAX_LINE+1, "./%s/%s_barcode_ids.txt", out_dir, nm->trgts_prfx);
+    if (ret >= MAX_LINE || ret < 0) {
+        printf("store_barcode_targets: error - error when constructing barcode ids output file name. aborting...\n");
+        abort();
+    }
+    if ((fp_bcid = fopen(out_str, "w")) == NULL) {
+        printf("store_barcode_targets: failed to make barcode_ids.txt file. aborting...\n");
+        abort();
+    }
+    
     for (i = 0; i < brcd_cnt; i++) {  //for every barcode in the input barcode file
         
         L1 = get_line(crnt_bcid, fp_MUXtrgs);  //get fasta line 1
@@ -98,6 +124,27 @@ int store_barcode_targets(compact_target * ctrg, opt_BC * BC_val, int * brcd_len
         
         parse_barcode_id(&p_nid, &p_fid, crnt_bcid);             //parse barcode id to isolate full and numerical ids
         parse_oligo_seq(&p_trgt, &p_brcd, brcd_len, crnt_oligo); //parse oligo seq to isolate target and barcode seqs
+        
+        fprintf(fp_bcid, "%05d\n", atoi(p_nid)); //print barcode id to barcode ids file
+        
+        //make fasta file for current target
+        ret = snprintf(out_str, MAX_LINE+1, "./%s/%s_%05d.fa", out_dir, nm->trgts_prfx, atoi(p_nid));
+        if (ret >= MAX_LINE || ret < 0) {
+            printf("store_barcode_targets: error - error when constructing barcode target fasta file name. aborting...\n");
+            abort();
+        }
+        if ((fp_trgt = fopen(out_str, "w")) == NULL) {
+            printf("store_barcode_targets: failed to make fasta file for target %05d. aborting...\n", atoi(p_nid));
+            abort();
+        }
+        fprintf(fp_trgt, ">%s\n", p_fid); //print target name
+        fprintf(fp_trgt, "%s\n", p_trgt); //print target sequence
+        
+        //close current target fasta file
+        if (fclose(fp_trgt) == EOF) {
+            printf("store_barcode_targets: failed to close fasta file for target %05d. aborting...\n", atoi(p_nid));
+            abort();
+        }
         
         if (*brcd_len != MAX_BARCODE_LEN) { //if barcode length does not match the max barcode length, throw error and abort
             printf("store_barcode_targets: error - barcode length does not match the maximum barcode length (%d nucleotides), which is currently the only permitted barcode length. aborting...\n", MAX_BARCODE_LEN);
@@ -129,6 +176,11 @@ int store_barcode_targets(compact_target * ctrg, opt_BC * BC_val, int * brcd_len
     //check the end of barcode file was reached, if not, throw error
     if (get_line(line, fp_MUXtrgs)) {
         printf("store_barcode_targets: more barcodes than expected in barcodes file. aborting...\n");
+        abort();
+    }
+    
+    if ((fclose(fp_bcid)) == EOF) {
+        printf("store_barcode_targets: failed to close barcode ids file. aborting...\n");
         abort();
     }
     

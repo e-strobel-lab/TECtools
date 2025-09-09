@@ -1,5 +1,5 @@
 //
-//  mk_MLT_config.c
+//  mk_config.c
 //  
 //
 //  Created by Eric Strobel on 3/15/22.
@@ -14,21 +14,36 @@
 #include "../../cotrans_preprocessor_defs.h"
 #include "../../cotrans_preprocessor_structs.h"
 
-#include "mk_MLT_config.h"
+#include "../../run_script_gen/MLT/mk_MLT_run_script.h"
 
-/* mk_MLT_config:
+#include "mk_config.h"
+
+/* mk_config:
  generate configuration file for use make_shapemapper2_run_script executable
  this config file is used to generate a shell script that run commands for
  shapemapper2 analysis
 */
 
-void mk_MLT_config(TPROBE_names * nm, target3p_params trg_prms)
+void mk_config(TPROBE_names * nm, target3p_params * trg_prms, int mode)
 {
+    extern const char VL_LM_config_header[36];
+    extern const char SL_config_header[24];
+    extern const char MUX_config_header[25];
+    
     FILE * out_fp = NULL;
     
     if ((out_fp = fopen("./config.txt", "w")) == NULL) {
-        printf("make_MLT_config: ERROR - could not generate config file. Aborting program...\n");
+        printf("make_config: ERROR - could not generate config file. Aborting program...\n");
         abort();
+    }
+    
+    //print header line indicating the format of the config file
+    if (mode == MULTI) {
+        fprintf(out_fp, "%s\n", VL_LM_config_header);
+    } else if (mode == SINGLE) {
+        fprintf(out_fp, "%s\n", SL_config_header);
+    } else if (mode == MULTIPLEX) {
+        fprintf(out_fp, "%s\n", MUX_config_header);
     }
     
     fprintf(out_fp, "#\n");
@@ -80,12 +95,17 @@ void mk_MLT_config(TPROBE_names * nm, target3p_params trg_prms)
     fprintf(out_fp, "> target_files_prefix=FILL_IN\n");
     fprintf(out_fp, "#\n");
     fprintf(out_fp, "#\n# ---------------------------------------------------------\n");
-    fprintf(out_fp, "#\n");
-    fprintf(out_fp, "# ***** transcript length bounds (auto-populated) *****\n");
-    fprintf(out_fp, "#\n");
-    fprintf(out_fp, "> min_target_length=%03d\n", trg_prms.min);
-    fprintf(out_fp, "> max_target_length=%03d\n", trg_prms.max);
-    fprintf(out_fp, "#\n# ---------------------------------------------------------\n");
+    
+    //only print target min and max length fields for VL/LM/SL experiments
+    if (mode == MULTI || mode == SINGLE) {
+        fprintf(out_fp, "#\n");
+        fprintf(out_fp, "# ***** transcript length bounds (auto-populated) *****\n");
+        fprintf(out_fp, "#\n");
+        fprintf(out_fp, "> min_target_length=%03d\n", trg_prms->min);
+        fprintf(out_fp, "> max_target_length=%03d\n", trg_prms->max);
+        fprintf(out_fp, "#\n# ---------------------------------------------------------\n");
+    }
+    
     fprintf(out_fp, "#\n");
     fprintf(out_fp, "# ***** sample name *****\n");
     fprintf(out_fp, "#\n");
@@ -135,14 +155,19 @@ void mk_MLT_config(TPROBE_names * nm, target3p_params trg_prms)
     fprintf(out_fp, "> runID=NULL\n");
     fprintf(out_fp, "> runID=NULL\n");
     fprintf(out_fp, "#\n# ---------------------------------------------------------\n");
-    fprintf(out_fp, "#\n");
-    fprintf(out_fp, "# ***** smoothing *****\n");
-    fprintf(out_fp, "#\n");
-    fprintf(out_fp, "# will the analyses be performed on smoothed data?\n");
-    fprintf(out_fp, "# set as TRUE or FALSE. (e.g. smoothing=FALSE)\n");
-    fprintf(out_fp, "#\n");
-    fprintf(out_fp, "> smoothing=FILL_IN\n");
-    fprintf(out_fp, "#\n# ---------------------------------------------------------\n");
+    
+    //only print smoothing field for VL/LM experiments
+    if (mode == MULTI) {
+        fprintf(out_fp, "#\n");
+        fprintf(out_fp, "# ***** smoothing *****\n");
+        fprintf(out_fp, "#\n");
+        fprintf(out_fp, "# will the analyses be performed on smoothed data?\n");
+        fprintf(out_fp, "# set as TRUE or FALSE. (e.g. smoothing=FALSE)\n");
+        fprintf(out_fp, "#\n");
+        fprintf(out_fp, "> smoothing=FILL_IN\n");
+        fprintf(out_fp, "#\n# ---------------------------------------------------------\n");
+    }
+
     fprintf(out_fp, "#\n");
     fprintf(out_fp, "# ***** ligand conditions (optional) *****\n");
     fprintf(out_fp, "#\n");
@@ -176,7 +201,7 @@ void mk_MLT_config(TPROBE_names * nm, target3p_params trg_prms)
     fprintf(out_fp, "#\n# ---------------------------------------------------------\n#\n");
     
     if ((fclose(out_fp)) == EOF) {
-        printf("mk_MLT_config: ERROR - error occurred when closing config file. Aborting program...\n");
+        printf("mk_config: ERROR - error occurred when closing config file. Aborting program...\n");
         abort();
     }
 }
