@@ -28,7 +28,7 @@
 #include "./print_linebar_output.h"
 #include "./print_length_dist_output.h"
 
-#include "../cotrans_preprocessor/run_script_gen/MLT/config_MLT_struct.h"
+#include "../cotrans_preprocessor/run_script_gen/UNV/config_struct.h"
 #include "../mkmtrx/mk_rdat.h"
 
 int main(int argc, char *argv[])

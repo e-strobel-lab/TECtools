@@ -14,7 +14,7 @@
 #include "../../utils/debug.h"
 #include "../../utils/io_management.h"
 
-#include "../../cotrans_preprocessor/run_script_gen/MLT/config_MLT_struct.h"
+#include "../../cotrans_preprocessor/run_script_gen/UNV/config_struct.h"
 #include "../../cotrans_preprocessor/run_script_gen/MLT/mk_MLT_run_nm.h"
 
 #include "../../mkmtrx/cotrans_mtrx.h"
@@ -26,7 +26,7 @@
 #include "parse_VL_sample_name.h"
 
 /* parse_VL_sample_name: parse sample name for attributes that were specified in the TECprobe analysis config */
-void parse_VL_sample_name(char * ipt_nm, configuration_MLT * cfg)
+void parse_VL_sample_name(char * ipt_nm, tprobe_configuration * cfg)
 {
     extern int debug;
     
@@ -383,7 +383,7 @@ void remove_simple_suffix(char * sn, char * str2rmv)
 }
 
 /* print_parsed_fields: print parsed fields from config values */
-void print_parsed_fields(char * ipt_nm, configuration_MLT * cfg)
+void print_parsed_fields(char * ipt_nm, tprobe_configuration * cfg)
 {
     int i = 0; //general purpose index
     

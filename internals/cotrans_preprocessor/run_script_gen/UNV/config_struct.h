@@ -1,12 +1,12 @@
 //
-//  config_MLT_struct.h
+//  config_struct.h
 //  
 //
 //  Created by Eric Strobel on 3/18/22.
 //
 
-#ifndef config_MLT_struct_h
-#define config_MLT_struct_h
+#ifndef config_struct_h
+#define config_struct_h
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -18,7 +18,7 @@
 #define MAX_RUNS 8		//maximum sequencing run IDs
 #define MAX_FIELDS 8	//maximum custom fields
 
-typedef struct configuration_MLT {
+typedef struct tprobe_configuration {
     char * shpmppr2_path;          //path to shapemapper 2 executable
     
     char * ipt_file_loc;           //path to directory that contains input files
@@ -49,7 +49,7 @@ typedef struct configuration_MLT {
     int field_count; //number of user-specified fields
     
     
-} configuration_MLT;
+} tprobe_configuration;
 
 /* set_cfg_string: allocate memory for configuration_MLT structure string */
 void set_cfg_string(char ** cfg_str, char * val, int buffer);
@@ -57,4 +57,4 @@ void set_cfg_string(char ** cfg_str, char * val, int buffer);
 /* set_TF_value: set true or false value as 1 and 0, respectively */
 void set_TF_value(char * tf, char * setting_name, int * config_val);
 
-#endif /* config_MLT_struct_h */
+#endif /* config_struct_h */

@@ -1,12 +1,12 @@
 //
-//  check_MLT_config.h
+//  check_config.h
 //  
 //
 //  Created by Eric Strobel on 3/17/22.
 //
 
-#ifndef check_MLT_config_h
-#define check_MLT_config_h
+#ifndef check_config_h
+#define check_config_h
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -17,9 +17,9 @@
 
 #include "../../cotrans_preprocessor_defs.h"
 #include "../../cotrans_preprocessor_structs.h"
-#include "config_MLT_struct.h"
+#include "config_struct.h"
 
-//check_MLT_config: check that config_MLT variables have been set properly
-int check_MLT_config(configuration_MLT * config_MLT, int mode);
+//check_config: check that config_MLT variables have been set properly
+int check_config(tprobe_configuration * config, int mode);
 
-#endif /* check_MLT_config_h */
+#endif /* check_config_h */

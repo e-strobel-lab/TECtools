@@ -1,5 +1,5 @@
 //
-//  config_MLT_struct.c
+//  config_struct.c
 //  
 //
 //  Created by Eric Strobel on 2/7/24.
@@ -12,7 +12,7 @@
 #include "../../../global/global_defs.h"
 #include "../../../global/global_structs.h"
 
-#include "config_MLT_struct.h"
+#include "config_struct.h"
 
 /* set_cfg_string: allocate memory for configuration_MLT structure string */
 void set_cfg_string(char ** cfg_str, char * val, int buffer) {

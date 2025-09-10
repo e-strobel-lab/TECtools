@@ -19,7 +19,7 @@
 #include "./mkmtrx_defs.h"
 #include "./mkmtrx_structs.h"
 
-#include "../cotrans_preprocessor/run_script_gen/MLT/config_MLT_struct.h"
+#include "../cotrans_preprocessor/run_script_gen/UNV/config_struct.h"
 
 /* mk_rdat: manages rdata config parsing/checking and
  construction of output rdat file*/

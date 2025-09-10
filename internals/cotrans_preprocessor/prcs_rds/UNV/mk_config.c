@@ -14,7 +14,7 @@
 #include "../../cotrans_preprocessor_defs.h"
 #include "../../cotrans_preprocessor_structs.h"
 
-#include "../../run_script_gen/MLT/mk_MLT_run_script.h"
+#include "../../run_script_gen/UNV/mk_run_script.h"
 
 #include "mk_config.h"
 

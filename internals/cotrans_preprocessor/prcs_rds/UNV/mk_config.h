@@ -17,7 +17,7 @@
 #include "../../cotrans_preprocessor_defs.h"
 #include "../../cotrans_preprocessor_structs.h"
 
-#include "../../run_script_gen/MLT/mk_MLT_run_script.h"
+#include "../../run_script_gen/UNV/mk_run_script.h"
 
 /* mk_config:
  generate configuration file for use make_shapemapper2_run_script executable

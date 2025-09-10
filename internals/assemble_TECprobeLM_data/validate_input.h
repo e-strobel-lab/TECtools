@@ -22,6 +22,6 @@
 void validate_input (input_data * ipt, int mode);
 
 /* validate_sample_compatibility: compare sample attributes to assess whether samples are compatible*/
-void validate_sample_compatibility(configuration_MLT * cfgT, configuration_MLT * cfgR);
+void validate_sample_compatibility(tprobe_configuration * cfgT, tprobe_configuration * cfgR);
 
 #endif /* validate_input_h */

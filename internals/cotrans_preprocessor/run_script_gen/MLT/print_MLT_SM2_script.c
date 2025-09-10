@@ -13,12 +13,12 @@
 
 #include "../../cotrans_preprocessor_defs.h"
 #include "../../cotrans_preprocessor_structs.h"
-#include "config_MLT_struct.h"
+#include "../UNV/config_struct.h"
 
 #include "print_MLT_SM2_script.h"
 
 /*print_MLT_SM2_script: print shell script that runs shapemapper2 for all 3' end lengths */
-int print_MLT_SM2_script(char * sample_name, configuration_MLT * config_MLT)
+int print_MLT_SM2_script(char * sample_name, tprobe_configuration * config)
 {
     int i = 0;
     
@@ -32,7 +32,7 @@ int print_MLT_SM2_script(char * sample_name, configuration_MLT * config_MLT)
     char without_smoothing[MAX_LINE] = ".fq.gz"; //suffix for fastq files without smoothing
     
     //set suffix pointer based on smoothing option in config file
-    if (config_MLT->smoothing) {
+    if (config->smoothing) {
         suffix = &with_smoothing[0];
     } else {
         suffix = &without_smoothing[0];
@@ -53,29 +53,29 @@ int print_MLT_SM2_script(char * sample_name, configuration_MLT * config_MLT)
     fprintf(out_fp, "#!/bin/bash\n"); //print she-bang
     
     //print shapemapper2 run command for each 3' end from min to max target length
-    for (i = config_MLT->min_target_length; i <= config_MLT->max_target_length; i++) {
+    for (i = config->min_target_length; i <= config->max_target_length; i++) {
         
         //populate file name strings for current loop iteration
-        sprintf(crrnt_UNT_READ1, "%s_%03d_R1%s", config_MLT->untreated_read1_prefix, i, suffix);
-        sprintf(crrnt_UNT_READ2, "%s_%03d_R2%s", config_MLT->untreated_read2_prefix, i, suffix);
-        sprintf(crrnt_MOD_READ1, "%s_%03d_R1%s", config_MLT->modified_read1_prefix,  i, suffix);
-        sprintf(crrnt_MOD_READ2, "%s_%03d_R2%s", config_MLT->modified_read2_prefix,  i, suffix);
+        sprintf(crrnt_UNT_READ1, "%s_%03d_R1%s", config->untreated_read1_prefix, i, suffix);
+        sprintf(crrnt_UNT_READ2, "%s_%03d_R2%s", config->untreated_read2_prefix, i, suffix);
+        sprintf(crrnt_MOD_READ1, "%s_%03d_R1%s", config->modified_read1_prefix,  i, suffix);
+        sprintf(crrnt_MOD_READ2, "%s_%03d_R2%s", config->modified_read2_prefix,  i, suffix);
         
         //print directory commands to output shell script
-        fprintf(out_fp, "mkdir %s%03d_analysis\n", config_MLT->out_file_loc, i);
-        fprintf(out_fp, "cd %s%03d_analysis\n",    config_MLT->out_file_loc, i);
+        fprintf(out_fp, "mkdir %s%03d_analysis\n", config->out_file_loc, i);
+        fprintf(out_fp, "cd %s%03d_analysis\n",    config->out_file_loc, i);
         
         /***** print shapemapper 2 run command *****/
         
         //shapemapper 2 path
-        fprintf(out_fp, "%s", config_MLT->shpmppr2_path);
+        fprintf(out_fp, "%s", config->shpmppr2_path);
         
         //sample name
         fprintf(out_fp, " --name %s_%03d", sample_name, i);
         
         //target file name
         fprintf(out_fp, " --target %s%s_%03dnt_target.fa",
-                config_MLT->trg_files_loc, config_MLT->trg_files_prfx, i);
+                config->trg_files_loc, config->trg_files_prfx, i);
         
         //output name
         fprintf(out_fp, " --out %s_%03d_out", sample_name, i);
@@ -91,13 +91,13 @@ int print_MLT_SM2_script(char * sample_name, configuration_MLT * config_MLT)
         
         //modified read inputs
         fprintf(out_fp, " --modified");
-        fprintf(out_fp, " --R1 %s%s", config_MLT->ipt_file_loc, crrnt_MOD_READ1);
-        fprintf(out_fp, " --R2 %s%s", config_MLT->ipt_file_loc, crrnt_MOD_READ2);
+        fprintf(out_fp, " --R1 %s%s", config->ipt_file_loc, crrnt_MOD_READ1);
+        fprintf(out_fp, " --R2 %s%s", config->ipt_file_loc, crrnt_MOD_READ2);
         
         //untreated read inputs
         fprintf(out_fp, " --untreated");
-        fprintf(out_fp, " --R1 %s%s", config_MLT->ipt_file_loc, crrnt_UNT_READ1);
-        fprintf(out_fp, " --R2 %s%s", config_MLT->ipt_file_loc, crrnt_UNT_READ2);
+        fprintf(out_fp, " --R1 %s%s", config->ipt_file_loc, crrnt_UNT_READ1);
+        fprintf(out_fp, " --R2 %s%s", config->ipt_file_loc, crrnt_UNT_READ2);
         
         //send screen prints to outfile
         fprintf(out_fp, " > outfile_%03d.txt", i);

@@ -13,7 +13,7 @@
 
 #include "../../global/global_defs.h"
 #include "../../mkmtrx/mkmtrx_defs.h"
-#include "../../cotrans_preprocessor/run_script_gen/MLT/config_MLT_struct.h"
+#include "../../cotrans_preprocessor/run_script_gen/UNV/config_struct.h"
 #include "../global/store_SM2_profile.h"
 
 #include "./process_TECprobeVL_profiles_defs.h"
@@ -49,13 +49,13 @@ typedef struct output_files {
 
 /* sample_names: structure to manage input sample name parsing and merged sample name construction */
 typedef struct sample_names {
-    char ipt[MAX_RUNS][MAX_NAME];    //input file sample names
-    int cnt;                         //number of input file sample names
-    char usr[MAX_NAME];              //user-supplied sample name
-    char mrg[MAX_NAME];              //merged sample name
-    char * sn2use;                   //pointer to sample name to use for output files
-    configuration_MLT cfg[MAX_RUNS]; //stores parsed name info
-    configuration_MLT mrgd_cfg;      //stores merged name info for automated sample name construction
+    char ipt[MAX_RUNS][MAX_NAME];       //input file sample names
+    int cnt;                            //number of input file sample names
+    char usr[MAX_NAME];                 //user-supplied sample name
+    char mrg[MAX_NAME];                 //merged sample name
+    char * sn2use;                      //pointer to sample name to use for output files
+    tprobe_configuration cfg[MAX_RUNS]; //stores parsed name info
+    tprobe_configuration mrgd_cfg;      //stores merged name info for automated sample name construction
 } sample_names;
 
 #endif /* process_TECprobeVL_profiles_structs_h */

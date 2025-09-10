@@ -16,7 +16,7 @@
 #include "../../global/global_defs.h"
 #include "../../utils/io_management.h"
 
-#include "../../cotrans_preprocessor/run_script_gen/MLT/config_MLT_struct.h"
+#include "../../cotrans_preprocessor/run_script_gen/UNV/config_struct.h"
 #include "../../cotrans_preprocessor/run_script_gen/MLT/mk_MLT_run_nm.h"
 
 #include "../../mkmtrx/cotrans_mtrx.h"
@@ -44,7 +44,7 @@ typedef struct parsed_sample_name {
 } parsed_sample_name;
 
 /* parse_VL_sample_name: parse sample name for attributes that were specified in the TECprobe analysis config */
-void parse_VL_sample_name(char * ipt_nm, configuration_MLT * cfg);
+void parse_VL_sample_name(char * ipt_nm, tprobe_configuration * cfg);
 
 /* remove_out_suffix: remove "_out" suffix from sample name */
 void remove_out_suffix (char * snm);
@@ -53,6 +53,6 @@ void remove_out_suffix (char * snm);
 void remove_simple_suffix(char * sn, char * str2rmv);
 
 /* print_parsed_fields: print parsed fields from config values */
-void print_parsed_fields(char * ipt_nm, configuration_MLT * cfg);
+void print_parsed_fields(char * ipt_nm, tprobe_configuration * cfg);
 
 #endif /* parse_VL_sample_name_h */

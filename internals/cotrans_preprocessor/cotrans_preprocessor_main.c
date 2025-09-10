@@ -31,7 +31,7 @@
 #include "./prcs_rds/MUX/prcs_MUX_cotrans.h"
 #include "./prcs_rds/MLT/testdata3pEnd_analysis.h"
 #include "./prcs_rds/MUX/testdataMUX_analysis.h"
-#include "./run_script_gen/MLT/mk_MLT_run_script.h"
+#include "./run_script_gen/UNV/mk_run_script.h"
 #include "../utils/debug.h"
 
 extern int debug;			//flag to run debug mode
@@ -459,7 +459,7 @@ int main(int argc, char *argv[])
             check_make_SM2_run_script(config_MLT_provided);
             
             //start run script generation
-            mk_MLT_run_script(fp_config_MLT);
+            mk_run_script(fp_config_MLT);
             
             break;
         /************* end of run script generation ***********/

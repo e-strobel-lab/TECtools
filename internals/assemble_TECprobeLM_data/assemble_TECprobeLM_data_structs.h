@@ -13,7 +13,7 @@
 #include "../global/global_defs.h"
 #include "../mkmtrx/cotrans_mtrx.h"
 #include "./assemble_TECprobeLM_data_defs.h"
-#include "../cotrans_preprocessor/run_script_gen/MLT/config_MLT_struct.h"
+#include "../cotrans_preprocessor/run_script_gen/UNV/config_struct.h"
 
 /* mode_parameters: structure for storing mode-specific variables */
 typedef struct mode_parameters {
@@ -28,7 +28,7 @@ typedef struct input_data {
     FILE * fp[TOT_SAMPLES][MAX_IPT]; //input file pointers
     char * fn[TOT_SAMPLES][MAX_IPT]; //array to store input file names
     char * sn[TOT_SAMPLES][MAX_IPT]; //array to store input sample names
-    configuration_MLT cfg[TOT_SAMPLES][MAX_IPT]; //configs to store parsed sample name attributes
+    tprobe_configuration cfg[TOT_SAMPLES][MAX_IPT]; //configs to store parsed sample name attributes
     int cnt[TOT_SAMPLES];            //number of input files for each sample
 } input_data;
 

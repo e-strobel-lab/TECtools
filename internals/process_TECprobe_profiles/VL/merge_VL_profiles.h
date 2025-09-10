@@ -15,7 +15,7 @@
 #include "../../global/global_defs.h"
 #include "../../mkmtrx/mkmtrx_defs.h"
 
-#include "../../cotrans_preprocessor/run_script_gen/MLT/config_MLT_struct.h"
+#include "../../cotrans_preprocessor/run_script_gen/UNV/config_struct.h"
 
 #include "./process_TECprobeVL_profiles_defs.h"
 #include "./process_TECprobeVL_profiles_structs.h"
