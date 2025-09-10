@@ -15,7 +15,7 @@
 #include "../../utils/io_management.h"
 
 #include "../../cotrans_preprocessor/run_script_gen/UNV/config_struct.h"
-#include "../../cotrans_preprocessor/run_script_gen/MLT/mk_MLT_run_nm.h"
+#include "../../cotrans_preprocessor/run_script_gen/UNV/mk_run_nm.h"
 
 #include "../../mkmtrx/cotrans_mtrx.h"
 #include "../../mkmtrx/mkmtrx_defs.h"
@@ -420,7 +420,7 @@ void print_parsed_fields(char * ipt_nm, tprobe_configuration * cfg)
     
     //reconstruct sample name and compare to input sample name
     char reconstructed[MAX_LINE] = {0};
-    mk_MLT_run_nm(&reconstructed[0], cfg); //reconstruct the sample name
+    mk_run_nm(&reconstructed[0], cfg); //reconstruct the sample name
     printf("\ninput name:    %s\n", ipt_nm);
     printf("reconstructed: %s\n\n", reconstructed);
 

@@ -17,7 +17,7 @@
 #include "../../utils/io_management.h"
 
 #include "../../cotrans_preprocessor/run_script_gen/UNV/config_struct.h"
-#include "../../cotrans_preprocessor/run_script_gen/MLT/mk_MLT_run_nm.h"
+#include "../../cotrans_preprocessor/run_script_gen/UNV/mk_run_nm.h"
 
 #include "../../mkmtrx/cotrans_mtrx.h"
 #include "../../mkmtrx/mkmtrx_defs.h"

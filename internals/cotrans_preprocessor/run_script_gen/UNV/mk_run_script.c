@@ -17,7 +17,7 @@
 #include "config_struct.h"
 #include "parse_config.h"
 #include "check_config.h"
-#include "../MLT/mk_MLT_run_nm.h"
+#include "../UNV/mk_run_nm.h"
 #include "../MLT/print_MLT_SM2_script.h"
 
 #include "mk_run_script.h"
@@ -47,7 +47,7 @@ int mk_run_script(FILE * fp_config)
     
     parse_config(fp_config, &config, &mode); //parse input config file
     check_config(&config, mode); //check global variables for each setting to confirm that they were set correctly
-    mk_MLT_run_nm(sample_name, &config);		//construct sample name for shapemapper2
+    mk_run_nm(sample_name, &config);		//construct sample name for shapemapper2
     print_MLT_SM2_script(sample_name, &config); //generate shapemapper2 run script
     
     printf("%s\n\n", sample_name);    //print final sample name

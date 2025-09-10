@@ -1,5 +1,5 @@
 //
-//  mk_MLT_run_nm.c
+//  mk_run_nm.c
 //  
 //
 //  Created by Eric Strobel on 3/17/22.
@@ -16,10 +16,10 @@
 #include "../../cotrans_preprocessor_structs.h"
 #include "../UNV/config_struct.h"
 
-#include "mk_MLT_run_nm.h"
+#include "mk_run_nm.h"
 
-/* mk_MLT_run_nm: generate sample name from config file settings */
-int mk_MLT_run_nm(char *sample_name, tprobe_configuration * config)
+/* mk_run_nm: generate sample name from config file settings */
+int mk_run_nm(char *sample_name, tprobe_configuration * config)
 {
     int i = 0;
     
