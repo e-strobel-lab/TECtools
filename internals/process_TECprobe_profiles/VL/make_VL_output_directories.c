@@ -51,13 +51,13 @@ void make_VL_output_directories(SM2_analysis_directory * an_dir, output_files * 
         
         //generate output profile files with the format:
         //<sample_name>_<three-digit transcript length>_nt_profile.txt
-        ret = snprintf(outfiles->ofn[i], MAX_NAME, "%s/%s_%03d_nt_profile.txt", prf_dir_nm, sn->sn2use, i);
+        ret = snprintf(profile_nm, MAX_NAME, "%s/%s_%03d_nt_profile.txt", prf_dir_nm, sn->sn2use, i);
         if (ret >= MAX_NAME || ret < 0) {
             printf("make_VL_output_directories: error - error when constructing output file name. aborting...\n");
             abort();
         }
                 
-        if ((outfiles->ofp[i] = fopen(outfiles->ofn[i], "w")) == NULL) {
+        if ((outfiles->ofp[i] = fopen(profile_nm, "w")) == NULL) {
             printf("make_VL_output_directories: error - could not open output file %s. Aborting program...\n", profile_nm);
             abort();
         }

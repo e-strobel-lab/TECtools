@@ -21,19 +21,14 @@
 /* SM2_analysis_directory: pointers to all relevant directories and files of a TECprobe-ML data set */
 typedef struct SM2_analysis_directory {
     char prnt_dir_nm[MAX_NAME+1]; //parent directory name
-    DIR * prnt;                   //pointer to parent directory
-    DIR * tl[MAX_ROW];            //pointer to transcript length directory
-    DIR * out[MAX_ROW];           //pointer to SM2 output directory
-    FILE * prf[MAX_ROW];          //pointer to profile file
-    char * loc[MAX_ROW];          //relative filepaths of profiles
-    SM2_profile data[MAX_ROW];    //SM2 profile data
-    int opnd[MAX_ROW];            //flag that profile was opened
+    char ** loc;                  //relative filepaths of profiles
+    SM2_profile * data;           //SM2 profile data
     channel_tracker chnls;        //struct to track what channels are present
     int outs_cnt;                 //number of output directories opened
-    int prfs_cnt;                 //number of profiles opened
+    int prfs_cnt;                 //number of profiles found
     int trgt_start;               //target RNA start index
-    int min_opnd;                 //min transcript length that was opened
-    int max_opnd;                 //max transcript length that was opened
+    int min_prf;                  //min profile that was found
+    int max_prf;                  //max profile that was found
     int min_tl;                   //minimum transcript length
     int max_tl;                   //maximum transcript length
     int trg_rct_cnt;              //target nucleotide reactivity count
@@ -42,9 +37,8 @@ typedef struct SM2_analysis_directory {
 
 /* output_files: pointers and file names for merged output files */
 typedef struct output_files {
-    char out_dir[MAX_NAME];     //output directory name
-    FILE * ofp[MAX_ROW];          //output file pointers
-    char ofn[MAX_ROW][MAX_NAME];  //output file names
+    char out_dir[MAX_NAME];       //output directory name
+    FILE ** ofp;                  //output file pointers
 } output_files;
 
 /* sample_names: structure to manage input sample name parsing and merged sample name construction */

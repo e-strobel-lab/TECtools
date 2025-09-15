@@ -57,8 +57,8 @@ int main(int argc, char *argv[])
     int norm_all = 0;           //flag to normalize non-HQ nucleotides
     int verify_norm = 0;        //flag to verify normalization against SM2 calculations
     
-    sample_names sn = {{{0}}};  //structure for sample name storage/merged name construction
-    output_files outfiles;      //structure for storing output file pointers and names
+    sample_names sn = {{{0}}};     //structure for sample name storage/merged name construction
+    output_files outfiles = {{0}}; //structure for storing output file pointers and names
     
     char dflt_out_dir_nm[20] = {"dataset_norm_out"};
     
@@ -248,7 +248,7 @@ int main(int argc, char *argv[])
         
         for (j = an_dir[i].min_tl; j <= an_dir[i].max_tl; j++) { //for each transcript length
             
-            if (an_dir[i].opnd[j]) { //if a profile was opened for the current transcript length
+            if (an_dir[i].loc[j] != NULL) { //if a profile was found for the current transcript length
                 
                 //store the shapemapper2 profile and add the number of
                 //target RNA nucleotide reactivity values to the total
@@ -293,7 +293,7 @@ int main(int argc, char *argv[])
         
         //initialize empty profiles for missing transcript lengths
         for (j = an_dir[i].min_tl; j <= an_dir[i].max_tl; j++) {
-            if (!an_dir[i].opnd[j]) {
+            if (an_dir[i].loc[j] == NULL) {
                 allocate_SM2_profile_memory(&an_dir[i].data[j], j+an_dir[i].trgt_start);
                 initialize_empty_profile(&an_dir[i].data[j], j, an_dir[i].trgt_start);
             }
@@ -306,8 +306,6 @@ int main(int argc, char *argv[])
     //print sample names to screen
     printf("\nuser-specified sample name: %s\n", (sn.usr[0]) ? sn.usr : "not provided");
     printf("auto-generated sample name: %s\n\n", sn.mrg);
-
-    make_VL_output_directories(&an_dir[0], &outfiles, &sn);  //make output directories/files
     
     SM2_analysis_directory mrg = {{0}};          //storage for merged replicate data
     SM2_analysis_directory * data2output = NULL; //pointer to data set to use for output
@@ -322,6 +320,13 @@ int main(int argc, char *argv[])
         data2output = &mrg;
     }
     
+    if ((outfiles.ofp = calloc(data2output->outs_cnt + data2output->min_tl, sizeof(*outfiles.ofp))) == NULL) {
+        printf("process_TECprobe_VL_profiles: error - failed to allocate memory for output files. aborting...\n");
+        abort();
+    }
+    
+    make_VL_output_directories(&an_dir[0], &outfiles, &sn);  //make output directories/files
+    
     print_processing_record(&sn, &outfiles, &an_dir[0], &mrg); //print processing record
     print_merged_VL_profiles(data2output, &outfiles);          //print profile output
     print_legacy_compiled_table(data2output, &outfiles, &sn);  //print legacy compiled table
@@ -331,18 +336,6 @@ int main(int argc, char *argv[])
         if (fclose(outfiles.ofp[i]) == EOF) {
             printf("main: error - failed to close output file. Aborting program...\n");
             abort();
-        }
-    }
-    
-    //close input files
-    for (i = 0; i < dir_count; i++) {
-        for (j = an_dir[0].min_tl; j <= an_dir[0].max_tl; j++) {
-            if (an_dir[i].opnd[j]) {
-                if (fclose(an_dir[i].prf[j]) == EOF) {
-                    printf("read_SM2out_directory: error - failed to close input file. Aborting program...\n");
-                    abort();
-                }
-            }
         }
     }
 }

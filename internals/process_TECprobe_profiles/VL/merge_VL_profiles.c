@@ -39,6 +39,7 @@ int merge_VL_profiles(SM2_analysis_directory * an_dir, int dir_count, SM2_analys
     mrg->chnls.mod = an_dir[0].chnls.mod;     //set modified  channel detection flag
     mrg->chnls.unt = an_dir[0].chnls.unt;     //set untreated channel detection flag
     mrg->chnls.den = an_dir[0].chnls.den;     //set denatured channel detection flag
+    mrg->outs_cnt = an_dir[0].outs_cnt;       //set SM2 output directories count
         
     for (tl = an_dir[0].min_tl; tl <= an_dir[0].max_tl; tl++) {  //for every transcript length
 

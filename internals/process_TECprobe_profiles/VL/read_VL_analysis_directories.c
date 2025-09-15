@@ -22,6 +22,7 @@
 int read_prnt_directory(SM2_analysis_directory * an_dir, int dir_num, sample_names * sn)
 {
     int i = 0; //general purpose index
+    int j = 0; //general purpose index
     
     struct dirent *dir = NULL; //directory entry pointer
     
@@ -34,14 +35,58 @@ int read_prnt_directory(SM2_analysis_directory * an_dir, int dir_num, sample_nam
     
     int ret = 0; //variable for storing snprintf return values
     
-    //open parent shapemapper 2 analysis directory
-    if ((an_dir->prnt = opendir(an_dir->prnt_dir_nm)) == NULL) {
+    DIR * prnt_dir = NULL; //pointer for parent directory
+    int subdir_cnt = 0;    //number of subdirectories in parent directory
+
+    int tmp_tl = 0; //temporary transcript length value
+    int min_tl = 0; //minimum transcript length value
+    
+    //open parent directory
+    if ((prnt_dir = opendir(an_dir->prnt_dir_nm)) == NULL) {
         printf("read_prnt_directory: error - failed to open parent directory. aborting...\n");
         abort();
     }
     
-    //read direcoty contents
-    for (i = 0; (dir = readdir(an_dir->prnt)) != NULL; i++) { //until all directory contents are read
+    //count number of subdirectories that contain substring "_analysis" in parent directory
+    //this number is used for memory allocation below
+    for (i = 0; (dir = readdir(prnt_dir)) != NULL; i++) {
+        if (strstr(dir->d_name, an_sffx)) {  //test for "_analysis" suffix
+            subdir_cnt++;                    //if found, increment subdirectory count
+            strcpy(tmp_d_name, dir->d_name); //make copy of subdirectory name
+            
+            //get numerical id from subdirectory name
+            if (((tmp_tl = get_nid(tmp_d_name, an_sffx)) < min_tl) || subdir_cnt == 1) {
+                min_tl = tmp_tl;
+            }
+        }
+    }
+    
+    //close parent directory
+    if (closedir(prnt_dir) == EOF) {
+        printf("read_prnt_directory: error - failed to close parent directory. aborting...\n");
+        abort();
+    }
+    
+    //allocate memory for SM2 profile location strings
+    if ((an_dir->loc = calloc(subdir_cnt + min_tl, sizeof(*an_dir->loc))) == NULL) {
+        printf("read_prnt_directory: error - failed to allocate memory for profile locations. aborting...\n");
+        abort();
+    }
+    
+    //allocate memory for SM2 profile data
+    if ((an_dir->data = calloc(subdir_cnt + min_tl, sizeof(*an_dir->data))) == NULL) {
+        printf("read_prnt_directory: error - failed to allocate memory for profile data. aborting...\n");
+        abort();
+    }
+    
+    //open parent shapemapper 2 analysis directory
+    if ((prnt_dir = opendir(an_dir->prnt_dir_nm)) == NULL) {
+        printf("read_prnt_directory: error - failed to open parent directory. aborting...\n");
+        abort();
+    }
+    
+    //read directory contents
+    for (i = 0; (dir = readdir(prnt_dir)) != NULL; i++) { //until all directory contents are read
         
         if (isdigit(dir->d_name[0]) &&            //check whether the current directory entry name
             isdigit(dir->d_name[1]) &&            //begins with three digits followed by '_analysis'
@@ -57,8 +102,7 @@ int read_prnt_directory(SM2_analysis_directory * an_dir, int dir_num, sample_nam
             
             //assess the transcript length of the current analysis directory
             strcpy(tmp_d_name, dir->d_name); //copy the directory entry name to tmp_d_name
-            tmp_d_name[3] = '\0';            //truncate the directory name to obtain the transcript length
-            crnt_tl = atoi(tmp_d_name);      //convert the the transcrip length string to an int
+            crnt_tl = get_nid(tmp_d_name, an_sffx);
             
             if (crnt_tl < an_dir->min_tl) {  //if the current transcript length is less than min_tl
                 an_dir->min_tl = crnt_tl;    //set min_tl to the current transcript length
@@ -71,6 +115,24 @@ int read_prnt_directory(SM2_analysis_directory * an_dir, int dir_num, sample_nam
             //read the current transcript length directory
             profiles_opened += read_tl_directory(an_dir, dir_num, crnt_tl, tl_dir_nm, sn);
         }
+    }
+    
+    //check that output directories identified during processing match the subdirectories identified during counting
+    if (an_dir->outs_cnt != subdir_cnt) {
+        printf("read_prnt_directory: error - output directory count does not match expected count. aborting...\n");
+        abort();
+    }
+    
+    //check that the minimum TL identified during processing matches the min TL identified during counting
+    if (an_dir->min_tl != min_tl) {
+        printf("read_prnt_directory: error - minimum transcript length does not match expected value (%d vs %d). aborting...\n", an_dir->min_tl, min_tl);
+        abort();
+    }
+    
+    //close parent directory
+    if (closedir(prnt_dir) == EOF) {
+        printf("read_prnt_directory: error - failed to close parent directory. aborting...\n");
+        abort();
     }
 
     return profiles_opened; //return the number of shapemapper 2 reactivity profiles opened
@@ -90,15 +152,17 @@ int read_tl_directory(SM2_analysis_directory * an_dir, int dir_num, int crnt_tl,
     int out_dir_cnt = 0;                  //number of output direcotries
     
     int ret = 0; //variable for storing snprintf return value
+    
+    DIR * crnt_tl_dir = NULL;  //pointer to transcript length directory
         
     //open the current transcript length directory
-    if ((an_dir->tl[crnt_tl] = opendir(tl_dir_nm)) == NULL) {
+    if ((crnt_tl_dir = opendir(tl_dir_nm)) == NULL) {
         printf("read_tl_directory: error - failed to open transcript length %d directory. try increasing the file descriptor limit (run: ulimit -n <file descriptor limit> to increase the limit). aborting...\n", crnt_tl);
         abort();
     }
     
     //read directory contents
-    for (i = 0; (dir = readdir(an_dir->tl[crnt_tl])) != NULL; i++) {
+    for (i = 0; (dir = readdir(crnt_tl_dir)) != NULL; i++) {
         
         p_out_sffx = strstr(dir->d_name, out_sffx); //search for the shapemapper 2 output directory suffix
         
@@ -130,7 +194,7 @@ int read_tl_directory(SM2_analysis_directory * an_dir, int dir_num, int crnt_tl,
     }
     
     if (out_dir_cnt == 1) { //if a single SM2 output directory was found
-        return (read_SM2out_directory(an_dir,crnt_tl, out_dir_nm)); //read the SM2 output directory
+        return (read_SM2out_directory(an_dir, crnt_tl, out_dir_nm)); //read the SM2 output directory
     } else { //if more than one SM2 output directory was found, abort
         printf("read_tl_directory: error - more than one SM2 output directory found in transcript length %d analysis directory. aborting...\n", crnt_tl);
         abort();
@@ -152,8 +216,10 @@ int read_SM2out_directory(SM2_analysis_directory * an_dir, int crnt_tl, char * o
     
     int ret = 0; //variable for storing snprintf return value
     
+    DIR * crnt_out_dir = NULL;  //pointer to output directory
+    
     //open the shapemapper 2 output directory
-    if ((an_dir->out[crnt_tl] = opendir(out_dir_nm)) == NULL) {
+    if ((crnt_out_dir = opendir(out_dir_nm)) == NULL) {
         printf("read_SM2out_directory: error - failed to open SM2 output directory for transcript length %d. aborting...\n", crnt_tl);
         abort();
     } else {
@@ -161,7 +227,7 @@ int read_SM2out_directory(SM2_analysis_directory * an_dir, int crnt_tl, char * o
     }
     
     //read directory contents
-    for (i = 0; (dir = readdir(an_dir->out[crnt_tl])) != NULL; i++) {
+    for (i = 0; (dir = readdir(crnt_out_dir)) != NULL; i++) {
         
         p_profile_sffx = strstr(dir->d_name, profile_sffx); //search for the reactivity profile suffix
         
@@ -185,17 +251,9 @@ int read_SM2out_directory(SM2_analysis_directory * an_dir, int crnt_tl, char * o
             abort();
         }
         strcpy(an_dir->loc[crnt_tl], profile_nm);
-        
-        //open the reactivity profile
-        if ((an_dir->prf[crnt_tl] = fopen(profile_nm, "r")) == NULL) {
-            printf("read_SM2out_directory: error - could not open %s. Aborting program...\n", profile_nm);
-            abort();
-        }
-        an_dir->opnd[crnt_tl] = 1; //set flag that profile was opened
         return 1;
         
     } else if (!profile_cnt) { //no reactivity profiles were found
-        an_dir->opnd[crnt_tl] = 0; //set flag that profile was not opened
         return 0;
         
     } else if (profile_cnt > 1) { //if more than one reactivity profile was found, abort
@@ -213,19 +271,41 @@ void set_opnd_profile_bounds(SM2_analysis_directory * an_dir)
 {
     int i = 0;             //general purpose index
     int min_prf_set = 0;   //flag that minimum profile was set
-    int max_opnd_prf = 0;  //maximum opened profile
+    int max_prf = 0;  //maximum opened profile
     
     for (i = an_dir->min_tl; i <= an_dir->max_tl; i++) {
-        if (an_dir->opnd[i]) {        //if the current transcript length profile was opened
+        if (an_dir->loc[i] != NULL) { //if the current transcript length profile was opened
             if (!min_prf_set) {       //if the minimum profile was not yet set
-                an_dir->min_opnd = i; //set the minimum profile to the current transcript length
+                an_dir->min_prf = i;  //set the minimum profile to the current transcript length
                 min_prf_set = 1;      //turn on flag that minimum profile was set
             }
-            max_opnd_prf = i;         //set the max profile to the current transcript length
+            an_dir->max_prf = i;      //set the max profile to the current transcript length
         }
     }
     
-    an_dir->max_opnd = max_opnd_prf;  //set the max profile to the last opened transcript length
-    
     return;
+}
+
+/* get_nid: get numerical id of variant */
+int get_nid(char * str, char * suffix)
+{
+    int i = 0;               //general purpose index
+    char * p_suffix = NULL;  //pointer to suffix that will be truncated
+    
+    //find suffix in string
+    if ((p_suffix = strstr(str, suffix)) == NULL) {
+        printf("get_nid: error - suffix '%s' was not found in string '%s'. aborting...\n", suffix, str);
+        abort();
+    }
+    p_suffix[0] = '\0'; //truncate suffix
+    
+    //check that numerical id is composed of digits
+    for (i = 0; str[i]; i++) {
+        if (!isdigit(str[i])) {
+            printf("get_nid: error - non-digit character in numerical id string '%s'. aborting...\n", str);
+            abort();
+        }
+    }
+    
+    return atoi(str); //return numerical id
 }

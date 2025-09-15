@@ -29,4 +29,7 @@ int read_SM2out_directory(SM2_analysis_directory * an_dir, int crnt_tl, char * o
 /* set_opnd_profile_bounds: set min and max opened profiles in SM2 analysis directory structure */
 void set_opnd_profile_bounds(SM2_analysis_directory * an_dir);
 
+/* get_nid: get numerical id of variant */
+int get_nid(char * str, char * suffix);
+
 #endif /* read_VL_analysis_directories_h */

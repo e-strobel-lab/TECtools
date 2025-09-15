@@ -28,10 +28,10 @@ void validate_VL_an_dir_contiguity(SM2_analysis_directory * an_dir)
     int i = 0; //general purpose index
     
     //check the transcript length contiguity of the opened profiles
-    for (i = 0; i < MAX_ROW; i++) {
+    for (i = 0; i < (an_dir->outs_cnt + an_dir->min_tl); i++) {
         
         //check that all transcript lengths are within the min_tl/max_tl bounds
-        if (an_dir->prf[i] != NULL && (i < an_dir->min_tl || i > an_dir->max_tl)) {
+        if (an_dir->loc[i] != NULL && (i < an_dir->min_tl || i > an_dir->max_tl)) {
             printf("validate_VL_an_dir_contiguity: error - out of bounds transcript length (%d) in %s data set. aborting...\n", i, an_dir->prnt_dir_nm);
             abort();
         }
@@ -40,7 +40,7 @@ void validate_VL_an_dir_contiguity(SM2_analysis_directory * an_dir)
         //an associated profile. throw warning rather than error, since it is
         //possible for a profile to be absent if no reads were assigned to that
         //transcrip length
-        if (an_dir->prf[i] == NULL && (i >= an_dir->min_tl && i <= an_dir->max_tl)) {
+        if (an_dir->loc[i] == NULL && (i >= an_dir->min_tl && i <= an_dir->max_tl)) {
             printf("validate_VL_an_dir_contiguity: warning - missing transcript length %d in %s data set.\n", i, an_dir->prnt_dir_nm);
         }
     }
@@ -129,7 +129,7 @@ int validate_trgt_start(SM2_analysis_directory * an_dir)
     //check that target start index is the same for every profile
     for (i = an_dir->min_tl; i <= an_dir->max_tl; i++) { //for each transcript length
         
-        if (an_dir->opnd[i]) {           //if the analysis directory was opened
+        if (an_dir->loc[i] != NULL) {    //if the analysis directory was opened
             if (first_trg_start == -1) { //if the first target start index was not yet found
                 first_trg_start = an_dir->data[i].trgt_start; //set the first target start index
                 
@@ -169,11 +169,11 @@ void validate_transcript_substrings(SM2_analysis_directory * an_dir)
     char * p_last_seq = NULL;  //pointer to the last transcript sequence
     char * p_substring = NULL; //pointer to previous sequence substring in current sequence
     
-    p_last_seq = &an_dir->data[an_dir->min_opnd].sequence[0]; //init p_last_seq to min opened sequence
+    p_last_seq = &an_dir->data[an_dir->min_prf].sequence[0]; //init p_last_seq to min opened sequence
     
-    for (i = an_dir->min_opnd+1; i <= an_dir->max_opnd; i++) { //for every length after min opened
+    for (i = an_dir->min_prf+1; i <= an_dir->max_prf; i++) { //for every length after min opened
         
-        if (an_dir->opnd[i]) { //if a profile was opened
+        if (an_dir->loc[i] != NULL) { //if a profile was opened
             
             //check that previous sequence is a substring of the current sequence
             if ((p_substring = strstr(an_dir->data[i].sequence, p_last_seq)) == NULL) {
