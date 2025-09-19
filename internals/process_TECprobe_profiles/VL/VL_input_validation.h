@@ -44,7 +44,7 @@ int validate_trgt_start(SM2_analysis_directory * an_dir);
 /* validate_ext_start_ix_compatibility: verify that two analysis directories have the same start index */
 void validate_ext_start_ix_compatibility(int ix1, int ix2);
 
-/* validate_transcript substrings: verify that each transcript sequence of length n is
+/* validate_transcript_substrings: verify that each transcript sequence of length n is
    a substring of the transcript with length n+1 */
 void validate_transcript_substrings(SM2_analysis_directory * an_dir);
 

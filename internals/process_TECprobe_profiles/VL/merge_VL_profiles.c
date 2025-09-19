@@ -25,46 +25,67 @@
 int merge_VL_profiles(SM2_analysis_directory * an_dir, int dir_count, SM2_analysis_directory * mrg, int min_depth, double max_bkg)
 {
     
-    int tl  = 0;   //transcript length index
-    int i   = 0;   //general purpose index
+    int i = 0;     //general purpose index
+    int j = 0;     //general purpose index
     int col = 0;   //column index
     int d   = 0;   //directory index
     
-    //set variables for merged analysis directory to that of the first input analysis directory.
-    //these variables are identical for all input analysis directories
-    mrg->trgt_start = an_dir[0].trgt_start;   //set target start index
-    mrg->min_tl = an_dir[0].min_tl;           //set minimum transcript length
-    mrg->max_tl = an_dir[0].max_tl;           //set maximum transcript length
-    mrg->trg_rct_cnt = an_dir[0].trg_rct_cnt; //set target nucleotide reactivity count
+    //allocate memory for mrg profile data
+    if ((mrg->data = calloc(an_dir[0].max_id+1, sizeof(*mrg->data))) == NULL) {
+        printf("merge_VL_profiles: error - failed to allocate memory for profile data. aborting...\n");
+        abort();
+    }
+    
+    //allocate memory for lookup table
+    if ((mrg->indx = calloc(an_dir[0].sd_cnt+1, sizeof(*mrg->indx))) == NULL) {
+        printf("merge_VL_profiles: error - failed to allocate memory for index table. aborting...\n");
+        abort();
+    }
+    
+    //copy index array to mrg. this includes the
+    //sentinel that signals the end of the array
+    for (i = 0; i <= an_dir[0].sd_cnt; i++) {
+        mrg->indx[i] = an_dir[0].indx[i];
+    }
+    
+    //set variables for merged analysis directory to that of the first input analysis
+    //directory. these variables are identical for all input analysis directories
     mrg->chnls.mod = an_dir[0].chnls.mod;     //set modified  channel detection flag
     mrg->chnls.unt = an_dir[0].chnls.unt;     //set untreated channel detection flag
     mrg->chnls.den = an_dir[0].chnls.den;     //set denatured channel detection flag
     mrg->outs_cnt = an_dir[0].outs_cnt;       //set SM2 output directories count
+    mrg->trgt_start = an_dir[0].trgt_start;   //set target start index
+    mrg->min_id = an_dir[0].min_id;           //set minimum target id
+    mrg->max_id = an_dir[0].max_id;           //set maximum target id
+    mrg->len[MIN] = an_dir[0].len[MIN];       //set minimum transcript length
+    mrg->len[MAX] = an_dir[0].len[MAX];       //set maximum transcript length
+    mrg->trg_rct_cnt = an_dir[0].trg_rct_cnt; //set target nucleotide reactivity count
+       
+    int * ix = &an_dir[0].indx[0]; //set pointer to target indices
+    
+    for (i = 0; ix[i] <= an_dir[0].max_id; i++) {  //for every target id
+
+        //allocate memory for storing the merged profile of the current target
+        allocate_SM2_profile_memory(&mrg->data[ix[i]], an_dir[0].data[ix[i]].tot_nt_cnt);
+
+        mrg->data[ix[i]].trgt_start = an_dir[0].data[ix[i]].trgt_start;
+        mrg->data[ix[i]].trg_nt_cnt = an_dir[0].data[ix[i]].trg_nt_cnt;
+        mrg->data[ix[i]].tot_nt_cnt = an_dir[0].data[ix[i]].tot_nt_cnt;
         
-    for (tl = an_dir[0].min_tl; tl <= an_dir[0].max_tl; tl++) {  //for every transcript length
-
-        //allocate memory for storing the merged profile of the current transcript length
-        allocate_SM2_profile_memory(&mrg->data[tl], an_dir[0].data[tl].tot_nt_cnt);
-
+        //set channel tracker flags
+        mrg->data[ix[i]].chnls.mod = an_dir[0].chnls.mod;
+        mrg->data[ix[i]].chnls.unt = an_dir[0].chnls.unt;
+        mrg->data[ix[i]].chnls.den = an_dir[0].chnls.den;
+        
         //TODO: check that tot nucleotide count is the same for all inputs
-        for (i = 0; i < an_dir[0].data[tl].tot_nt_cnt; i++) { //for every line of the profile file
-            
-            mrg->data[tl].trgt_start  = an_dir[0].data[tl].trgt_start;
-            mrg->data[tl].trg_nt_cnt = an_dir[0].data[tl].trg_nt_cnt;
-            mrg->data[tl].tot_nt_cnt = an_dir[0].data[tl].tot_nt_cnt;
-            
-            //set channel tracker flags
-            mrg->data[tl].chnls.mod = an_dir[0].chnls.mod;
-            mrg->data[tl].chnls.unt = an_dir[0].chnls.unt;
-            mrg->data[tl].chnls.den = an_dir[0].chnls.den;
-            
-            
-            mrg->data[tl].nucleotide[i] = an_dir[0].data[tl].nucleotide[i]; //copy nucleotide number
-            mrg->data[tl].sequence[i] = an_dir[0].data[tl].sequence[i];     //copy sequence
+        for (j = 0; j < an_dir[0].data[ix[i]].tot_nt_cnt; j++) { //for every line of the profile file
                         
-            mrg->data[tl].std_err[i] = NAN;     //mask std err
-            mrg->data[tl].hq_stderr[i] = NAN;   //mask hq std err
-            mrg->data[tl].norm_stderr[i] = NAN; //mask normalized std err
+            mrg->data[ix[i]].nucleotide[j] = an_dir[0].data[ix[i]].nucleotide[j]; //copy nucleotide number
+            mrg->data[ix[i]].sequence[j]   = an_dir[0].data[ix[i]].sequence[j];   //copy sequence
+                        
+            mrg->data[ix[i]].std_err[j] = NAN;     //mask std err
+            mrg->data[ix[i]].hq_stderr[j] = NAN;   //mask hq std err
+            mrg->data[ix[i]].norm_stderr[j] = NAN; //mask normalized std err
                         
             for (col = 0; col < PRFL_CLMNS; col++) { //for each column
                 for (d = 0; d < dir_count; d++) {
@@ -86,75 +107,75 @@ int merge_VL_profiles(SM2_analysis_directory * an_dir, int dir_count, SM2_analys
                             
                         //variables summed inside of loop
                         case MOD_MUTATIONS:
-                            mrg->data[tl].mod_mutations[i] += an_dir[d].data[tl].mod_mutations[i];
+                            mrg->data[ix[i]].mod_mutations[j] += an_dir[d].data[ix[i]].mod_mutations[j];
                             break;
                             
                         case MOD_READ_DEPTH:
-                            mrg->data[tl].mod_read_depth[i] += an_dir[d].data[tl].mod_read_depth[i];
+                            mrg->data[ix[i]].mod_read_depth[j] += an_dir[d].data[ix[i]].mod_read_depth[j];
                             break;
                             
                         case MOD_EFF_DEPTH:
-                            mrg->data[tl].mod_eff_depth[i] += an_dir[d].data[tl].mod_eff_depth[i];
+                            mrg->data[ix[i]].mod_eff_depth[j] += an_dir[d].data[ix[i]].mod_eff_depth[j];
                             break;
                             
                         case MOD_OFF_TARGET_DEPTH:
-                            mrg->data[tl].mod_off_target_depth[i] += an_dir[d].data[tl].mod_off_target_depth[i];
+                            mrg->data[ix[i]].mod_off_target_depth[j] += an_dir[d].data[ix[i]].mod_off_target_depth[j];
                             break;
                             
                         case MOD_LOW_MAPQ_DEPTH:
-                            mrg->data[tl].mod_low_mapq_depth[i] += an_dir[d].data[tl].mod_low_mapq_depth[i];
+                            mrg->data[ix[i]].mod_low_mapq_depth[j] += an_dir[d].data[ix[i]].mod_low_mapq_depth[j];
                             break;
                             
                         case MOD_MAPPED_DEPTH:
-                            mrg->data[tl].mod_mapped_depth[i] += an_dir[d].data[tl].mod_mapped_depth[i];
+                            mrg->data[ix[i]].mod_mapped_depth[j] += an_dir[d].data[ix[i]].mod_mapped_depth[j];
                             break;
                             
                         case UNT_MUTATIONS:
-                            mrg->data[tl].unt_mutations[i] += an_dir[d].data[tl].unt_mutations[i];
+                            mrg->data[ix[i]].unt_mutations[j] += an_dir[d].data[ix[i]].unt_mutations[j];
                             break;
                             
                         case UNT_READ_DEPTH:
-                            mrg->data[tl].unt_read_depth[i] += an_dir[d].data[tl].unt_read_depth[i];
+                            mrg->data[ix[i]].unt_read_depth[j] += an_dir[d].data[ix[i]].unt_read_depth[j];
                             break;
                             
                         case UNT_EFF_DEPTH:
-                            mrg->data[tl].unt_eff_depth[i] += an_dir[d].data[tl].unt_eff_depth[i];
+                            mrg->data[ix[i]].unt_eff_depth[j] += an_dir[d].data[ix[i]].unt_eff_depth[j];
                             break;
                             
                         case UNT_OFF_TARGET_DEPTH:
-                            mrg->data[tl].unt_off_target_depth[i] += an_dir[d].data[tl].unt_off_target_depth[i];
+                            mrg->data[ix[i]].unt_off_target_depth[j] += an_dir[d].data[ix[i]].unt_off_target_depth[j];
                             break;
                             
                         case UNT_LOW_MAPQ_DEPTH:
-                            mrg->data[tl].unt_low_mapq_depth[i] += an_dir[d].data[tl].unt_low_mapq_depth[i];
+                            mrg->data[ix[i]].unt_low_mapq_depth[j] += an_dir[d].data[ix[i]].unt_low_mapq_depth[j];
                             break;
                             
                         case UNT_MAPPED_DEPTH:
-                            mrg->data[tl].unt_mapped_depth[i] += an_dir[d].data[tl].unt_mapped_depth[i];
+                            mrg->data[ix[i]].unt_mapped_depth[j] += an_dir[d].data[ix[i]].unt_mapped_depth[j];
                             break;
                             
                         case DEN_MUTATIONS:
-                            mrg->data[tl].den_mutations[i] += an_dir[d].data[tl].den_mutations[i];
+                            mrg->data[ix[i]].den_mutations[j] += an_dir[d].data[ix[i]].den_mutations[j];
                             break;
                             
                         case DEN_READ_DEPTH:
-                            mrg->data[tl].den_read_depth[i] += an_dir[d].data[tl].den_read_depth[i];
+                            mrg->data[ix[i]].den_read_depth[j] += an_dir[d].data[ix[i]].den_read_depth[j];
                             break;
                             
                         case DEN_EFF_DEPTH:
-                            mrg->data[tl].den_eff_depth[i] += an_dir[d].data[tl].den_eff_depth[i];
+                            mrg->data[ix[i]].den_eff_depth[j] += an_dir[d].data[ix[i]].den_eff_depth[j];
                             break;
                             
                         case DEN_OFF_TARGET_DEPTH:
-                            mrg->data[tl].den_off_target_depth[i] += an_dir[d].data[tl].den_off_target_depth[i];
+                            mrg->data[ix[i]].den_off_target_depth[j] += an_dir[d].data[ix[i]].den_off_target_depth[j];
                             break;
                             
                         case DEN_LOW_MAPQ_DEPTH:
-                            mrg->data[tl].den_low_mapq_depth[i] += an_dir[d].data[tl].den_low_mapq_depth[i];
+                            mrg->data[ix[i]].den_low_mapq_depth[j] += an_dir[d].data[ix[i]].den_low_mapq_depth[j];
                             break;
                             
                         case DEN_MAPPED_DEPTH:
-                            mrg->data[tl].den_mapped_depth[i] += an_dir[d].data[tl].den_mapped_depth[i];
+                            mrg->data[ix[i]].den_mapped_depth[j] += an_dir[d].data[ix[i]].den_mapped_depth[j];
                             break;
                             
                         default:
@@ -167,19 +188,19 @@ int merge_VL_profiles(SM2_analysis_directory * an_dir, int dir_count, SM2_analys
             }
             
             //calculate mutation rates using summed mutation/eff depth values
-            mrg->data[tl].mod_rate[i] = ((double)mrg->data[tl].mod_mutations[i])/((double)mrg->data[tl].mod_eff_depth[i]);
-            mrg->data[tl].unt_rate[i] = ((double)mrg->data[tl].unt_mutations[i])/((double)mrg->data[tl].unt_eff_depth[i]);
-            mrg->data[tl].den_rate[i] = ((double)mrg->data[tl].den_mutations[i])/((double)mrg->data[tl].den_eff_depth[i]);
+            mrg->data[ix[i]].mod_rate[j] = ((double)mrg->data[ix[i]].mod_mutations[j])/((double)mrg->data[ix[i]].mod_eff_depth[j]);
+            mrg->data[ix[i]].unt_rate[j] = ((double)mrg->data[ix[i]].unt_mutations[j])/((double)mrg->data[ix[i]].unt_eff_depth[j]);
+            mrg->data[ix[i]].den_rate[j] = ((double)mrg->data[ix[i]].den_mutations[j])/((double)mrg->data[ix[i]].den_eff_depth[j]);
             
             //calculate reactivity
             if (mrg->chnls.mod && !mrg->chnls.unt && !mrg->chnls.den) {
-                mrg->data[tl].reactivity_profile[i] = mrg->data[tl].mod_rate[i];
+                mrg->data[ix[i]].reactivity_profile[j] = mrg->data[ix[i]].mod_rate[j];
             
             } else if (mrg->chnls.mod && mrg->chnls.unt && !mrg->chnls.den) {
-                mrg->data[tl].reactivity_profile[i] = mrg->data[tl].mod_rate[i] - mrg->data[tl].unt_rate[i];
+                mrg->data[ix[i]].reactivity_profile[j] = mrg->data[ix[i]].mod_rate[j] - mrg->data[ix[i]].unt_rate[j];
                                 
             } else if (mrg->chnls.mod && mrg->chnls.unt && mrg->chnls.den) {
-                mrg->data[tl].reactivity_profile[i] = (mrg->data[tl].mod_rate[i] - mrg->data[tl].unt_rate[i])/mrg->data[tl].den_rate[i];
+                mrg->data[ix[i]].reactivity_profile[j] = (mrg->data[ix[i]].mod_rate[j] - mrg->data[ix[i]].unt_rate[j])/mrg->data[ix[i]].den_rate[j];
                 
             } else {
                 printf("merge_VL_profiles: error - unexpected channel configuration. aborting...\n");
@@ -188,20 +209,20 @@ int merge_VL_profiles(SM2_analysis_directory * an_dir, int dir_count, SM2_analys
             
             //force reactivity values that are 0 within the
             //value that will be printed to be true zero
-            if (fabs(mrg->data[tl].reactivity_profile[i]) < 0.000001) {
-                mrg->data[tl].reactivity_profile[i] = 0;
+            if (fabs(mrg->data[ix[i]].reactivity_profile[j]) < 0.000001) {
+                mrg->data[ix[i]].reactivity_profile[j] = 0;
             }
             
             //set hq profile value
-            if (isHQnuc(&mrg->data[tl], i, min_depth, max_bkg)) {
-                mrg->data[tl].hq_profile[i] = mrg->data[tl].reactivity_profile[i];
+            if (isHQnuc(&mrg->data[ix[i]], j, min_depth, max_bkg)) {
+                mrg->data[ix[i]].hq_profile[j] = mrg->data[ix[i]].reactivity_profile[j];
                 
             } else {
-                mrg->data[tl].hq_profile[i] = NAN;
+                mrg->data[ix[i]].hq_profile[j] = NAN;
             }   
         }
         
-        mrg->data[tl].sequence[i] = '\0'; //terminate sequence string
+        mrg->data[ix[i]].sequence[j] = '\0'; //terminate sequence string
         
     }
     return 1;

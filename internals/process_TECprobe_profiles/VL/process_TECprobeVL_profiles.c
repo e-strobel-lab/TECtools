@@ -7,6 +7,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <limits.h>
 #include <string.h>
 #include <ctype.h>
 #include <getopt.h>
@@ -61,6 +62,8 @@ int main(int argc, char *argv[])
     output_files outfiles = {{0}}; //structure for storing output file pointers and names
     
     char dflt_out_dir_nm[20] = {"dataset_norm_out"};
+    
+    int * ix = NULL; //pointer for target indices
     
     int ret = 0; //variable for storing snprintf return value
     
@@ -214,8 +217,8 @@ int main(int argc, char *argv[])
     //initialize SM2 analysis directory structs
     for (i = 0; i < dir_count; i++) {                  //for each input directory
         strcpy(an_dir[i].prnt_dir_nm, prnt_dir_nm[i]); //store the parent directory name
-        an_dir[i].min_tl = MIN_INIT;                   //initialize min_tl to MIN_INIT (512 (MAX_ROW) + 1)
-        an_dir[i].max_tl = MAX_INIT;                   //initialize max_tl to MAX_INIT (0)
+        an_dir[i].min_id = INT_MAX;                    //initialize min_tl
+        an_dir[i].max_id = INT_MIN;                    //initialize max_tl
     }
         
     //read each SM2 analysis directory and confirm that the number of
@@ -246,31 +249,31 @@ int main(int argc, char *argv[])
         
         mod_detected = unt_detected = den_detected = 0; //zero channel detection variables
         
-        for (j = an_dir[i].min_tl; j <= an_dir[i].max_tl; j++) { //for each transcript length
-            
-            if (an_dir[i].loc[j] != NULL) { //if a profile was found for the current transcript length
+        ix = &an_dir[i].indx[0]; //set pointer for target indices
+        for (j = 0; ix[j] <= an_dir[i].max_id; j++) { //for each target
+            if (an_dir[i].loc[ix[j]] != NULL) { //if a profile was found for the current target
                 
                 //store the shapemapper2 profile and add the number of
                 //target RNA nucleotide reactivity values to the total
-                store_SM2_profile(&an_dir[i].data[j], an_dir[i].loc[j]);
-                an_dir[i].trg_rct_cnt += an_dir[i].data[j].trg_nt_cnt;
+                store_SM2_profile(&an_dir[i].data[ix[j]], an_dir[i].loc[ix[j]]);
+                an_dir[i].trg_rct_cnt += an_dir[i].data[ix[j]].trg_nt_cnt;
                 
-                if (an_dir[i].data[j].chnls.mod) {
+                if (an_dir[i].data[ix[j]].chnls.mod) {
                     mod_detected = 1;
                 }
                 
-                if (an_dir[i].data[j].chnls.unt) {
+                if (an_dir[i].data[ix[j]].chnls.unt) {
                     unt_detected = 1;
                 }
                 
-                if (an_dir[i].data[j].chnls.den) {
+                if (an_dir[i].data[ix[j]].chnls.den) {
                     den_detected = 1;
                 }
             }
         }
         
-        //set minimum and maximum opened profiles
-        set_opnd_profile_bounds(&an_dir[i]);
+        //set minimum and maximum target lengths
+        set_len_range(&an_dir[i]);
         
         //set the channel configuration of the entire dataset, confirm that
         //the channel configuration is valid, and confirm that all input
@@ -282,7 +285,7 @@ int main(int argc, char *argv[])
         validate_channel_compatibility(&an_dir[i].chnls, &an_dir[0].chnls);
         
         //set the start index of the entire dataset and confirm that all
-        //individual transcripts of the dataset have the same start index
+        //individual targets of the dataset have the same start index
         //and that all analysis directories have the same start index
         an_dir[i].trgt_start = validate_trgt_start(&an_dir[i]);
         validate_ext_start_ix_compatibility(an_dir[i].trgt_start, an_dir[0].trgt_start);
@@ -291,11 +294,12 @@ int main(int argc, char *argv[])
         //next transcript sequence
         validate_transcript_substrings(&an_dir[i]);
         
-        //initialize empty profiles for missing transcript lengths
-        for (j = an_dir[i].min_tl; j <= an_dir[i].max_tl; j++) {
-            if (an_dir[i].loc[j] == NULL) {
-                allocate_SM2_profile_memory(&an_dir[i].data[j], j+an_dir[i].trgt_start);
-                initialize_empty_profile(&an_dir[i].data[j], j, an_dir[i].trgt_start);
+        //initialize empty profiles for missing targets
+        ix = &an_dir[i].indx[0]; //set pointer to target indices
+        for (j = 0; ix[j] <= an_dir[i].max_id; j++) {
+            if (an_dir[i].loc[ix[j]] == NULL) {
+                allocate_SM2_profile_memory(&an_dir[i].data[ix[j]], ix[j]+an_dir[i].trgt_start);
+                initialize_empty_profile(&an_dir[i].data[ix[j]], ix[j], an_dir[i].trgt_start);
             }
         }
         
@@ -320,7 +324,7 @@ int main(int argc, char *argv[])
         data2output = &mrg;
     }
     
-    if ((outfiles.ofp = calloc(data2output->outs_cnt + data2output->min_tl, sizeof(*outfiles.ofp))) == NULL) {
+    if ((outfiles.ofp = calloc(data2output->sd_cnt, sizeof(*outfiles.ofp))) == NULL) {
         printf("process_TECprobe_VL_profiles: error - failed to allocate memory for output files. aborting...\n");
         abort();
     }
@@ -332,8 +336,9 @@ int main(int argc, char *argv[])
     print_legacy_compiled_table(data2output, &outfiles, &sn);  //print legacy compiled table
     
     //close output files
-    for (i = an_dir[0].min_tl; i <= an_dir[0].max_tl; i++) {
-        if (fclose(outfiles.ofp[i]) == EOF) {
+    ix = &data2output->indx[0]; //set pointer to target indices
+    for (i = 0; ix[i] <= data2output->max_id; i++) {
+        if (fclose(outfiles.ofp[ix[i]]) == EOF) {
             printf("main: error - failed to close output file. Aborting program...\n");
             abort();
         }
@@ -385,19 +390,19 @@ void print_processing_record(sample_names * sn, output_files * outfiles, SM2_ana
     fprintf(p_prcs_rcrd, "\n");
     
     
-    //print transcript length inventory
-    printf("transcript length inventory:\n");
-    fprintf(p_prcs_rcrd, "transcript length inventory:\n");
+    //print target inventory
+    printf("target inventory:\n");
+    fprintf(p_prcs_rcrd, "target inventory:\n");
     for (i = 0; i < sn->cnt; i++) {
         printf("input %d: %3d/%d input directories contained a profile\n", i+1, an_dir[i].prfs_cnt, an_dir[i].outs_cnt);
         fprintf(p_prcs_rcrd, "input %d: %3d/%d input directories contained a profile\n", i+1, an_dir[i].prfs_cnt, an_dir[i].outs_cnt);
     }
     
-    printf("minimum transcript length: %d\n", an_dir[0].min_tl);
-    printf("maximum transcript length: %d\n\n", an_dir[0].max_tl);
+    printf("minimum transcript length: %d\n", an_dir[0].len[MIN]);
+    printf("maximum transcript length: %d\n\n", an_dir[0].len[MAX]);
     
-    fprintf(p_prcs_rcrd, "minimum transcript length: %d\n", an_dir[0].min_tl);
-    fprintf(p_prcs_rcrd, "maximum transcript length: %d\n\n", an_dir[0].max_tl);
+    fprintf(p_prcs_rcrd, "minimum transcript length: %d\n", an_dir[0].len[MIN]);
+    fprintf(p_prcs_rcrd, "maximum transcript length: %d\n\n", an_dir[0].len[MAX]);
     
     //print normalization factors
     /*printf("normalization factors:\n");

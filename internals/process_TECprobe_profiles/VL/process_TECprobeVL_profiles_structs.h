@@ -23,14 +23,15 @@ typedef struct SM2_analysis_directory {
     char prnt_dir_nm[MAX_NAME+1]; //parent directory name
     char ** loc;                  //relative filepaths of profiles
     SM2_profile * data;           //SM2 profile data
+    int * indx;                   //index table for location/profile indices
     channel_tracker chnls;        //struct to track what channels are present
+    int sd_cnt;                   //target analysis subdirectory count
     int outs_cnt;                 //number of output directories opened
     int prfs_cnt;                 //number of profiles found
     int trgt_start;               //target RNA start index
-    int min_prf;                  //min profile that was found
-    int max_prf;                  //max profile that was found
-    int min_tl;                   //minimum transcript length
-    int max_tl;                   //maximum transcript length
+    int min_id;                   //minimum id
+    int max_id;                   //maximum id
+    int len[2];                   //min and max target length
     int trg_rct_cnt;              //target nucleotide reactivity count
     double cnf;                   //calculated normalization factor
 } SM2_analysis_directory;

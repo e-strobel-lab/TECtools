@@ -14,7 +14,8 @@
 #include "../../mkmtrx/mkmtrx_defs.h"
 #include "../global/store_SM2_profile.h"
 
-#define MAX_TL 512      //maximum transcript length
+#define MIN 0           //min value index
+#define MAX 1           //max value index
 
 #define COPY 0          //op code to copy field value to merged profile
 #define RSUM 1          //op code to sum field values in merged profile

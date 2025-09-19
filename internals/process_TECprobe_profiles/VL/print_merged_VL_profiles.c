@@ -56,54 +56,55 @@ void print_merged_VL_profiles(SM2_analysis_directory * mrg, output_files * outfi
         "Norm_stderr"
     };
     
-    int tl = 0;  //transcript length index
     int col = 0; //column index
     int i = 0;   //general purpose index
+    int j = 0;   //general purpose index
     
-    for (tl = mrg->min_tl; tl <= mrg->max_tl; tl++) {           //for each transcript length
-        
+    int * ix = &mrg->indx[0]; //set pointer to target indices
+    
+    for (i = 0; ix[i] <= mrg->max_id; i++) {           //for each target
         //print header line
         for (col = 0; col < PRFL_CLMNS; col++) {                //for each column
             if (!col) {                                         //if printing the first column
-                fprintf(outfiles->ofp[tl], "%s", hdrs[col]);    //omit leading tab
+                fprintf(outfiles->ofp[ix[i]], "%s", hdrs[col]);    //omit leading tab
             } else {                                            //otherwise
-                fprintf(outfiles->ofp[tl], "\t%s", hdrs[col]);  //include leading tab
+                fprintf(outfiles->ofp[ix[i]], "\t%s", hdrs[col]);  //include leading tab
             }
         }
-        fprintf(outfiles->ofp[tl], "\n"); //print terminal newline
+        fprintf(outfiles->ofp[ix[i]], "\n"); //print terminal newline
         
         //print data line for each nucleotide
-        for (i = 0; i < mrg->data[tl].tot_nt_cnt; i++) {
-            fprintf(outfiles->ofp[tl], "%d\t", mrg->data[tl].nucleotide[i]);
-            fprintf(outfiles->ofp[tl], "%c\t", mrg->data[tl].sequence[i]);
-            fprintf(outfiles->ofp[tl], "%d\t", mrg->data[tl].mod_mutations[i]);
-            fprintf(outfiles->ofp[tl], "%d\t", mrg->data[tl].mod_read_depth[i]);
-            fprintf(outfiles->ofp[tl], "%d\t", mrg->data[tl].mod_eff_depth[i]);
-            fprintf(outfiles->ofp[tl], "%.6f\t", mrg->data[tl].mod_rate[i]);
-            fprintf(outfiles->ofp[tl], "%d\t", mrg->data[tl].mod_off_target_depth[i]);
-            fprintf(outfiles->ofp[tl], "%d\t", mrg->data[tl].mod_low_mapq_depth[i]);
-            fprintf(outfiles->ofp[tl], "%d\t", mrg->data[tl].mod_mapped_depth[i]);
-            fprintf(outfiles->ofp[tl], "%d\t", mrg->data[tl].unt_mutations[i]);
-            fprintf(outfiles->ofp[tl], "%d\t", mrg->data[tl].unt_read_depth[i]);
-            fprintf(outfiles->ofp[tl], "%d\t", mrg->data[tl].unt_eff_depth[i]);
-            fprintf(outfiles->ofp[tl], "%.6f\t", mrg->data[tl].unt_rate[i]);
-            fprintf(outfiles->ofp[tl], "%d\t", mrg->data[tl].unt_off_target_depth[i]);
-            fprintf(outfiles->ofp[tl], "%d\t", mrg->data[tl].unt_low_mapq_depth[i]);
-            fprintf(outfiles->ofp[tl], "%d\t", mrg->data[tl].unt_mapped_depth[i]);
-            fprintf(outfiles->ofp[tl], "%d\t", mrg->data[tl].den_mutations[i]);
-            fprintf(outfiles->ofp[tl], "%d\t", mrg->data[tl].den_read_depth[i]);
-            fprintf(outfiles->ofp[tl], "%d\t", mrg->data[tl].den_eff_depth[i]);
-            fprintf(outfiles->ofp[tl], "%.6f\t", mrg->data[tl].den_rate[i]);
-            fprintf(outfiles->ofp[tl], "%d\t", mrg->data[tl].den_off_target_depth[i]);
-            fprintf(outfiles->ofp[tl], "%d\t", mrg->data[tl].den_low_mapq_depth[i]);
-            fprintf(outfiles->ofp[tl], "%d\t", mrg->data[tl].den_mapped_depth[i]);
-            fprintf(outfiles->ofp[tl], "%.6f\t", mrg->data[tl].reactivity_profile[i]);
-            fprintf(outfiles->ofp[tl], "%.6f\t", mrg->data[tl].std_err[i]);
-            fprintf(outfiles->ofp[tl], "%.6f\t", mrg->data[tl].hq_profile[i]);
-            fprintf(outfiles->ofp[tl], "%.6f\t", mrg->data[tl].hq_stderr[i]);
-            fprintf(outfiles->ofp[tl], "%.6f\t", mrg->data[tl].dataset_norm_profile[i]);
-            fprintf(outfiles->ofp[tl], "%.6f", mrg->data[tl].dataset_norm_stderr[i]);
-            fprintf(outfiles->ofp[tl],"%c", (i+1 == mrg->data[tl].tot_nt_cnt) ?  '\0' : '\n');
+        for (j = 0; j < mrg->data[ix[i]].tot_nt_cnt; j++) {
+            fprintf(outfiles->ofp[ix[i]], "%d\t",   mrg->data[ix[i]].nucleotide[j]);
+            fprintf(outfiles->ofp[ix[i]], "%c\t",   mrg->data[ix[i]].sequence[j]);
+            fprintf(outfiles->ofp[ix[i]], "%d\t",   mrg->data[ix[i]].mod_mutations[j]);
+            fprintf(outfiles->ofp[ix[i]], "%d\t",   mrg->data[ix[i]].mod_read_depth[j]);
+            fprintf(outfiles->ofp[ix[i]], "%d\t",   mrg->data[ix[i]].mod_eff_depth[j]);
+            fprintf(outfiles->ofp[ix[i]], "%.6f\t", mrg->data[ix[i]].mod_rate[j]);
+            fprintf(outfiles->ofp[ix[i]], "%d\t",   mrg->data[ix[i]].mod_off_target_depth[j]);
+            fprintf(outfiles->ofp[ix[i]], "%d\t",   mrg->data[ix[i]].mod_low_mapq_depth[j]);
+            fprintf(outfiles->ofp[ix[i]], "%d\t",   mrg->data[ix[i]].mod_mapped_depth[j]);
+            fprintf(outfiles->ofp[ix[i]], "%d\t",   mrg->data[ix[i]].unt_mutations[j]);
+            fprintf(outfiles->ofp[ix[i]], "%d\t",   mrg->data[ix[i]].unt_read_depth[j]);
+            fprintf(outfiles->ofp[ix[i]], "%d\t",   mrg->data[ix[i]].unt_eff_depth[j]);
+            fprintf(outfiles->ofp[ix[i]], "%.6f\t", mrg->data[ix[i]].unt_rate[j]);
+            fprintf(outfiles->ofp[ix[i]], "%d\t",   mrg->data[ix[i]].unt_off_target_depth[j]);
+            fprintf(outfiles->ofp[ix[i]], "%d\t",   mrg->data[ix[i]].unt_low_mapq_depth[j]);
+            fprintf(outfiles->ofp[ix[i]], "%d\t",   mrg->data[ix[i]].unt_mapped_depth[j]);
+            fprintf(outfiles->ofp[ix[i]], "%d\t",   mrg->data[ix[i]].den_mutations[j]);
+            fprintf(outfiles->ofp[ix[i]], "%d\t",   mrg->data[ix[i]].den_read_depth[j]);
+            fprintf(outfiles->ofp[ix[i]], "%d\t",   mrg->data[ix[i]].den_eff_depth[j]);
+            fprintf(outfiles->ofp[ix[i]], "%.6f\t", mrg->data[ix[i]].den_rate[j]);
+            fprintf(outfiles->ofp[ix[i]], "%d\t",   mrg->data[ix[i]].den_off_target_depth[j]);
+            fprintf(outfiles->ofp[ix[i]], "%d\t",   mrg->data[ix[i]].den_low_mapq_depth[j]);
+            fprintf(outfiles->ofp[ix[i]], "%d\t",   mrg->data[ix[i]].den_mapped_depth[j]);
+            fprintf(outfiles->ofp[ix[i]], "%.6f\t", mrg->data[ix[i]].reactivity_profile[j]);
+            fprintf(outfiles->ofp[ix[i]], "%.6f\t", mrg->data[ix[i]].std_err[j]);
+            fprintf(outfiles->ofp[ix[i]], "%.6f\t", mrg->data[ix[i]].hq_profile[j]);
+            fprintf(outfiles->ofp[ix[i]], "%.6f\t", mrg->data[ix[i]].hq_stderr[j]);
+            fprintf(outfiles->ofp[ix[i]], "%.6f\t", mrg->data[ix[i]].dataset_norm_profile[j]);
+            fprintf(outfiles->ofp[ix[i]], "%.6f",   mrg->data[ix[i]].dataset_norm_stderr[j]);
+            fprintf(outfiles->ofp[ix[i]],"%c", (j+1 == mrg->data[ix[i]].tot_nt_cnt) ?  '\0' : '\n');
         }
     }
 }
