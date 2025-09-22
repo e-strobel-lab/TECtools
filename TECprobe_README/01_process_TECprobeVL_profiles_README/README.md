@@ -16,6 +16,8 @@ If more than one input directory is provided, `process_TECprobeVL_profiles` will
   
 Required:
 ```
+-m/--mode <RUN_MODE>            process_TECprobeVL_profiles run mode. Currently, the only run mode is
+                                MULTILENGTH.
 -i/--input <data_directory>     Input TECprobe-VL data directory. This should be the directory in which the
                                 ShapeMapper2 run script was executed. If more than one compatible input directory
                                 is provided, the data will be merged.
