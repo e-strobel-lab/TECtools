@@ -132,9 +132,9 @@ int get_profiles(char * prnt_dir, cotrans_matrix * mtrx, alignment_stats * algn,
                 
                 //set sample name
                 if (i == 1 && !sample_name_set) { //if reading SM2 output dir and sample name is not set
-                    strcpy(smpl_nm, ntry_name);   //set the sample name
-                    remove_out_suffix(smpl_nm);   //remove the out suffix from the directory
-                    sample_name_set = 1;          //set flag that the sample name was set
+                    strcpy(smpl_nm, ntry_name);            //set the sample name
+                    remove_id_and_suffix(smpl_nm, "_out"); //remove the id and out suffix from the dir name
+                    sample_name_set = 1;                   //set flag that the sample name was set
                 }
                 
                 strcpy(tmp_file_loc, file_loc); //copy current file_loc to tmp_file_loc

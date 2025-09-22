@@ -46,8 +46,8 @@ typedef struct parsed_sample_name {
 /* parse_VL_sample_name: parse sample name for attributes that were specified in the TECprobe analysis config */
 void parse_VL_sample_name(char * ipt_nm, tprobe_configuration * cfg);
 
-/* remove_out_suffix: remove "_out" suffix from sample name */
-void remove_out_suffix (char * snm);
+/* remove_id_and_suffix: remove "_out" suffix from sample name */
+int remove_id_and_suffix (char * snm, char * sffx);
 
 /* remove_simple_uffix: remove a string of characters from the end of a TECprobe sample name */
 void remove_simple_suffix(char * sn, char * str2rmv);

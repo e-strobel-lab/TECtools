@@ -19,6 +19,8 @@
 
 #include "read_VL_analysis_directories.h"
 
+const char empty_SM2out[6] = "empty";
+
 /* read_prnt_directory: read parent shapemapper 2 analysis directory and identify target analysis sub-folders*/
 int read_prnt_directory(SM2_analysis_directory * an_dir, int dir_num, sample_names * sn)
 {
@@ -204,8 +206,8 @@ int read_target_directory(SM2_analysis_directory * an_dir, int dir_num, int crnt
                     abort();
                 }
                 
-                remove_out_suffix(sn->ipt[sn->cnt]); //remove output suffix
-                sn->cnt++;                           //increment sample name count
+                remove_id_and_suffix(sn->ipt[sn->cnt], out_sffx); //remove output suffix
+                sn->cnt++;                                        //increment sample name count
             }
             
             //construct relative shapemapper 2 output directory path
@@ -230,6 +232,8 @@ int read_target_directory(SM2_analysis_directory * an_dir, int dir_num, int crnt
 /* read_SM2out_directory: read shapemapper 2 output directory and open reactivity profile file */
 int read_SM2out_directory(SM2_analysis_directory * an_dir, int crnt_id, char * out_dir_nm)
 {
+    extern const char empty_SM2out[6];
+    
     int i = 0; //general purpose index
     
     struct dirent *dir = NULL; //directory entry pointer
@@ -280,6 +284,13 @@ int read_SM2out_directory(SM2_analysis_directory * an_dir, int crnt_id, char * o
         return 1;
         
     } else if (!profile_cnt) { //no reactivity profiles were found
+        
+        //store location as "empty"
+        if ((an_dir->loc[crnt_id] = malloc((strlen(empty_SM2out)+1) * sizeof(*(an_dir->loc[crnt_id])))) == NULL) {
+            printf("read_SM2out_directory: error - memory allocation for profile relative filepath storage failed. aborting...\n");
+            abort();
+        }
+        strcpy(an_dir->loc[crnt_id], empty_SM2out);
         return 0;
         
     } else if (profile_cnt > 1) { //if more than one reactivity profile was found, abort

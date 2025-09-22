@@ -11,6 +11,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <limits.h>
 
 #include "../../global/global_defs.h"
 
@@ -29,7 +30,7 @@ void validate_VL_an_dir_contiguity(SM2_analysis_directory * an_dir);
 
 /* validate_VL_an_dir_compatibility: verify that TECprobe-VL analysis
    directories contain the same number and range of transcript lengths */
-void validate_VL_an_dir_compatibility(SM2_analysis_directory * an_dir, int dir_count);
+void validate_an_dir_compatibility(SM2_analysis_directory * an_dir, int dir_count);
 
 /* validate_channel_configuration: verify that profile contains a valid channel configuration */
 void validate_channel_configuration(channel_tracker * chnls);

@@ -44,6 +44,9 @@ void print_processing_record(sample_names * sn, output_files * outfiles, SM2_ana
 int main(int argc, char *argv[])
 {
     extern int debug; //debug mode flag
+    extern const char empty_SM2out[6];
+    
+    int mode = -1; //data processing mode
     
     char * prnt_dir_nm[MAX_RUNS] = {NULL}; //list of parent directories
     
@@ -74,6 +77,7 @@ int main(int argc, char *argv[])
     while (1) {
         static struct option long_options[] =
         {
+            {"mode",           required_argument, 0, 'm'}, //set mode
             {"input",          required_argument, 0, 'i'}, //shapemapper analysis directory
             {"out_dir_name",   required_argument, 0, 'o'}, //output directory name
             {"sample-name",    required_argument, 0, 'n'}, //user-supplied sample name
@@ -85,14 +89,26 @@ int main(int argc, char *argv[])
             {0, 0, 0, 0}
         };
         
-        c = getopt_long(argc, argv, "i:o:n:de:b:ay", long_options, &option_index);
+        c = getopt_long(argc, argv, "m:i:o:n:de:b:ay", long_options, &option_index);
         
         if (c == -1) {
             break;
         }
         switch (c) {
             case 0: /*printf("long option\n");*/ break;
+            
+            case 'm': //set mode
+                if (!strcmp(argv[optind-1], "MULTILENGTH")) {
+                    mode = MLT;
+                } else if (!strcmp(argv[optind-1], "MULTIPLEX")) {
+                    mode = MUX;
+                } else {
+                    printf("process_TECprobe_profiles: error - unexpected run mode. valid run modes currently include: MULTILENGTH. aborting...\n");
+                    abort();
+                }
                 
+                break;
+            
             case 'i': //input directory
                 if (dir_count < MAX_RUNS) { //if the number of input directories has not exceed the max
                     
@@ -181,6 +197,11 @@ int main(int argc, char *argv[])
     }
     /*********** end of option parsing ***********/
     
+    if (mode == -1) {
+        printf("process_TECprobe_profiles: error - run mode was not set. valid run modes currently include: MULTILENGTH. aborting...\n");
+        abort();
+    }
+    
     //check that input directory was provided
     if (dir_count < 1) {
         printf("process_TECprobeVL_profiles: error - too few input directories (%d) were provided. aborting...\n" ,dir_count);
@@ -228,11 +249,14 @@ int main(int argc, char *argv[])
         //open all relevant directories and files in the parent directory
         //then validate that transcript length profiles are contiguous
         an_dir[i].prfs_cnt = read_prnt_directory(&an_dir[i], i, &sn);
-        validate_VL_an_dir_contiguity(&an_dir[i]);
+        
+        if (mode == MLT) {
+            validate_VL_an_dir_contiguity(&an_dir[i]);
+        }
     }
     
     //validate the compatibility of the analysis directories
-    validate_VL_an_dir_compatibility(&an_dir[0], dir_count);
+    validate_an_dir_compatibility(&an_dir[0], dir_count);
     
     //parse input sample names and generate merged sample name
     //an auto-generated sample name is always constructed because
@@ -253,21 +277,31 @@ int main(int argc, char *argv[])
         for (j = 0; ix[j] <= an_dir[i].max_id; j++) { //for each target
             if (an_dir[i].loc[ix[j]] != NULL) { //if a profile was found for the current target
                 
-                //store the shapemapper2 profile and add the number of
-                //target RNA nucleotide reactivity values to the total
-                store_SM2_profile(&an_dir[i].data[ix[j]], an_dir[i].loc[ix[j]]);
-                an_dir[i].trg_rct_cnt += an_dir[i].data[ix[j]].trg_nt_cnt;
-                
-                if (an_dir[i].data[ix[j]].chnls.mod) {
-                    mod_detected = 1;
-                }
-                
-                if (an_dir[i].data[ix[j]].chnls.unt) {
-                    unt_detected = 1;
-                }
-                
-                if (an_dir[i].data[ix[j]].chnls.den) {
-                    den_detected = 1;
+                if (strcmp(an_dir[i].loc[ix[j]], empty_SM2out)) {
+                    
+                    //store the shapemapper2 profile and add the number of
+                    //target RNA nucleotide reactivity values to the total
+                    store_SM2_profile(&an_dir[i].data[ix[j]], an_dir[i].loc[ix[j]]);
+                    an_dir[i].trg_rct_cnt += an_dir[i].data[ix[j]].trg_nt_cnt;
+                    
+                    if (an_dir[i].data[ix[j]].chnls.mod) {
+                        mod_detected = 1;
+                    }
+                    
+                    if (an_dir[i].data[ix[j]].chnls.unt) {
+                        unt_detected = 1;
+                    }
+                    
+                    if (an_dir[i].data[ix[j]].chnls.den) {
+                        den_detected = 1;
+                    }
+                    
+                } else {
+                    //initialize empty profiles for missing targets
+                    //target start from the first target in the current directory is used during initialization
+                    //TODO: decide how to set length of empty profile
+                    allocate_SM2_profile_memory(&an_dir[i].data[ix[j]], ix[j]+an_dir[i].data[ix[0]].trgt_start);
+                    initialize_empty_profile(&an_dir[i].data[ix[j]], ix[j], an_dir[i].data[ix[0]].trgt_start);
                 }
             }
         }
@@ -293,15 +327,6 @@ int main(int argc, char *argv[])
         //verify that each transcript sequence is a substring of the
         //next transcript sequence
         validate_transcript_substrings(&an_dir[i]);
-        
-        //initialize empty profiles for missing targets
-        ix = &an_dir[i].indx[0]; //set pointer to target indices
-        for (j = 0; ix[j] <= an_dir[i].max_id; j++) {
-            if (an_dir[i].loc[ix[j]] == NULL) {
-                allocate_SM2_profile_memory(&an_dir[i].data[ix[j]], ix[j]+an_dir[i].trgt_start);
-                initialize_empty_profile(&an_dir[i].data[ix[j]], ix[j], an_dir[i].trgt_start);
-            }
-        }
         
         //perform whole dataset reactivity normalization
         normalize_VL_reactivities(&an_dir[i], min_depth, max_bkg, norm_all, verify_norm);

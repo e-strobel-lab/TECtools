@@ -331,30 +331,44 @@ void parse_VL_sample_name(char * ipt_nm, tprobe_configuration * cfg)
     }
 }
 
-/* remove_out_suffix: remove "_out" suffix from sample name */
-void remove_out_suffix (char * snm)
+/* remove_id_and_suffix: remove suffix from sample name */
+int remove_id_and_suffix (char * snm, char * sffx)
 {
-    char out_sffx[5] = {"_out"}; //output directory suffix string
-    char * p_out_sffx = NULL;    //pointer to the output directory suffix string
+    char * p_sffx = NULL; //pointer to the output directory suffix string
+    char * p_id = NULL;   //pointer to id string
     
-    //remove '_out' suffix and preceding transcript length value from sample name
-    if ((p_out_sffx = strstr(snm, out_sffx)) != NULL) { //search sample name for '_out' suffix
+    uint64_t i = 0;               //general purpose index
+    uint64_t preceding_chars = 0; //number of characters that precede suffix in sample name
+
+    int j = 0;     //general purpose index
+    int nmrcl = 0; //flag that chars between suffix and prev underscore are all digits
+    
+    //remove '_out' suffix and preceding target id value from sample name
+    if ((p_sffx = strstr(snm, sffx)) != NULL) { //search sample name for  suffix
         
-        if ((((uint64_t)(p_out_sffx)) - ((uint64_t)(snm))) > 4) { //check that characters precede suffix
-            if (p_out_sffx[-4] == '_'  &&  //check for three-digit transcript length
-                isdigit(p_out_sffx[-3]) && //value and for an underscore that
-                isdigit(p_out_sffx[-2]) && //precedes the transcript length value
-                isdigit(p_out_sffx[-1])) {
-                
-                p_out_sffx[-4] = '\0'; //truncatetranscript length value and '_out' suffix
-                
-            } else { //'_out' suffix must be preceded by'_<3-digit transcript length>'
-                printf("parse_sample_name: error - unexpected format for out suffix. aborting...\n");
-                abort();
+        p_sffx[0] = '\0';                                             //truncate suffix
+        preceding_chars = (((uint64_t)(p_sffx)) - ((uint64_t)(snm))); //determine how many chars precede suffix
+        
+        //iterate upstream until an underscore is found, all preceding characters
+        //have been assessed, or a non-digit character has been identified
+        for (i = 0, j = -1, nmrcl = 1; i < preceding_chars && p_sffx[j] != '_' && nmrcl; i++, j--) {
+            if (!isdigit(p_sffx[j])) {
+                nmrcl = 0;
             }
+        }
+        
+        if (nmrcl && p_sffx[j] == '_') { //if a numerical id was found
             
-        } else { //'_out' suffix must be preceded by'_<3-digit transcript length>'
-            printf("parse_sample_name: error - expected >4 characters to preceded '_out' string in directory name. aborting...\n");
+            p_sffx[j] = '\0';    //terminate the string ahead of the id and out suffix
+            p_id = &p_sffx[j+1]; //set pointer to the id/out suffix
+            return atoi(p_id);   //return id value
+            
+        } else if (!nmrcl || i == preceding_chars) { //if id isn't numerical, or preceding uscore was not found
+            printf("parse_sample_name: error - unexpected format for sample name %s. '_out' is expected to be preceded by a string of digits, which are preceded by an underscore. aborting...\n", snm);
+            abort();
+            
+        } else {
+            printf("parse_sample_name: error - not sure why we are here...");
             abort();
         }
         

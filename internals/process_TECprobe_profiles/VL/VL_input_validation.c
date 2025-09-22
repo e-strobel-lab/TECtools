@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <limits.h>
 
 #include "../../global/global_defs.h"
 
@@ -17,6 +18,7 @@
 #include "./process_TECprobeVL_profiles_structs.h"
 
 #include "../global/store_SM2_profile.h"
+#include "./read_VL_analysis_directories.h"
 
 #include "VL_input_validation.h"
 
@@ -25,6 +27,8 @@
    no out-of-bounds transcript lengths are present. */
 void validate_VL_an_dir_contiguity(SM2_analysis_directory * an_dir)
 {
+    extern const char empty_SM2out[6];
+    
     int i = 0; //general purpose index
     
     int * ix = &an_dir->indx[0]; //set pointer to target indices
@@ -38,11 +42,8 @@ void validate_VL_an_dir_contiguity(SM2_analysis_directory * an_dir)
             abort();
         }
         
-        //check that all transcript lengths within the min_tl/max_tl bounds have
-        //an associated profile. throw warning rather than error, since it is
-        //possible for a profile to be absent if no reads were assigned to that
-        //transcrip length
-        if (an_dir->loc[ix[i]] == NULL && (ix[i] >= an_dir->min_id && ix[i] <= an_dir->max_id)) {
+        //check for missing transcript lengths
+        if (!strcmp(an_dir->loc[ix[i]], empty_SM2out)) {
             printf("validate_VL_an_dir_contiguity: warning - missing transcript length %d in %s data set.\n", ix[i], an_dir->prnt_dir_nm);
         }
     }
@@ -52,31 +53,55 @@ void validate_VL_an_dir_contiguity(SM2_analysis_directory * an_dir)
 
 /* validate_VL_an_dir_compatibility: verify that TECprobe-VL analysis
    directories contain the same number and range of transcript lengths */
-void validate_VL_an_dir_compatibility(SM2_analysis_directory * an_dir, int dir_count)
+void validate_an_dir_compatibility(SM2_analysis_directory * an_dir, int dir_count)
 {
     int i = 0; //general purpose index
+    int j = 0; //general purpose index
+    
+    int * ix1 = NULL; //pointer to target index for analysis directory zero
+    int * ix2 = NULL; //pointer to target index for other analysis directories
     
     if (dir_count < 2) { //check that more than 1 analysis directory was supplied
         return;
         
     } else { //verify compatibility of all input directories
+        
+        ix1 = &an_dir[0].indx[0]; //point ix1 to analysis directory 0 index array
+        
         for (i = 1; i < dir_count; i++) {
             
             //check that the number of out directories opened matches that of the first parent directory
             if (an_dir[i].outs_cnt != an_dir[0].outs_cnt) {
-                printf("validate_VL_an_dir_compatibility: warning - the number of shapemapper2 analysis directories opened is not the same for all input directories (first = %d, current = %d). aborting...\n", an_dir[0].outs_cnt, an_dir[i].outs_cnt);
+                printf("validate_an_dir_compatibility: warning - the number of shapemapper2 analysis directories opened is not the same for all input directories (first = %d, current = %d). aborting...\n", an_dir[0].outs_cnt, an_dir[i].outs_cnt);
                 abort();
             }
             
-            //check that the minimum transcript length matches that of the first parent directory
-            if (an_dir[i].len[MIN] != an_dir[0].len[MIN]) {
-                printf("validate_VL_an_dir_compatibility: error - the minimum transcript length is not the same for all input directories. aborting...\n");
-                abort();
+            //check that the maximum target id matches that of the first parent directory
+            if (an_dir[i].max_id != an_dir[0].max_id) {
+                printf("validate_an_dir_compatibility: error - input analysis directories are incompatible. aborting...\n");
             }
             
-            //check that the maximum transcript length matches that of the first parent directory
-            if (an_dir[i].len[MAX] != an_dir[0].len[MAX]) {
-                printf("validate_VL_an_dir_compatibility: error - the maximum transcript length is not the same for all input directories. aborting...\n");
+            //check that file location/"empty" string are located at the same id indices
+            for (j = 0; j <= an_dir[0].max_id; j++) {
+                if ((an_dir[i].loc[j] == NULL && an_dir[0].loc[j] != NULL) ||
+                    (an_dir[i].loc[j] != NULL && an_dir[0].loc[j] == NULL)) {
+                    printf("validate_an_dir_compatibility: error - input analysis directories are incompatible. aborting...;");
+                    abort();
+                }
+            }
+            
+            //check that target id indexing matches that of the first parent directory
+            ix2 = &an_dir[i].indx[0]; //point ix2 to current analysis directory index array
+            for (j = 0; (ix1[j] <= an_dir[0].max_id) && (ix2[j] <= an_dir[i].max_id); j++) {
+                
+                if (ix1[j] != ix2[j]) { //if target ids are not aligned, throw error and abort
+                    printf("validate_an_dir_compatibility: error - target ids from input analysis directories 0 and %d are not aligned. aborting...\n", ix2[j]);
+                    abort();
+                }
+            }
+            
+            if (ix1[j] != INT_MAX || ix2[j] != INT_MAX) { //if either loop did not terminate at INT_MAX sentinel
+                printf("validate_an_dir_compatibility: error - target ids from input analysis directories 0 and %d are not aligned. aborting...\n", ix2[j]);
                 abort();
             }
         }
@@ -167,6 +192,8 @@ void validate_ext_start_ix_compatibility(int ix1, int ix2)
    a substring of the transcript with length n+1 */
 void validate_transcript_substrings(SM2_analysis_directory * an_dir)
 {
+    extern const char empty_SM2out[6];
+    
     int i = 0;                 //general purpose index
     int skipped = 0;           //tracks how many transcript lengths were skipped
     
@@ -191,7 +218,7 @@ void validate_transcript_substrings(SM2_analysis_directory * an_dir)
     //i was already incremented above
     for (; ix[i] <= an_dir->max_id; i++) { //for every length after min opened
         
-        if (an_dir->loc[ix[i]] != NULL) { //if a profile was opened
+        if (strcmp(an_dir->loc[ix[i]], empty_SM2out)) { //if a profile was opened
             
             //check that previous sequence is a substring of the current sequence
             if ((p_substring = strstr(an_dir->data[ix[i]].sequence, p_last_seq)) == NULL) {

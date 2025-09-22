@@ -14,6 +14,9 @@
 #include "../../mkmtrx/mkmtrx_defs.h"
 #include "../global/store_SM2_profile.h"
 
+#define MLT 0           //multilength mode
+#define MUX 1           //multiplex mode
+
 #define MIN 0           //min value index
 #define MAX 1           //max value index
 
