@@ -87,6 +87,7 @@ int main(int argc, char *argv[])
     int first_bc_2_use = 1;    //first barcode id to use. default = 1
     int append_priming = 0;    //flag to append C3-SC1 and VRA3 priming sites
     int make_fasta = 0;        //flag to make fasta file
+    int lib_type = -1;         //flag to indicate library type
         
     char usr_resp[4] = {0};         //storage for user response
     char discard[MAX_LINE+1] = {0}; //array for flushing stdin
@@ -190,12 +191,14 @@ int main(int argc, char *argv[])
                     rev2use = &vra3[0];
                     lnkr = &cstm_lnkr[0];
                     TECd_library = 1;
+                    lib_type = TECDISPLAY_LIB;
                     
                 } else if (!strcmp(argv[optind-1], "TECprobe-MUX")) { //use TECprobe priming sites
                     fwd2use = &pra1_sc1[0];
                     rev2use = &vra3[0];
                     lnkr = &RLA29synch_3p11[0];
                     MUX_library = 1;
+                    lib_type = TECPROBE_MUX_LIB;
                     
                 } else {
                     printf("variant_maker: ERROR - unrecognized priming site set. aborting...\n");
@@ -262,7 +265,7 @@ int main(int argc, char *argv[])
         return 1;           //end program after barcodes are made
     }
     
-    if (MUX_library && strcmp(cstm_lnkr, "exclude")) {
+    if ((lib_type == TECPROBE_MUX_LIB) && strcmp(cstm_lnkr, "exclude")) {
         printf("variant_maker: error - custom linker sequences cannot be used in TECprobe-MUX libraries. aborting...\n");
         abort();
     }
@@ -350,7 +353,7 @@ int main(int argc, char *argv[])
         }
     }
     
-    print_output(&nm, &bmap[0], vTmpCnt, varCnt, out_dir, append_priming, append_barcode, fp_brcd, first_bc_2_use, lnkr, make_fasta);
+    print_output(&nm, &bmap[0], vTmpCnt, varCnt, out_dir, append_priming, append_barcode, fp_brcd, first_bc_2_use, lnkr, make_fasta, lib_type);
     sprintf(out_msg, "\n%llu variants were generated from %d variant template(s)\n", (long long unsigned int)(v_indx-vTmpCnt), vTmpCnt);
     printf2_scrn_n_fl(prcs_ofp, out_msg);
     /* ******* end of variant generation ******* */

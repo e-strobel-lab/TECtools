@@ -21,7 +21,7 @@
 #include "print_output.h"
 
 /* print_output: print variants (without barcode) to output file */
-void print_output(names * nm, basemap * bmap, int vTmpCnt, int varCnt, char * out_dir, int append_priming, int append_barcode, FILE * fp_brcd, int first_bc_2_use, char * lnkr, int make_fasta)
+void print_output(names * nm, basemap * bmap, int vTmpCnt, int varCnt, char * out_dir, int append_priming, int append_barcode, FILE * fp_brcd, int first_bc_2_use, char * lnkr, int make_fasta, int lib_type)
 {
     extern fasta *vrnts;    //array of variant sequences
     extern uint64_t v_indx; //index for vrnts array
@@ -155,7 +155,7 @@ void print_output(names * nm, basemap * bmap, int vTmpCnt, int varCnt, char * ou
             if (append_barcode) { //print variant sequence that contains a barcode
                 print_barcoded_variant(fp_brcd, out_fp, fasta_fp, append_priming, lnkr, vTmpCnt, i, bcs_per_var, first_bc_2_use, make_fasta);
             } else { //print variant sequence that does not contain a barcode
-                print_standard_variant(out_fp, fasta_fp, append_priming, i, make_fasta);
+                print_standard_variant(out_fp, fasta_fp, append_priming, i, make_fasta, lib_type);
             }
         }
     }
@@ -178,7 +178,7 @@ void print_output(names * nm, basemap * bmap, int vTmpCnt, int varCnt, char * ou
 }
 
 /* print_standard_variant: print variant sequence that does not contain a barcode */
-void print_standard_variant(FILE * out_fp, FILE * fasta_fp, int append_priming, int crrnt_var, int make_fasta)
+void print_standard_variant(FILE * out_fp, FILE * fasta_fp, int append_priming, int crrnt_var, int make_fasta, int lib_type)
 {
     extern fasta *vrnts;    //array of variant sequences
     extern uint64_t v_indx; //index for vrnts array
@@ -205,6 +205,10 @@ void print_standard_variant(FILE * out_fp, FILE * fasta_fp, int append_priming, 
     }
     
     strcat(seq, vrnts[crrnt_var].sq); //append variant sequence
+    
+    if (lib_type == TECDISPLAY_LIB) {
+        //TODO: add random 5 nt sequence to target
+    }
     
     if (append_priming) {             //if appending priming sites
         strcat(seq, rev2use);         //append the reverse priming site sequence

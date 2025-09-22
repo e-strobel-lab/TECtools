@@ -15,7 +15,10 @@
 #include "../../global/global_defs.h"
 #include "../../mkmtrx/mkmtrx_defs.h"
 
+#include "../../cotrans_preprocessor/cotrans_preprocessor_defs.h"
 #include "../../cotrans_preprocessor/run_script_gen/UNV/config_struct.h"
+
+#include "../../seq_utils/isRNAbase.h"
 
 #include "./process_TECprobeVL_profiles_defs.h"
 #include "./process_TECprobeVL_profiles_structs.h"

@@ -15,6 +15,8 @@
 #include "../../cotrans_preprocessor/cotrans_preprocessor_defs.h"
 #include "../../cotrans_preprocessor/run_script_gen/UNV/config_struct.h"
 
+#include "../../seq_utils/isRNAbase.h"
+
 #include "./process_TECprobeVL_profiles_defs.h"
 #include "./process_TECprobeVL_profiles_structs.h"
 #include "../global/calculate_normalization_factor.h"
@@ -28,7 +30,9 @@ int merge_VL_profiles(SM2_analysis_directory * an_dir, int dir_count, SM2_analys
     int i = 0;     //general purpose index
     int j = 0;     //general purpose index
     int col = 0;   //column index
-    int d   = 0;   //directory index
+    int d = 0;     //directory index
+    
+    char * p_sq = NULL; //pointer to the nucleotide string that will be copied into the merged profile
     
     //allocate memory for mrg profile data
     if ((mrg->data = calloc(an_dir[0].max_id+1, sizeof(*mrg->data))) == NULL) {
@@ -76,12 +80,25 @@ int merge_VL_profiles(SM2_analysis_directory * an_dir, int dir_count, SM2_analys
         mrg->data[ix[i]].chnls.mod = an_dir[0].chnls.mod;
         mrg->data[ix[i]].chnls.unt = an_dir[0].chnls.unt;
         mrg->data[ix[i]].chnls.den = an_dir[0].chnls.den;
+                
+        //check if any of the current target id files contain the nucleotide string
+        //(The nt seq of empty SM2 out file placeholders is a string of n/N's)
+        for (d = 0, p_sq = NULL; d < dir_count && p_sq == NULL; d++) {
+            if (isRNAbase(an_dir[d].data[ix[i]].sequence[0])) {
+                p_sq = &an_dir[d].data[ix[i]].sequence[0];
+            }
+        }
+         
+        //if all SM2 out files are empty, point to the nucleotide string of the first file
+        if (p_sq == NULL) {
+            p_sq = &an_dir[0].data[ix[i]].sequence[0];
+        }
         
         //TODO: check that tot nucleotide count is the same for all inputs
         for (j = 0; j < an_dir[0].data[ix[i]].tot_nt_cnt; j++) { //for every line of the profile file
                         
             mrg->data[ix[i]].nucleotide[j] = an_dir[0].data[ix[i]].nucleotide[j]; //copy nucleotide number
-            mrg->data[ix[i]].sequence[j]   = an_dir[0].data[ix[i]].sequence[j];   //copy sequence
+            mrg->data[ix[i]].sequence[j]   = p_sq[j];                             //copy sequence
                         
             mrg->data[ix[i]].std_err[j] = NAN;     //mask std err
             mrg->data[ix[i]].hq_stderr[j] = NAN;   //mask hq std err
