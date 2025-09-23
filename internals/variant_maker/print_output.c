@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <time.h>
 
 #include "../global/global_defs.h"
 #include "../global/global_structs.h"
@@ -20,11 +21,13 @@
 
 #include "print_output.h"
 
-/* print_output: print variants (without barcode) to output file */
+/* print_output: print variants to output file */
 void print_output(names * nm, basemap * bmap, int vTmpCnt, int varCnt, char * out_dir, int append_priming, int append_barcode, FILE * fp_brcd, int first_bc_2_use, char * lnkr, int make_fasta, int lib_type)
 {
     extern fasta *vrnts;    //array of variant sequences
     extern uint64_t v_indx; //index for vrnts array
+    
+    srand(time(NULL));
     
     int i = 0; //general purpose index
     int j = 0; //general purpose index
@@ -191,6 +194,8 @@ void print_standard_variant(FILE * out_fp, FILE * fasta_fp, int append_priming, 
     char seq[MAX_LINE+1] = {0};  //array to store sequence
     int len = 0;                 //length of sequence
     
+    char * rndm_spcr = NULL; //pointer for storing randomized spacer sequence, if necessary
+    
     //calculate output sequence length
     len += strlen(vrnts[crrnt_var].sq);
     len += append_priming ? (strlen(fwd2use) + strlen(rev2use)) : 0;
@@ -206,8 +211,14 @@ void print_standard_variant(FILE * out_fp, FILE * fasta_fp, int append_priming, 
     
     strcat(seq, vrnts[crrnt_var].sq); //append variant sequence
     
-    if (lib_type == TECDISPLAY_LIB) {
-        //TODO: add random 5 nt sequence to target
+    //when generating a designed TECdisplay libary, it is necessary to include
+    //5 random DNA bases between the target sequence and the downstream priming
+    //site. including complex sequence here improves cluster identification
+    if (append_priming && lib_type == TECDISPLAY_LIB) {
+        mk_rndm_DNA_str(&rndm_spcr, 5); //make a random 5 DNA base string
+        strcat(seq, rndm_spcr);         //append random spacer to sequence
+        free(rndm_spcr);                //free memory that stored random spacer string
+        rndm_spcr = NULL;               //set random spacer pointer to NULL
     }
     
     if (append_priming) {             //if appending priming sites
@@ -303,4 +314,31 @@ void print_barcoded_variant(FILE * fp_brcd, FILE * out_fp, FILE * fasta_fp, int 
             }
         }
     }
+}
+
+/* mk_rndm_DNA_str: make DNA sequence composed of n random bases */
+//NOTE: memory is allocated in function and needs to be freed elsewhere
+void mk_rndm_DNA_str(char ** p_str, int n)
+{
+    if (*p_str != NULL) { //pointer to string must be NULL because mem is allocated below
+        printf("mk_rndm_DNA_str: error - input char ** must point to a null pointer. aborting...\n");
+        abort();
+        
+    } else if (((*p_str) = malloc((n+1) * sizeof(**p_str))) == NULL) { //allocate memory
+        printf("mk_rndm_DNA_str: error - failed to allocate memory for string. aborting...\n");
+        abort();
+    }
+    
+    const char N_bases[5] = "ATGC"; //base lookup for full randomization
+    int i = 0;                      //general purpose index
+    
+    //for each position of string len n, select a random DNA base
+    for (i = 0; i < n; i++) {
+        (*p_str)[i] = N_bases[rand() % strlen(N_bases)];
+    }
+    
+    (*p_str)[i] = '\0'; //terminate string
+    //printf("%s\n", *p_str);
+    
+    return;
 }
