@@ -45,10 +45,20 @@ int mk_run_script(FILE * fp_config)
     int mode = -1;                    //mode variable that will be set based on config header
     char sample_name[MAX_LINE] = {0}; //name that will be used for shapemapper2 analysis
     
-    parse_config(fp_config, &config, &mode); //parse input config file
-    check_config(&config, mode); //check global variables for each setting to confirm that they were set correctly
-    mk_run_nm(sample_name, &config);		//construct sample name for shapemapper2
-    print_MLT_SM2_script(sample_name, &config); //generate shapemapper2 run script
+    parse_config(fp_config, &config, &mode);    //parse input config file
+    check_config(&config, mode);                //check that global variables were set correctly
+    mk_run_nm(sample_name, &config);		    //construct sample name for shapemapper2
+    
+    if (mode == MULTI || mode == SINGLE) {
+        print_MLT_SM2_script(sample_name, &config); //generate shapemapper2 run script
+        
+    } else if (mode == MULTIPLEX) {
+        //parse_brcd_id_list();
+        
+    } else {
+        printf("mk_run_script: error - unexpected run mode. aborting...\n");
+        abort();
+    }
     
     printf("%s\n\n", sample_name);    //print final sample name
     
