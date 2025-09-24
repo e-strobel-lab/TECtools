@@ -1,5 +1,5 @@
 //
-//  print_merged_VL_profiles.c
+//  print_merged_profiles.c
 //  
 //
 //  Created by Eric Strobel on 2/21/24.
@@ -13,15 +13,15 @@
 #include "../../mkmtrx/cotrans_mtrx.h"
 #include "../../mkmtrx/mkmtrx_defs.h"
 
-#include "./process_TECprobeVL_profiles_defs.h"
-#include "./process_TECprobeVL_profiles_structs.h"
+#include "../process_TECprobe_profiles_defs.h"
+#include "../process_TECprobe_profiles_structs.h"
 
-#include "../global/store_SM2_profile.h"
+#include "../UNV/store_SM2_profile.h"
 
-#include "print_merged_VL_profiles.h"
+#include "print_merged_profiles.h"
 
-/* print_merged_VL_profiles: generated merged shapemapper2 output files */
-void print_merged_VL_profiles(SM2_analysis_directory * mrg, output_files * outfiles)
+/* print_merged_profiles: generated merged shapemapper2 output files */
+void print_merged_profiles(SM2_analysis_directory * mrg, output_files * outfiles)
 {
     //list of headers used in shapemapper2 output files
     char hdrs[PRFL_CLMNS][MAX_NAME] = {

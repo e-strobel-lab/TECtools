@@ -15,6 +15,8 @@
 #include "../mkmtrx/cotrans_mtrx.h"
 #include "../utils/io_management.h"
 
+#include "../process_TECprobe_profiles/UNV/parse_sample_name.h"
+
 #include "./assemble_TECprobeLM_data_defs.h"
 #include "./assemble_TECprobeLM_data_structs.h"
 

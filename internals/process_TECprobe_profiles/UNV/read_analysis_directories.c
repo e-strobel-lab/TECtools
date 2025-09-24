@@ -1,5 +1,5 @@
 //
-//  read_VL_analysis_directories.c
+//  read_analysis_directories.c
 //  
 //
 //  Created by Eric Strobel on 1/25/24.
@@ -12,12 +12,12 @@
 
 #include "../../global/global_defs.h"
 #include "../../mkmtrx/mkmtrx_defs.h"
-#include "./process_TECprobeVL_profiles_defs.h"
-#include "./process_TECprobeVL_profiles_structs.h"
+#include "../process_TECprobe_profiles_defs.h"
+#include "../process_TECprobe_profiles_structs.h"
 
-#include "parse_VL_sample_name.h"
+#include "parse_sample_name.h"
 
-#include "read_VL_analysis_directories.h"
+#include "read_analysis_directories.h"
 
 const char empty_SM2out[6] = "empty";
 

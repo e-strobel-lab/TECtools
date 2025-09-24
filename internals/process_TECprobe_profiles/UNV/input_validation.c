@@ -1,5 +1,5 @@
 //
-//  VL_input_validation.c
+//  input_validation.c
 //  
 //
 //  Created by Eric Strobel on 2/22/24.
@@ -14,13 +14,13 @@
 #include "../../mkmtrx/cotrans_mtrx.h"
 #include "../../mkmtrx/mkmtrx_defs.h"
 
-#include "./process_TECprobeVL_profiles_defs.h"
-#include "./process_TECprobeVL_profiles_structs.h"
+#include "../process_TECprobe_profiles_defs.h"
+#include "../process_TECprobe_profiles_structs.h"
 
-#include "../global/store_SM2_profile.h"
-#include "./read_VL_analysis_directories.h"
+#include "../UNV/store_SM2_profile.h"
+#include "./read_analysis_directories.h"
 
-#include "VL_input_validation.h"
+#include "input_validation.h"
 
 /* validate_VL_an_dir_contiguity: check that all transcript length directories
    contained within a TECprobe-VL analysis directory are contiguous and that
@@ -51,7 +51,7 @@ void validate_VL_an_dir_contiguity(SM2_analysis_directory * an_dir)
     return;
 }
 
-/* validate_VL_an_dir_compatibility: verify that TECprobe-VL analysis
+/* validate_an_dir_compatibility: verify that TECprobe analysis
    directories contain the same number and range of transcript lengths */
 void validate_an_dir_compatibility(SM2_analysis_directory * an_dir, int dir_count)
 {

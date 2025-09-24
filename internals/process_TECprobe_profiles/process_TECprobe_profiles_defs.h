@@ -1,18 +1,18 @@
 //
-//  process_TECprobeVL_profiles_defs.h
+//  process_TECprobe_profiles_defs.h
 //  
 //
 //  Created by Eric Strobel on 1/25/24.
 //
 
-#ifndef process_TECprobeVL_profiles_defs_h
-#define process_TECprobeVL_profiles_defs_h
+#ifndef process_TECprobe_profiles_defs_h
+#define process_TECprobe_profiles_defs_h
 
 #include <stdio.h>
 
-#include "../../global/global_defs.h"
-#include "../../mkmtrx/mkmtrx_defs.h"
-#include "../global/store_SM2_profile.h"
+#include "../global/global_defs.h"
+#include "../mkmtrx/mkmtrx_defs.h"
+#include "./UNV/store_SM2_profile.h"
 
 #define MLT 0           //multilength mode
 #define MUX 1           //multiplex mode
@@ -43,4 +43,4 @@
 
 #define RCT_PRFL 23     //index of Reactivity_profile column
 
-#endif /* process_TECprobeVL_profiles_defs_h */
+#endif /* process_TECprobe_profiles_defs_h */

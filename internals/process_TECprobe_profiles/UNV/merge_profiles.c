@@ -1,5 +1,5 @@
 //
-//  merge_VL_profiles.c
+//  merge_profiles.c
 //  
 //
 //  Created by Eric Strobel on 1/25/24.
@@ -17,14 +17,14 @@
 
 #include "../../seq_utils/isRNAbase.h"
 
-#include "./process_TECprobeVL_profiles_defs.h"
-#include "./process_TECprobeVL_profiles_structs.h"
-#include "../global/calculate_normalization_factor.h"
+#include "../process_TECprobe_profiles_defs.h"
+#include "../process_TECprobe_profiles_structs.h"
+#include "../UNV/calculate_normalization_factor.h"
 
-#include "merge_VL_profiles.h"
+#include "merge_profiles.h"
 
-/* merge_VL_profiles: combine data from input reactivity profiles to generate merged reactivity profile files */
-int merge_VL_profiles(SM2_analysis_directory * an_dir, int dir_count, SM2_analysis_directory * mrg, int min_depth, double max_bkg)
+/* merge_profiles: combine data from input reactivity profiles to generate merged reactivity profile files */
+int merge_profiles(SM2_analysis_directory * an_dir, int dir_count, SM2_analysis_directory * mrg, int min_depth, double max_bkg)
 {
     
     int i = 0;     //general purpose index
@@ -36,13 +36,13 @@ int merge_VL_profiles(SM2_analysis_directory * an_dir, int dir_count, SM2_analys
     
     //allocate memory for mrg profile data
     if ((mrg->data = calloc(an_dir[0].max_id+1, sizeof(*mrg->data))) == NULL) {
-        printf("merge_VL_profiles: error - failed to allocate memory for profile data. aborting...\n");
+        printf("merge_profiles: error - failed to allocate memory for profile data. aborting...\n");
         abort();
     }
     
     //allocate memory for lookup table
     if ((mrg->indx = calloc(an_dir[0].sd_cnt+1, sizeof(*mrg->indx))) == NULL) {
-        printf("merge_VL_profiles: error - failed to allocate memory for index table. aborting...\n");
+        printf("merge_profiles: error - failed to allocate memory for index table. aborting...\n");
         abort();
     }
     
@@ -74,19 +74,19 @@ int merge_VL_profiles(SM2_analysis_directory * an_dir, int dir_count, SM2_analys
             
             //check total nt count
             if (an_dir[d].data[ix[i]].tot_nt_cnt != an_dir[0].data[ix[i]].tot_nt_cnt) {
-                printf("merge_VL_profiles: discordant total nucleotide count for target %d. aborting...\n", ix[i]);
+                printf("merge_profiles: discordant total nucleotide count for target %d. aborting...\n", ix[i]);
                 abort();
             }
             
             //check target nt count
             if (an_dir[d].data[ix[i]].trg_nt_cnt != an_dir[0].data[ix[i]].trg_nt_cnt) {
-                printf("merge_VL_profiles: discordant target nucleotide count for target %d. aborting...\n", ix[i]);
+                printf("merge_profiles: discordant target nucleotide count for target %d. aborting...\n", ix[i]);
                 abort();
             }
             
             //check target start
             if (an_dir[d].data[ix[i]].trgt_start != an_dir[0].data[ix[i]].trgt_start) {
-                printf("merge_VL_profiles: discordant target start for target %d. aborting...\n", ix[i]);
+                printf("merge_profiles: discordant target start for target %d. aborting...\n", ix[i]);
                 abort();
             }
         }
@@ -242,7 +242,7 @@ int merge_VL_profiles(SM2_analysis_directory * an_dir, int dir_count, SM2_analys
                 mrg->data[ix[i]].reactivity_profile[j] = (mrg->data[ix[i]].mod_rate[j] - mrg->data[ix[i]].unt_rate[j])/mrg->data[ix[i]].den_rate[j];
                 
             } else {
-                printf("merge_VL_profiles: error - unexpected channel configuration. aborting...\n");
+                printf("merge_profiles: error - unexpected channel configuration. aborting...\n");
                 abort();
             }
             

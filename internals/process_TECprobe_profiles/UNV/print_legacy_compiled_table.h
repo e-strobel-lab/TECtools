@@ -16,10 +16,10 @@
 #include "../../mkmtrx/cotrans_mtrx.h"
 #include "../../mkmtrx/mkmtrx_defs.h"
 
-#include "./process_TECprobeVL_profiles_defs.h"
-#include "./process_TECprobeVL_profiles_structs.h"
+#include "../process_TECprobe_profiles_defs.h"
+#include "../process_TECprobe_profiles_structs.h"
 
-#include "../global/store_SM2_profile.h"
+#include "../UNV/store_SM2_profile.h"
 
 /* print_legacy_compiled_table: print aggregate TECprobe-VL profiles in the format used by Courtney's visualization tools */
 void print_legacy_compiled_table(SM2_analysis_directory * an_dir, output_files * outfiles, sample_names * sn);

@@ -21,7 +21,7 @@
 #include "./find_nxt_dir_entry.h"
 #include "./parse_log.h"
 
-#include "../process_TECprobe_profiles/VL/parse_VL_sample_name.h"
+#include "../process_TECprobe_profiles/UNV/parse_sample_name.h"
 
 /* get_profiles: read input directory to find shapemapper output files.
  then call parse_profile to store reactivity data in cotrans matrix struct*/

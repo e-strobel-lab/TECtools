@@ -1,22 +1,22 @@
 //
-//  process_TECprobeVL_profiles_structs.h
+//  process_TECprobe_profiles_structs.h
 //  
 //
 //  Created by Eric Strobel on 1/25/24.
 //
 
-#ifndef process_TECprobeVL_profiles_structs_h
-#define process_TECprobeVL_profiles_structs_h
+#ifndef process_TECprobe_profiles_structs_h
+#define process_TECprobe_profiles_structs_h
 
 #include <stdio.h>
 #include <dirent.h>
 
-#include "../../global/global_defs.h"
-#include "../../mkmtrx/mkmtrx_defs.h"
-#include "../../cotrans_preprocessor/run_script_gen/UNV/config_struct.h"
-#include "../global/store_SM2_profile.h"
+#include "../global/global_defs.h"
+#include "../mkmtrx/mkmtrx_defs.h"
+#include "../cotrans_preprocessor/run_script_gen/UNV/config_struct.h"
+#include "./UNV/store_SM2_profile.h"
 
-#include "./process_TECprobeVL_profiles_defs.h"
+#include "./process_TECprobe_profiles_defs.h"
 
 /* SM2_analysis_directory: pointers to all relevant directories and files of a TECprobe-ML data set */
 typedef struct SM2_analysis_directory {
@@ -53,4 +53,4 @@ typedef struct sample_names {
     tprobe_configuration mrgd_cfg;      //stores merged name info for automated sample name construction
 } sample_names;
 
-#endif /* process_TECprobeVL_profiles_structs_h */
+#endif /* process_TECprobe_profiles_structs_h */

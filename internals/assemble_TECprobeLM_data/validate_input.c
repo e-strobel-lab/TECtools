@@ -13,7 +13,7 @@
 #include "../mkmtrx/cotrans_mtrx.h"
 #include "../utils/io_management.h"
 
-#include "../process_TECprobe_profiles/VL/parse_VL_sample_name.h"
+#include "../process_TECprobe_profiles/UNV/parse_sample_name.h"
 
 #include "./assemble_TECprobeLM_data_defs.h"
 #include "./assemble_TECprobeLM_data_structs.h"
@@ -62,7 +62,7 @@ void validate_input (input_data * ipt, int mode)
             
             //parse sample name, then compare the attributes of current
             //sub-sample name to the attributes of the first sub-sample name
-            parse_VL_sample_name(&ipt->sn[sm][i][0], &ipt->cfg[sm][i]);
+            parse_sample_name(&ipt->sn[sm][i][0], &ipt->cfg[sm][i]);
             validate_sample_compatibility(&ipt->cfg[sm][i], &ipt->cfg[sm][0]);
         }
         

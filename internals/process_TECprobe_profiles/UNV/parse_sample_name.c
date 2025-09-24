@@ -1,5 +1,5 @@
 //
-//  parse_VL_sample_name.c
+//  parse_sample_name.c
 //  
 //
 //  Created by Eric Strobel on 2/5/24.
@@ -20,13 +20,13 @@
 #include "../../mkmtrx/cotrans_mtrx.h"
 #include "../../mkmtrx/mkmtrx_defs.h"
 
-#include "./process_TECprobeVL_profiles_defs.h"
-#include "./process_TECprobeVL_profiles_structs.h"
+#include "../process_TECprobe_profiles_defs.h"
+#include "../process_TECprobe_profiles_structs.h"
 
-#include "parse_VL_sample_name.h"
+#include "parse_sample_name.h"
 
-/* parse_VL_sample_name: parse sample name for attributes that were specified in the TECprobe analysis config */
-void parse_VL_sample_name(char * ipt_nm, tprobe_configuration * cfg)
+/* parse_sample_name: parse sample name for attributes that were specified in the TECprobe analysis config */
+void parse_sample_name(char * ipt_nm, tprobe_configuration * cfg)
 {
     extern int debug;
     
@@ -141,7 +141,7 @@ void parse_VL_sample_name(char * ipt_nm, tprobe_configuration * cfg)
             for (i = -1, found_conc_start = 0; ((uint64_t)(&prsd_sn.conc[i])) != ((uint64_t)(prsd_sn.rst)) && !found_conc_start; i--) {
                 
                 if (!isdigit(prsd_sn.conc[i]) && prsd_sn.conc[i] != '_') {
-                    printf("parse_VL_sample_name: error - found non-digit character %c in ligand concentration string. aborting...\n", prsd_sn.conc[i]);
+                    printf("parse_sample_name: error - found non-digit character %c in ligand concentration string. aborting...\n", prsd_sn.conc[i]);
                     abort();
                 } else if (prsd_sn.conc[i] == '_') {
                     
@@ -238,7 +238,7 @@ void parse_VL_sample_name(char * ipt_nm, tprobe_configuration * cfg)
         }
                 
         if (u != prsd_sn.run_cnt_I) { //parsed expected number of runIDs
-            printf("parse_VL_sample_name: error - expected %d run IDs but detected %d. aborting...\n", prsd_sn.run_cnt_I, u);
+            printf("parse_sample_name: error - expected %d run IDs but detected %d. aborting...\n", prsd_sn.run_cnt_I, u);
             abort();
         }
                     
@@ -293,7 +293,7 @@ void parse_VL_sample_name(char * ipt_nm, tprobe_configuration * cfg)
         } else if (prsd_sn.run_cnt_I > 1) { //more than one runID, set flag that sample is concatenated
             set_TF_value("TRUE", "concatenated", &cfg->concatenated);
         } else {                            //should be unreachable
-            printf("parse_VL_sample_name: run ID count is less than 1. this should not be possible. aborting...\n");
+            printf("parse_sample_name: run ID count is less than 1. this should not be possible. aborting...\n");
         }
                 
         cfg->run_count = prsd_sn.run_cnt_I; //set run count

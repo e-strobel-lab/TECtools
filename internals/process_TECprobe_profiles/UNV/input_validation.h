@@ -1,12 +1,12 @@
 //
-//  VL_input_validation.h
+//  input_validation.h
 //  
 //
 //  Created by Eric Strobel on 2/22/24.
 //
 
-#ifndef VL_input_validation_h
-#define VL_input_validation_h
+#ifndef input_validation_h
+#define input_validation_h
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -18,17 +18,18 @@
 #include "../../mkmtrx/cotrans_mtrx.h"
 #include "../../mkmtrx/mkmtrx_defs.h"
 
-#include "./process_TECprobeVL_profiles_defs.h"
-#include "./process_TECprobeVL_profiles_structs.h"
+#include "../process_TECprobe_profiles_defs.h"
+#include "../process_TECprobe_profiles_structs.h"
 
-#include "../global/store_SM2_profile.h"
+#include "../UNV/store_SM2_profile.h"
+#include "./read_analysis_directories.h"
 
 /* validate_VL_an_dir_contiguity: check that all transcript length directories
    contained within a TECprobe-VL analysis directory are contiguous and that
    no out-of-bounds transcript lengths are present. */
 void validate_VL_an_dir_contiguity(SM2_analysis_directory * an_dir);
 
-/* validate_VL_an_dir_compatibility: verify that TECprobe-VL analysis
+/* validate_an_dir_compatibility: verify that TECprobe-VL analysis
    directories contain the same number and range of transcript lengths */
 void validate_an_dir_compatibility(SM2_analysis_directory * an_dir, int dir_count);
 
@@ -50,4 +51,4 @@ void validate_ext_start_ix_compatibility(int ix1, int ix2);
 void validate_transcript_substrings(SM2_analysis_directory * an_dir);
 
 
-#endif /* VL_input_validation_h */
+#endif /* input_validation_h */

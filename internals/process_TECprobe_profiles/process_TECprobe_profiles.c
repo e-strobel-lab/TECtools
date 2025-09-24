@@ -1,5 +1,5 @@
 //
-//  process_TECprobeVL_profiles.c
+//  process_TECprobe_profiles.c
 //  
 //
 //  Created by Eric Strobel on 1/19/24.
@@ -13,31 +13,31 @@
 #include <getopt.h>
 #include <dirent.h>
 
-#include "../../global/global_defs.h"
-#include "../../utils/debug.h"
-#include "../../utils/io_management.h"
+#include "../global/global_defs.h"
+#include "../utils/debug.h"
+#include "../utils/io_management.h"
 
-#include "../../cotrans_preprocessor/run_script_gen/UNV/config_struct.h"
+#include "../cotrans_preprocessor/run_script_gen/UNV/config_struct.h"
 
-#include "../../mkmtrx/cotrans_mtrx.h"
-#include "../../mkmtrx/mkmtrx_defs.h"
+#include "../mkmtrx/cotrans_mtrx.h"
+#include "../mkmtrx/mkmtrx_defs.h"
 
-#include "./process_TECprobeVL_profiles_defs.h"
-#include "./process_TECprobeVL_profiles_structs.h"
+#include "./process_TECprobe_profiles_defs.h"
+#include "./process_TECprobe_profiles_structs.h"
 
-#include "../global/store_SM2_profile.h"
-#include "../global/initialize_empty_profile.h"
-#include "../global/calculate_normalization_factor.h"
+#include "./UNV/store_SM2_profile.h"
+#include "./UNV/initialize_empty_profile.h"
+#include "./UNV/calculate_normalization_factor.h"
 
-#include "./parse_VL_sample_name.h"
-#include "./read_VL_analysis_directories.h"
-#include "./VL_input_validation.h"
-#include "./make_VL_output_directories.h"
-#include "./normalize_VL_reactivities.h"
-#include "./merge_VL_profiles.h"
-#include "./generate_VL_sample_name.h"
-#include "./print_merged_VL_profiles.h"
-#include "./print_legacy_compiled_table.h"
+#include "./UNV/parse_sample_name.h"
+#include "./UNV/read_analysis_directories.h"
+#include "./UNV/input_validation.h"
+#include "./UNV/make_output_directories.h"
+#include "./UNV/normalize_reactivities.h"
+#include "./UNV/merge_profiles.h"
+#include "./UNV/generate_sample_name.h"
+#include "./UNV/print_merged_profiles.h"
+#include "./UNV/print_legacy_compiled_table.h"
 
 void print_processing_record(sample_names * sn, output_files * outfiles, SM2_analysis_directory * an_dir, SM2_analysis_directory * mrg);
 
@@ -114,14 +114,14 @@ int main(int argc, char *argv[])
                     
                     //allocate memory for parent directory name storage
                     if ((prnt_dir_nm[dir_count] = calloc(strlen(argv[optind-1])+1, sizeof(*(prnt_dir_nm[dir_count])))) == NULL) {
-                        printf("process_TECprobeVL_profiles: error - memory allocation for directory name failed. aborting...\n");
+                        printf("process_TECprobe_profiles: error - memory allocation for directory name failed. aborting...\n");
                         abort();
                     }
                     strcpy(prnt_dir_nm[dir_count], argv[optind-1]); //store input directory name
                     dir_count++; //increment directory count
                     
                 } else { //max input directories exceeded
-                    printf("process_TECprobeVL_profiles: error - too many input directories were provided. The maximum number allowed is %d. aborting...\n", MAX_RUNS);
+                    printf("process_TECprobe_profiles: error - too many input directories were provided. The maximum number allowed is %d. aborting...\n", MAX_RUNS);
                     abort();
                 }
                 
@@ -132,7 +132,7 @@ int main(int argc, char *argv[])
                 //store output directory name
                 ret = snprintf(outfiles.out_dir, MAX_NAME, "%s_%s", argv[optind-1], dflt_out_dir_nm);
                 if (ret >= MAX_NAME || ret < 0) {
-                    printf("process_TECprobeVL_profiles: error - error when storing output directory name. aborting...\n");
+                    printf("process_TECprobe_profiles: error - error when storing output directory name. aborting...\n");
                     abort();
                 }
                 
@@ -143,7 +143,7 @@ int main(int argc, char *argv[])
                 //store user-supplied output file name
                 ret = snprintf(sn.usr, MAX_NAME, "%s", argv[optind-1]);
                 if (ret >= MAX_NAME || ret < 0) {
-                    printf("process_TECprobeVL_profiles: error - error when storing sample name. aborting...\n");
+                    printf("process_TECprobe_profiles: error - error when storing sample name. aborting...\n");
                     abort();
                 }
                 break;
@@ -157,7 +157,7 @@ int main(int argc, char *argv[])
                     check_int_str(argv[optind-1], ABORT_FAILURE);
                     min_depth = atoi(argv[optind-1]);
                 } else {
-                    printf("process_TECprobeVL_profiles: error - min-depth option was provided more than once. aborting...\n");
+                    printf("process_TECprobe_profiles: error - min-depth option was provided more than once. aborting...\n");
                     abort();
                 }
                 
@@ -169,7 +169,7 @@ int main(int argc, char *argv[])
                     check_float_str(argv[optind-1], ABORT_FAILURE);
                     max_bkg = strtof(argv[optind-1], NULL);
                 } else {
-                    printf("process_TECprobeVL_profiles: error - max-background option was provided more than once. aborting...\n");
+                    printf("process_TECprobe_profiles: error - max-background option was provided more than once. aborting...\n");
                     abort();
                 }
                 
@@ -204,7 +204,7 @@ int main(int argc, char *argv[])
     
     //check that input directory was provided
     if (dir_count < 1) {
-        printf("process_TECprobeVL_profiles: error - too few input directories (%d) were provided. aborting...\n" ,dir_count);
+        printf("process_TECprobe_profiles: error - too few input directories (%d) were provided. aborting...\n" ,dir_count);
         abort();
     }
     
@@ -232,7 +232,7 @@ int main(int argc, char *argv[])
     
     //allocate memory for storing SM2 analysis directory information
     if ((an_dir = calloc(dir_count, sizeof(*an_dir))) == NULL) {
-        printf("process_TECprobeVL_profiles: error - memory allocation for directory/file pointers failed. aborting...\n");
+        printf("process_TECprobe_profiles: error - memory allocation for directory/file pointers failed. aborting...\n");
         abort();
     }
     
@@ -263,7 +263,7 @@ int main(int argc, char *argv[])
     //an auto-generated sample name is always constructed because
     //the compatibility of sample metadata is validated during
     //this process
-    generate_VL_sample_name(&sn);
+    generate_sample_name(&sn);
     
     int mod_detected[MAX_RUNS] = {0}; //flag that modified  reads were detected
     int unt_detected[MAX_RUNS] = {0}; //flag that untreated reads were detected
@@ -370,10 +370,12 @@ int main(int argc, char *argv[])
         
         //verify that each transcript sequence is a substring of the
         //next transcript sequence
-        validate_transcript_substrings(&an_dir[i]);
+        if (mode == MLT) {
+            validate_transcript_substrings(&an_dir[i]);
+        }
         
         //perform whole dataset reactivity normalization
-        normalize_VL_reactivities(&an_dir[i], min_depth, max_bkg, norm_all, verify_norm);
+        normalize_reactivities(&an_dir[i], min_depth, max_bkg, norm_all, verify_norm);
     }
     
     //print sample names to screen
@@ -384,24 +386,24 @@ int main(int argc, char *argv[])
     SM2_analysis_directory * data2output = NULL; //pointer to data set to use for output
     
     if (dir_count == 1) {     //if there is only one input directory
-        normalize_VL_reactivities(&an_dir[0], min_depth, max_bkg, norm_all, 0); //normalize input data
+        normalize_reactivities(&an_dir[0], min_depth, max_bkg, norm_all, 0); //normalize input data
         data2output = &an_dir[0];                                               //output that input directory
         
     } else { //if there is more than one input directory
-        merge_VL_profiles(&an_dir[0], dir_count, &mrg, min_depth, max_bkg);     //merge SM2 profiles
-        normalize_VL_reactivities(&mrg, min_depth, max_bkg, norm_all, 0);       //normalize merged data
+        merge_profiles(&an_dir[0], dir_count, &mrg, min_depth, max_bkg);     //merge SM2 profiles
+        normalize_reactivities(&mrg, min_depth, max_bkg, norm_all, 0);       //normalize merged data
         data2output = &mrg;
     }
     
     if ((outfiles.ofp = calloc(data2output->sd_cnt, sizeof(*outfiles.ofp))) == NULL) {
-        printf("process_TECprobe_VL_profiles: error - failed to allocate memory for output files. aborting...\n");
+        printf("process_TECprobe_profiles: error - failed to allocate memory for output files. aborting...\n");
         abort();
     }
     
-    make_VL_output_directories(&an_dir[0], &outfiles, &sn);  //make output directories/files
+    make_output_directories(&an_dir[0], &outfiles, &sn);  //make output directories/files
     
     print_processing_record(&sn, &outfiles, &an_dir[0], &mrg); //print processing record
-    print_merged_VL_profiles(data2output, &outfiles);          //print profile output
+    print_merged_profiles(data2output, &outfiles);          //print profile output
     print_legacy_compiled_table(data2output, &outfiles, &sn);  //print legacy compiled table
     
     //close output files

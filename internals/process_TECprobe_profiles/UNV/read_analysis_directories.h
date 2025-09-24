@@ -1,12 +1,12 @@
 //
-//  read_VL_analysis_directories.h
+//  read_analysis_directories.h
 //  
 //
 //  Created by Eric Strobel on 1/25/24.
 //
 
-#ifndef read_VL_analysis_directories_h
-#define read_VL_analysis_directories_h
+#ifndef read_analysis_directories_h
+#define read_analysis_directories_h
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -15,8 +15,10 @@
 
 #include "../../global/global_defs.h"
 #include "../../mkmtrx/mkmtrx_defs.h"
-#include "./process_TECprobeVL_profiles_defs.h"
-#include "./process_TECprobeVL_profiles_structs.h"
+#include "../process_TECprobe_profiles_defs.h"
+#include "../process_TECprobe_profiles_structs.h"
+
+#include "parse_sample_name.h"
 
 /* read_prnt_directory: read parent shapemapper 2 analysis directory and identify target analysis directories */
 int read_prnt_directory(SM2_analysis_directory * an_dir, int dir_num, sample_names * sn);
@@ -37,4 +39,4 @@ void set_len_range(SM2_analysis_directory * an_dir);
  name conforms to expected format. return length of id string. */
 int test_trg_analysis_dir_format(char * str, char * suffix);
 
-#endif /* read_VL_analysis_directories_h */
+#endif /* read_analysis_directories_h */

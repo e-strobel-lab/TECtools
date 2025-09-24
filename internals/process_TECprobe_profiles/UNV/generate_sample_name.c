@@ -1,5 +1,5 @@
 //
-//  generate_VL_sample_name.c
+//  generate_sample_name.c
 //  
 //
 //  Created by Eric Strobel on 1/26/24.
@@ -17,15 +17,15 @@
 #include "../../mkmtrx/cotrans_mtrx.h"
 #include "../../mkmtrx/mkmtrx_defs.h"
 
-#include "./process_TECprobeVL_profiles_defs.h"
-#include "./process_TECprobeVL_profiles_structs.h"
+#include "../process_TECprobe_profiles_defs.h"
+#include "../process_TECprobe_profiles_structs.h"
 
-#include "./parse_VL_sample_name.h"
+#include "./parse_sample_name.h"
 
-#include "generate_VL_sample_name.h"
+#include "generate_sample_name.h"
 
-/* generate_VL_sample_name: manages sample name parsing and generation */
-void generate_VL_sample_name (sample_names * sn)
+/* generate_sample_name: manages sample name parsing and generation */
+void generate_sample_name (sample_names * sn)
 {
     int i = 0;              //general purpose index
     char * first_sn = NULL; //pointer to first sample name
@@ -37,14 +37,14 @@ void generate_VL_sample_name (sample_names * sn)
             first_sn = &sn->ipt[i][0];  //set pointer to the first sample name
             
         } else if (!strcmp(sn->ipt[i], first_sn)) { //otherwise, compare to the first sample name
-            printf("generate_VL_sample_name: error - detected duplicate input for sample name %s. aborting...", first_sn);
+            printf("generate_sample_name: error - detected duplicate input for sample name %s. aborting...", first_sn);
             abort();
         }
         
-        parse_VL_sample_name(sn->ipt[i], &sn->cfg[i]); //parse sample name
+        parse_sample_name(sn->ipt[i], &sn->cfg[i]); //parse sample name
         
         if (sn->cfg[i].run_count != 1) {
-            printf("generate_VL_sample_name: error - expected directory to contain data that was not concatenated prior to analysis. aborting...\n");
+            printf("generate_sample_name: error - expected directory to contain data that was not concatenated prior to analysis. aborting...\n");
             abort();
         }
     }
