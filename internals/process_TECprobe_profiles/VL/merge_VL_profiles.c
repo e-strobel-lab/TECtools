@@ -68,7 +68,29 @@ int merge_VL_profiles(SM2_analysis_directory * an_dir, int dir_count, SM2_analys
     int * ix = &an_dir[0].indx[0]; //set pointer to target indices
     
     for (i = 0; ix[i] <= an_dir[0].max_id; i++) {  //for every target id
-
+        
+        //check data compatibility
+        for (d = 0; d < dir_count; d++) {
+            
+            //check total nt count
+            if (an_dir[d].data[ix[i]].tot_nt_cnt != an_dir[0].data[ix[i]].tot_nt_cnt) {
+                printf("merge_VL_profiles: discordant total nucleotide count for target %d. aborting...\n", ix[i]);
+                abort();
+            }
+            
+            //check target nt count
+            if (an_dir[d].data[ix[i]].trg_nt_cnt != an_dir[0].data[ix[i]].trg_nt_cnt) {
+                printf("merge_VL_profiles: discordant target nucleotide count for target %d. aborting...\n", ix[i]);
+                abort();
+            }
+            
+            //check target start
+            if (an_dir[d].data[ix[i]].trgt_start != an_dir[0].data[ix[i]].trgt_start) {
+                printf("merge_VL_profiles: discordant target start for target %d. aborting...\n", ix[i]);
+                abort();
+            }
+        }
+        
         //allocate memory for storing the merged profile of the current target
         allocate_SM2_profile_memory(&mrg->data[ix[i]], an_dir[0].data[ix[i]].tot_nt_cnt);
 

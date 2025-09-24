@@ -226,6 +226,7 @@ int main(int argc, char *argv[])
     
     int i = 0; //general purpose index
     int j = 0; //general purpose index
+    int k = 0; //general purpose index
         
     SM2_analysis_directory * an_dir = NULL; //pointer for SM2 analysis directory memory allocation
     
@@ -264,45 +265,88 @@ int main(int argc, char *argv[])
     //this process
     generate_VL_sample_name(&sn);
     
-    int mod_detected = 0; //flag that modified  reads were detected
-    int unt_detected = 0; //flag that untreated reads were detected
-    int den_detected = 0; //flag that denatured reads were detected
+    int mod_detected[MAX_RUNS] = {0}; //flag that modified  reads were detected
+    int unt_detected[MAX_RUNS] = {0}; //flag that untreated reads were detected
+    int den_detected[MAX_RUNS] = {0}; //flag that denatured reads were detected
+    
+    int empty_prf_tot_lines = 0; //number of lines to include in an empty profile
+    int empty_prf_trg_lines = 0; //number of target lines in an empty profile
+    int set_empty_cnts = 0;      //flag that empty target nucleotide counts were set
         
     //store profiles and normalize reactivity values using whole dataset
     for (i = 0; i < dir_count; i++) {   //for each input analysis directory
         
-        mod_detected = unt_detected = den_detected = 0; //zero channel detection variables
-        
         ix = &an_dir[i].indx[0]; //set pointer for target indices
         for (j = 0; ix[j] <= an_dir[i].max_id; j++) { //for each target
-            if (an_dir[i].loc[ix[j]] != NULL) { //if a profile was found for the current target
+            if (strcmp(an_dir[i].loc[ix[j]], empty_SM2out)) {
                 
-                if (strcmp(an_dir[i].loc[ix[j]], empty_SM2out)) {
-                    
-                    //store the shapemapper2 profile and add the number of
-                    //target RNA nucleotide reactivity values to the total
-                    store_SM2_profile(&an_dir[i].data[ix[j]], an_dir[i].loc[ix[j]]);
-                    an_dir[i].trg_rct_cnt += an_dir[i].data[ix[j]].trg_nt_cnt;
-                    
-                    if (an_dir[i].data[ix[j]].chnls.mod) {
-                        mod_detected = 1;
-                    }
-                    
-                    if (an_dir[i].data[ix[j]].chnls.unt) {
-                        unt_detected = 1;
-                    }
-                    
-                    if (an_dir[i].data[ix[j]].chnls.den) {
-                        den_detected = 1;
-                    }
-                    
-                } else {
-                    //initialize empty profiles for missing targets
-                    //target start from the first target in the current directory is used during initialization
-                    //TODO: decide how to set length of empty profile
-                    allocate_SM2_profile_memory(&an_dir[i].data[ix[j]], ix[j]+an_dir[i].data[ix[0]].trgt_start);
-                    initialize_empty_profile(&an_dir[i].data[ix[j]], ix[j], an_dir[i].data[ix[0]].trgt_start);
+                //store the shapemapper2 profile and add the number of
+                //target RNA nucleotide reactivity values to the total
+                store_SM2_profile(&an_dir[i].data[ix[j]], an_dir[i].loc[ix[j]]);
+                an_dir[i].trg_rct_cnt += an_dir[i].data[ix[j]].trg_nt_cnt;
+                
+                if (an_dir[i].data[ix[j]].chnls.mod) {
+                    mod_detected[i] = 1;
                 }
+                
+                if (an_dir[i].data[ix[j]].chnls.unt) {
+                    unt_detected[i] = 1;
+                }
+                
+                if (an_dir[i].data[ix[j]].chnls.den) {
+                    den_detected[i] = 1;
+                }
+            }
+        }
+    }
+    
+    for (i = 0; i < dir_count; i++) {
+        
+        for (j = 0; ix[j] <= an_dir[i].max_id; j++) { //for each target
+            if (!strcmp(an_dir[i].loc[ix[j]], empty_SM2out)) {
+                
+                //initialize empty profiles for missing targets
+                //target start from the first target in the current directory is used during initialization
+                
+                empty_prf_tot_lines = 0;
+                empty_prf_trg_lines = 0;
+                
+                if (mode == MLT) {
+                    //in multilength mode (TECprobe-VL and TECprobe-LM experiments),
+                    //the target id is the target sequence length and can be used to
+                    //set the total and target line counts for empty profiles
+                    
+                    empty_prf_tot_lines = ix[j] + an_dir[i].data[ix[0]].trgt_start;
+                    empty_prf_trg_lines = ix[j];
+                    
+                } else  if (mode == MUX) {
+                    //in multiplex mode (TECprobe-MUX experiments), the target id is
+                    //the barcode id, and is therefore unrelated to target sequence
+                    //length. therefore, the code below attempts to determine total
+                    //and target line counts from the corresponding target in a
+                    //replicate data set.
+                    
+                    for (k = 0, set_empty_cnts = 0; k < dir_count && !set_empty_cnts; k++) {
+                        if (strcmp(an_dir[k].loc[ix[j]], empty_SM2out)) {
+                            empty_prf_tot_lines = an_dir[k].data[ix[j]].tot_nt_cnt;
+                            empty_prf_trg_lines = an_dir[k].data[ix[j]].trg_nt_cnt;
+                            set_empty_cnts = 1;
+                        }
+                    }
+                    
+                    //if no data sets contain a profile for the target, the total line
+                    //count is set to the number of nucleotides that precede the target
+                    //sequence in other profiles, and the number of target lines is set
+                    //to zero.
+                    
+                    if (!set_empty_cnts) {
+                        empty_prf_tot_lines = an_dir[i].data[ix[0]].trgt_start;
+                        empty_prf_trg_lines = 0;
+                    }
+                    
+                }
+                allocate_SM2_profile_memory(&an_dir[i].data[ix[j]], empty_prf_tot_lines);
+                initialize_empty_profile(&an_dir[i].data[ix[j]], empty_prf_trg_lines, an_dir[i].data[ix[0]].trgt_start);
             }
         }
         
@@ -312,9 +356,9 @@ int main(int argc, char *argv[])
         //set the channel configuration of the entire dataset, confirm that
         //the channel configuration is valid, and confirm that all input
         //datasets have the same channel configuration
-        an_dir[i].chnls.mod = mod_detected;
-        an_dir[i].chnls.unt = unt_detected;
-        an_dir[i].chnls.den = den_detected;
+        an_dir[i].chnls.mod = mod_detected[i];
+        an_dir[i].chnls.unt = unt_detected[i];
+        an_dir[i].chnls.den = den_detected[i];
         validate_channel_configuration(&an_dir[i].chnls);
         validate_channel_compatibility(&an_dir[i].chnls, &an_dir[0].chnls);
         
