@@ -61,8 +61,8 @@ int main(int argc, char *argv[])
     int norm_all = 0;           //flag to normalize non-HQ nucleotides
     int verify_norm = 0;        //flag to verify normalization against SM2 calculations
     
-    sample_names sn = {{{0}}};     //structure for sample name storage/merged name construction
-    output_files outfiles = {{0}}; //structure for storing output file pointers and names
+    sample_names sn = {0};       //structure for sample name storage/merged name construction
+    output_files outfiles = {0}; //structure for storing output file pointers and names
     
     char dflt_out_dir_nm[20] = {"dataset_norm_out"};
     
@@ -382,7 +382,21 @@ int main(int argc, char *argv[])
     printf("\nuser-specified sample name: %s\n", (sn.usr[0]) ? sn.usr : "not provided");
     printf("auto-generated sample name: %s\n\n", sn.mrg);
     
-    SM2_analysis_directory mrg = {{0}};          //storage for merged replicate data
+    //storage for merged replicate data
+    SM2_analysis_directory mrg = { .prnt_dir_nm = {0},
+                                   .loc = NULL,
+                                   .data = NULL,
+                                   .indx = NULL,
+                                   .chnls = {0, 0, 0},
+                                   .sd_cnt = 0,
+                                   .outs_cnt = 0,
+                                   .trgt_start = 0,
+                                   .min_id = 0,
+                                   .max_id = 0,
+                                   .len = {0, 0},
+                                   .trg_rct_cnt = 0,
+                                   .cnf = 0.0
+    };
     SM2_analysis_directory * data2output = NULL; //pointer to data set to use for output
     
     if (dir_count == 1) {     //if there is only one input directory

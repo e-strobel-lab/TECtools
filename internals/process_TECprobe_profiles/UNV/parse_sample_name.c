@@ -33,8 +33,8 @@ void parse_sample_name(char * ipt_nm, tprobe_configuration * cfg)
     int i = 0; //general purpose index
     int u = 0; //counts underscores during runID parsing
     
-    char snm[MAX_LINE] = {0};            //copy of the sample name to be parsed
-    parsed_sample_name prsd_sn = {NULL}; //storage for parsed sample name sub-strings
+    char snm[MAX_LINE] = {0};         //copy of the sample name to be parsed
+    parsed_sample_name prsd_sn = {0}; //storage for parsed sample name sub-strings
     
     char CoTxn[8] = {"_CoTxn_"}; //cotranscriptional folding type indicator, used as parsing anchor
     char Equil[8] = {"_Equil_"}; //equilibrium folding type indicator, used as parsing anchor
