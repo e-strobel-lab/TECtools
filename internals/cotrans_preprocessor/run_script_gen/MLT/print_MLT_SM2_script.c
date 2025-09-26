@@ -27,7 +27,7 @@ int print_MLT_SM2_script(char * sample_name, tprobe_configuration * config)
     char crrnt_MOD_READ1[MAX_LINE*2] = {0};	//array for current modified read 1 filename
     char crrnt_MOD_READ2[MAX_LINE*2] = {0};	//array for current modified read 2 filename
     
-    char * suffix = NULL;						 //pointer to fastq file suffix
+    char * suffix = NULL;                        //pointer to fastq file suffix
     char with_smoothing[MAX_LINE] = "_SM.fq.gz"; //suffix for fastq files with smoothing
     char without_smoothing[MAX_LINE] = ".fq.gz"; //suffix for fastq files without smoothing
     

@@ -45,15 +45,19 @@ int mk_run_script(FILE * fp_config)
     int mode = -1;                    //mode variable that will be set based on config header
     char sample_name[MAX_LINE] = {0}; //name that will be used for shapemapper2 analysis
     
+    char ** brcd_id = NULL; //pointer for allocating barcode id storage
+    int brcd_cnt = 0;       //number of barcodes
+    
     parse_config(fp_config, &config, &mode);    //parse input config file
     check_config(&config, mode);                //check that global variables were set correctly
     mk_run_nm(sample_name, &config);		    //construct sample name for shapemapper2
     
-    if (mode == MULTI || mode == SINGLE) {
+    if (mode == MULTI || mode == SINGLE) {          //in multilength or single length mode
         print_MLT_SM2_script(sample_name, &config); //generate shapemapper2 run script
         
-    } else if (mode == MULTIPLEX) {
-        //parse_brcd_id_list();
+    } else if (mode == MULTIPLEX) {                                    //in multiplex mode
+        brcd_cnt = parse_brcd_id_list(&config, &brcd_id);              //read target barcode ids
+        print_MUX_SM2_script(sample_name, brcd_cnt, brcd_id, &config); //generate shapemaper2 run scripts
         
     } else {
         printf("mk_run_script: error - unexpected run mode. aborting...\n");

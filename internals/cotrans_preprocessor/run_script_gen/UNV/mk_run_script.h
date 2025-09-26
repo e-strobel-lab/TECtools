@@ -20,8 +20,10 @@
 #include "config_struct.h"
 #include "parse_config.h"
 #include "check_config.h"
-#include "../UNV/mk_run_nm.h"
+#include "mk_run_nm.h"
 #include "../MLT/print_MLT_SM2_script.h"
+#include "../MUX/parse_brcd_id_list.h"
+#include "../MUX/print_MUX_SM2_script.h"
 
 
 /* mk_run_script: manages shapemapper2 run script generation for multilength cotranscriptional RNA

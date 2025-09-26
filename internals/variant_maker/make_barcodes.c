@@ -420,7 +420,7 @@ int get_rndm_brcds(barcode_target * brcd_out, barcode_target * pf_brcds, uint64_
     //TODO: if barcode design flexibility is added, need to require barcode structure to be idential for all BC templates
     
     for (i = 0; i < brcd_cnt; i++) { //print barcodes to file
-        fprintf(out_fp, "%d\t%s\n", i+1, brcd_out[i].sq);
+        fprintf(out_fp, "%05d\t%s\n", i+1, brcd_out[i].sq);
     }
     
     if (fclose(out_fp) == EOF) { //close file
@@ -458,8 +458,8 @@ void store_brcd(barcode_target * brcd_out, int * brcd_cnt, barcode_target * bc2s
         strcpy(sntnls[(*sntnl_cnt)++].sq, brcd_out[*brcd_cnt].sq); //copy character-encoded sequence and increment sntnl_cnt
     }
     
-    printf("%d\t%s\n", *brcd_cnt+1, brcd_out[*brcd_cnt].sq); //print barcode to screen
-    (*brcd_cnt)++;                                           //increment barcode count
+    printf("%05d\t%s\n", *brcd_cnt+1, brcd_out[*brcd_cnt].sq); //print barcode to screen
+    (*brcd_cnt)++;                                             //increment barcode count
     
     return;
 }

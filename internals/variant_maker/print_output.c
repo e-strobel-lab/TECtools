@@ -308,9 +308,9 @@ void print_barcoded_variant(FILE * fp_brcd, FILE * out_fp, FILE * fasta_fp, int 
             }
             
             
-            fprintf(out_fp, "%s_%d\t%s\n", vrnts[crrnt_var].nm, bc_indx, seq); //print variant to standard output file
+            fprintf(out_fp, "%s_%05d\t%s\n", vrnts[crrnt_var].nm, bc_indx, seq); //print variant to standard output file
             if (make_fasta) {
-                fprintf(fasta_fp, ">%s_%d\n%s\n", vrnts[crrnt_var].nm, bc_indx, seq); //print variant to fasta file
+                fprintf(fasta_fp, ">%s_%05d\n%s\n", vrnts[crrnt_var].nm, bc_indx, seq); //print variant to fasta file
             }
         }
     }
