@@ -21,7 +21,7 @@
 #include "print_legacy_compiled_table.h"
 
 /* print_legacy_compiled_table: print aggregate TECprobe profiles-VL in the format used by Courtney's visualization tools */
-void print_legacy_compiled_table(SM2_analysis_directory * an_dir, output_files * outfiles, sample_names * sn)
+void print_legacy_compiled_table(SM2_analysis_directory * an_dir, char * out_dir, sample_names * sn)
 {
     //headers used in legacy compiled table
     char hdrs[PRFL_CLMNS+2][MAX_NAME] = {
@@ -69,7 +69,7 @@ void print_legacy_compiled_table(SM2_analysis_directory * an_dir, output_files *
     int * ix = &an_dir->indx[0]; //set pointer to target indices
     
     //generate legacy table file name
-    ret = snprintf(lgcy_tbl_nm, MAX_LINE, "./%s/%s_full_table.csv", outfiles->out_dir, sn->sn2use);
+    ret = snprintf(lgcy_tbl_nm, MAX_LINE, "./%s/%s_full_table.csv", out_dir, sn->sn2use);
     if (ret >= MAX_LINE || ret < 0) {
         printf("print_processing_record: error - error when constructing legacy compiled table file name. aborting...\n");
         abort();

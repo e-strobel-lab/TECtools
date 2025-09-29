@@ -32,14 +32,13 @@
 #include "./UNV/parse_sample_name.h"
 #include "./UNV/read_analysis_directories.h"
 #include "./UNV/input_validation.h"
-#include "./UNV/make_output_directories.h"
 #include "./UNV/normalize_reactivities.h"
 #include "./UNV/merge_profiles.h"
 #include "./UNV/generate_sample_name.h"
-#include "./UNV/print_merged_profiles.h"
+#include "./UNV/print_processed_profiles.h"
 #include "./UNV/print_legacy_compiled_table.h"
 
-void print_processing_record(sample_names * sn, output_files * outfiles, SM2_analysis_directory * an_dir, SM2_analysis_directory * mrg);
+void print_processing_record(sample_names * sn, char * out_dir, SM2_analysis_directory * an_dir, SM2_analysis_directory * mrg);
 
 int main(int argc, char *argv[])
 {
@@ -61,8 +60,8 @@ int main(int argc, char *argv[])
     int norm_all = 0;           //flag to normalize non-HQ nucleotides
     int verify_norm = 0;        //flag to verify normalization against SM2 calculations
     
-    sample_names sn = {0};       //structure for sample name storage/merged name construction
-    output_files outfiles = {0}; //structure for storing output file pointers and names
+    sample_names sn = {0};          //structure for sample name storage/merged name construction
+    char out_dir[MAX_NAME+1] = {0}; //output directory name
     
     char dflt_out_dir_nm[20] = {"dataset_norm_out"};
     
@@ -130,7 +129,7 @@ int main(int argc, char *argv[])
             case 'o': //output directory name
                 
                 //store output directory name
-                ret = snprintf(outfiles.out_dir, MAX_NAME, "%s_%s", argv[optind-1], dflt_out_dir_nm);
+                ret = snprintf(out_dir, MAX_NAME, "%s_%s", argv[optind-1], dflt_out_dir_nm);
                 if (ret >= MAX_NAME || ret < 0) {
                     printf("process_TECprobe_profiles: error - error when storing output directory name. aborting...\n");
                     abort();
@@ -209,8 +208,8 @@ int main(int argc, char *argv[])
     }
     
     //if no output directory name as provided, set the output directory name
-    if (!outfiles.out_dir[0]) {
-        strcpy(outfiles.out_dir, dflt_out_dir_nm);
+    if (!out_dir[0]) {
+        strcpy(out_dir, dflt_out_dir_nm);
     }
     
     //set the output sample name that will be used
@@ -382,21 +381,7 @@ int main(int argc, char *argv[])
     printf("\nuser-specified sample name: %s\n", (sn.usr[0]) ? sn.usr : "not provided");
     printf("auto-generated sample name: %s\n\n", sn.mrg);
     
-    //storage for merged replicate data
-    SM2_analysis_directory mrg = { .prnt_dir_nm = {0},
-                                   .loc = NULL,
-                                   .data = NULL,
-                                   .indx = NULL,
-                                   .chnls = {0, 0, 0},
-                                   .sd_cnt = 0,
-                                   .outs_cnt = 0,
-                                   .trgt_start = 0,
-                                   .min_id = 0,
-                                   .max_id = 0,
-                                   .len = {0, 0},
-                                   .trg_rct_cnt = 0,
-                                   .cnf = 0.0
-    };
+    SM2_analysis_directory mrg = {0};            //storage for merged replicate data
     SM2_analysis_directory * data2output = NULL; //pointer to data set to use for output
     
     if (dir_count == 1) {     //if there is only one input directory
@@ -409,30 +394,17 @@ int main(int argc, char *argv[])
         data2output = &mrg;
     }
     
-    if ((outfiles.ofp = calloc(data2output->sd_cnt, sizeof(*outfiles.ofp))) == NULL) {
-        printf("process_TECprobe_profiles: error - failed to allocate memory for output files. aborting...\n");
-        abort();
-    }
+    print_processed_profiles(data2output, out_dir, &sn);     //make output directories/files
+    print_processing_record(&sn, out_dir, &an_dir[0], &mrg); //print processing record
     
-    make_output_directories(&an_dir[0], &outfiles, &sn);  //make output directories/files
-    
-    print_processing_record(&sn, &outfiles, &an_dir[0], &mrg); //print processing record
-    print_merged_profiles(data2output, &outfiles);          //print profile output
-    print_legacy_compiled_table(data2output, &outfiles, &sn);  //print legacy compiled table
-    
-    //close output files
-    ix = &data2output->indx[0]; //set pointer to target indices
-    for (i = 0; ix[i] <= data2output->max_id; i++) {
-        if (fclose(outfiles.ofp[ix[i]]) == EOF) {
-            printf("main: error - failed to close output file. Aborting program...\n");
-            abort();
-        }
+    if (mode == MLT || 1) {
+        print_legacy_compiled_table(data2output, out_dir, &sn); //print legacy compiled table
     }
 }
 
 /* print_processing_record: print record of input files, merged sample
- name,and transcrip length inventory to screen and file*/
-void print_processing_record(sample_names * sn, output_files * outfiles, SM2_analysis_directory * an_dir, SM2_analysis_directory * mrg)
+ name,and transcript length inventory to screen and file */
+void print_processing_record(sample_names * sn, char * out_dir, SM2_analysis_directory * an_dir, SM2_analysis_directory * mrg)
 {
     int i = 0; //general purpose index
     
@@ -442,7 +414,7 @@ void print_processing_record(sample_names * sn, output_files * outfiles, SM2_ana
     int ret = 0; //variable for storing snprintf return value
     
     //generate processing record file name
-    ret = snprintf(prcs_rcrd_nm, MAX_LINE, "./%s/000_processing_record.txt", outfiles->out_dir);
+    ret = snprintf(prcs_rcrd_nm, MAX_LINE, "./%s/000_processing_record.txt", out_dir);
     if (ret >= MAX_LINE || ret < 0) {
         printf("print_processing_record: error - processing record file name exceeded buffer. aborting...\n");
         abort();

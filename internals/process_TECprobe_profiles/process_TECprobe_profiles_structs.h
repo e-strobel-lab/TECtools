@@ -36,12 +36,6 @@ typedef struct SM2_analysis_directory {
     double cnf;                   //calculated normalization factor
 } SM2_analysis_directory;
 
-/* output_files: pointers and file names for merged output files */
-typedef struct output_files {
-    char out_dir[MAX_NAME];       //output directory name
-    FILE ** ofp;                  //output file pointers
-} output_files;
-
 /* sample_names: structure to manage input sample name parsing and merged sample name construction */
 typedef struct sample_names {
     char ipt[MAX_RUNS][MAX_NAME];       //input file sample names
