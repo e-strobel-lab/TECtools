@@ -99,7 +99,7 @@ void parse_header_lines(FILE * ifp, target_params *trg_prms, fasta * wt)
 
 /* parse_mx_trgts: parse targets file to obtain target ids, sequences, attributes,
  and min/max transcript lengths */
-void parse_mx_trgts(FILE * ifp, target * refs, opt_ref * ref_val, target * trgts, opt_mx_trg * trg_val, target_params * trg_prms, fasta * wt)
+void parse_mx_trgts(FILE * ifp, target * refs, opt_ref * ref_val, void * trgts, void * trg_val, target_params * trg_prms, fasta * wt, int mode)
 {
     //TODO: double check that reversion from revcomp is all correct
     extern int debug;				           //flag to run debug mode
@@ -235,8 +235,11 @@ void parse_mx_trgts(FILE * ifp, target * refs, opt_ref * ref_val, target * trgts
             }
             
             //set target structure values for the current target
-            set_trgt(&trgts[trg_prms->t_cnt], &trg_val[trg_prms->t_cnt], crnt_ref, trgt_id, trgt_sq);
-            if (debug) {print_target_debug(&trgts[trg_prms->t_cnt], trg_prms);} //print debug messages
+            if (mode == TDSPLY_TRGS) {
+                set_trgt(&(((target *)trgts)[trg_prms->t_cnt]), &(((opt_mx_trg *)trg_val)[trg_prms->t_cnt]), crnt_ref, trgt_id, trgt_sq);
+                if (debug) {print_target_debug(&(((target *)trgts)[trg_prms->t_cnt]), trg_prms);} //print debug messages
+            }
+            
             trg_prms->t_cnt++;                       //increment parsed target counter
             trg_prms->t_per_r[trg_prms->r_cnt-1]++;  //increment targets per reference counter
             

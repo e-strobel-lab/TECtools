@@ -71,7 +71,7 @@ int map_reads (TDSPLY_names * nm, FILE * fp_trgs, char * minQ, fastp_params fast
     }
     
     printf("\nProcessing targets file that contains %d targets\n\n", trg_prms.xpctd);
-    parse_mx_trgts(fp_trgs, refs, ref_val, trgts, trg_val, &trg_prms, &wt); //parse targets file
+    parse_mx_trgts(fp_trgs, refs, ref_val, trgts, trg_val, &trg_prms, &wt, TDSPLY_TRGS); //parse targets file
     /********** end of targets initialization and parsing **********/
 
     
