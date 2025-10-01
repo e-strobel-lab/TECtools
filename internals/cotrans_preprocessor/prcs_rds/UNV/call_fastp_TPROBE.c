@@ -1,5 +1,5 @@
 //
-//  call_fastp.c
+//  call_fastp_TPROBE.c
 //  
 //
 //  Created by Eric Strobel on 3/15/22.
@@ -15,10 +15,10 @@
 #include "../../cotrans_preprocessor_defs.h"
 #include "../../cotrans_preprocessor_structs.h"
 
-#include "call_fastp.h"
+#include "call_fastp_TPROBE.h"
 
-/* call_fastp: performs a system call to initiate fastp preprocessing, opens resulting files */
-int call_fastp(char * fq1, char * fq2, FILE ** ifp, fastp_params prms)
+/* call_fastp_TPROBE: performs a system call to initiate fastp preprocessing, opens resulting files */
+int call_fastp_TPROBE(char * fq1, char * fq2, FILE ** ifp, fastp_params prms)
 {
     static const char umi_MLT[38] = " --umi --umi_loc=per_read --umi_len=9";			//multi-length UMI settings
     static const char umi_SGL[35] = " --umi --umi_loc=read2 --umi_len=9";				//single length UMI settings
@@ -52,7 +52,7 @@ int call_fastp(char * fq1, char * fq2, FILE ** ifp, fastp_params prms)
         case SINGLE:    strcat(command, umi_SGL); break;
         case MULTIPLEX: strcat(command, umi_MUX); break;
         default:
-            printf("call_fastp: error - unexpected processing mode. aborting...\n");
+            printf("call_fastp_TPROBE: error - unexpected processing mode. aborting...\n");
             abort();
             break;
     }
@@ -66,7 +66,7 @@ int call_fastp(char * fq1, char * fq2, FILE ** ifp, fastp_params prms)
     //record fastp command
     FILE * out_fp = NULL;
     if ((out_fp = fopen("./fastp_command.txt", "w")) == NULL) {
-        printf("call_fastp: error - could not open fastp command file. Aborting program...\n");
+        printf("call_fastp_TPROBE: error - could not open fastp command file. Aborting program...\n");
         abort();
     }
     
@@ -74,7 +74,7 @@ int call_fastp(char * fq1, char * fq2, FILE ** ifp, fastp_params prms)
     fprintf(out_fp, "%s\n", command);	//print fastp command to file
     
     if ((fclose(out_fp)) == EOF ) {
-        printf("call_fastp: error - error occurred when closing fastp command file. Aborting program...\n");
+        printf("call_fastp_TPROBE: error - error occurred when closing fastp command file. Aborting program...\n");
         abort();
     }
     

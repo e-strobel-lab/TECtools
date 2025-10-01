@@ -20,13 +20,15 @@
 #include "../../utils/io_management.h"
 #include "../../utils/debug.h"
 #include "../../seq_utils/seq2bin_hash.h"
-#include "./UNV/call_fastp.h"
+#include "./UNV/call_fastp_TDSPLY.h"
+#include "./UNV/prcs_chnl_TDSPLY.h"
+#include "./map_expected/get_key.h"
 #include "../../seq_utils/revcomp.h"
 #include "../../seq_utils/basemap.h"
 #include "./map_expected/parse_mx_trgts.h"
 #include "./map_expected/mk_output_files.h"
-#include "../testdata_analysis/mk_test_data.h"
-#include "../testdata_analysis/assess_test_data.h"
+#include "../testdata_analysis/mk_TDSPLY_test_data.h"
+#include "../testdata_analysis/assess_TDSPLY_test_data.h"
 
 /* map_reads: coordinates targets parsing, fastp processing, read mapping, and output file generation */
 int map_reads (TDSPLY_names * nm, FILE * fp_trgs, char * minQ, fastp_params fastp_prms, testdata_vars * testdata, int mode);
@@ -36,10 +38,6 @@ int mk_htbl_TDSPLY(h_node **htbl, h_node_bank *bank, target *trgts, target *refs
 
 /* map_expected_reads: map reads to user-supplied targets */
 void map_expected_reads(FILE *ifp, h_node **htbl, target *refs, target *trgts, char * minQ, target_params * trg_prms, TDSPLY_metrics * met, testdata_vars * testdata, int mode);
-
-/* get_key: generate key string composed the nucleotides at variable
- base positions in the input read sequence */
-int get_key(char * key, char * end5p, char * qscore5p, char * minQv, target *refs, int key_type);
 
 /* test_cbase_qscores: test whether all constant bases meet or exceed the minimum qscore */
 int test_cbase_qscores(char * qscore5p, char * minQc, target *refs);
@@ -51,7 +49,5 @@ int count_matched_targets(target * trgts, target_params * trg_prms);
  from a different source sequence. this allows testdata analysis to be run correctly using targets
  that were generated from very closely related variant templates */
 void crrct_testdata_nonsrc_mtch(target * trg, opt_mx_trg * trg_vals, TDSPLY_metrics * met, int channel, int chnl_mtch_typ, testdata_vars * testdata);
-
-
 
 #endif /* map_reads_h */

@@ -1,5 +1,5 @@
 //
-//  prcs_chnl.c
+//  prcs_chnl_TPROBE.c
 //  
 //
 //  Created by Eric Strobel on 3/15/22.
@@ -16,15 +16,15 @@
 
 #include "../../../variant_maker/make_barcodes.h"
 
-#include "prcs_chnl.h"
+#include "prcs_chnl_TPROBE.h"
 
-/* prcs_chnl: identify channel code from read 1 ID.
+/* prcs_chnl_TPROBE: identify channel code from read 1 ID.
  these barcodes are used to split reads into modified and untreated channels
  barcodes:
  modified  = RRRYY
  untreated = YYYRR
  */
-int prcs_chnl(char * read1_ID, metrics  * met, int mode)
+int prcs_chnl_TPROBE(char * read1_ID, metrics  * met, int mode)
 {
     extern int debug;    //flag to turn on debug mode
     
@@ -45,7 +45,7 @@ int prcs_chnl(char * read1_ID, metrics  * met, int mode)
         offset = MAX_BARCODE_LEN;
         
     } else {
-        printf("prcs_chnl: error -unrecognized mode. aborting...\n");
+        printf("prcs_chnl_TPROBE: error -unrecognized mode. aborting...\n");
         abort();
     }
     
@@ -71,10 +71,10 @@ int prcs_chnl(char * read1_ID, metrics  * met, int mode)
     
     //check that read1_ID contained space and that expected UMI location is within array bounds
     if (!read1_ID[i]) { //check that loop did not exit on null character
-        printf("prcs_chnl: error - unexpected read1 id line format. aborting...\n");
+        printf("prcs_chnl_TPROBE: error - unexpected read1 id line format. aborting...\n");
         abort();
     } else if (i <= offset) {//check that 1-offset will not be negative
-        printf("prcs_chnl: error - unexpected short read1 id line. aborting...\n");
+        printf("prcs_chnl_TPROBE: error - unexpected short read1 id line. aborting...\n");
         abort();
     }
     
@@ -113,7 +113,7 @@ int prcs_chnl(char * read1_ID, metrics  * met, int mode)
                 if (debug) {printf("N");}
                 break;
             default:
-                printf("prcs_chnl: error - unexpected character %c(%d) in channel barcode. aborting...\n", barcode[i], barcode[i]);
+                printf("prcs_chnl_TPROBE: error - unexpected character %c(%d) in channel barcode. aborting...\n", barcode[i], barcode[i]);
                 abort();
                 break;
         }

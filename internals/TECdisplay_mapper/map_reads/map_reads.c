@@ -20,12 +20,13 @@
 #include "../../seq_utils/seq2bin_hash.h"
 #include "../../seq_utils/revcomp.h"
 #include "../../seq_utils/basemap.h"
-#include "./UNV/call_fastp.h"
-#include "./UNV/prcs_chnl.h"
+#include "./UNV/call_fastp_TDSPLY.h"
+#include "./UNV/prcs_chnl_TDSPLY.h"
+#include "./map_expected/get_key.h"
 #include "./map_expected/parse_mx_trgts.h"
 #include "./map_expected/mk_output_files.h"
-#include "../testdata_analysis/mk_test_data.h"
-#include "../testdata_analysis/assess_test_data.h"
+#include "../testdata_analysis/mk_TDSPLY_test_data.h"
+#include "../testdata_analysis/assess_TDSPLY_test_data.h"
 
 #include "./map_reads.h"
 
@@ -43,7 +44,7 @@ int map_reads (TDSPLY_names * nm, FILE * fp_trgs, char * minQ, fastp_params fast
     opt_ref *ref_val = {NULL};      //pointer for array of optional reference target structures
     opt_mx_trg *trg_val = {NULL};   //pointer for array of optional target structures
     target_params trg_prms = {0};   //structure for storing target parameters
-    fasta wt = {0};                 //storage for wt sequence information
+    TDSPLY_fasta wt = {0};          //storage for wt sequence information
     
     int ret = 0; //variable for storing snprintf return value
     
@@ -99,7 +100,7 @@ int map_reads (TDSPLY_names * nm, FILE * fp_trgs, char * minQ, fastp_params fast
     
     /*************** testdata generation *****************/
     if (mode == MAP_TEST_DATA) {
-        mk_test_data(nm, refs, trgts, &trg_prms); //generate test data
+        mk_TDSPLY_test_data(nm, refs, trgts, &trg_prms); //generate test data
     }
     /*********** end of test data generation *************/
     
@@ -114,8 +115,8 @@ int map_reads (TDSPLY_names * nm, FILE * fp_trgs, char * minQ, fastp_params fast
     /************** end of obtain sample name prefix ***************/
     
     /************* process sequencing reads **************/
-    mk_out_dir("processed");       //make directory for output files
-    call_fastp(nm, fastp_prms);    //fastp pre-processing todo pass by reference?
+    mk_out_dir("processed");           //make directory for output files
+    call_fastp_TDSPLY(nm, fastp_prms); //fastp pre-processing todo pass by reference?
     
     char processed_file[MAX_LINE]; //array for storing fastp-processed file name
     char gunzip[MAX_LINE];         //array for storing gunzip command
@@ -442,7 +443,7 @@ void map_expected_reads(FILE *ifp, h_node **htbl, target *refs, target *trgts, c
                                 //the channel barcode is encoded in the first 4 bases of read 2. this information
                                 //is removed from the read during fastp UMI processing and appended to the read id
                                 //line (line 1) of the merged read
-                                channel = prcs_chnl(&read[LINE1][0], met, &chnl_mtch_typ);  //determine read channel
+                                channel = prcs_chnl_TDSPLY(&read[LINE1][0], met, &chnl_mtch_typ); //determine channel
                                 met->chan_count[channel]++;                   //increment count for observed channel
                                 
                                 //record whether the mapped read originated in the bound or unbound channel
@@ -485,61 +486,6 @@ void map_expected_reads(FILE *ifp, h_node **htbl, target *refs, target *trgts, c
                 fflush(stdout);
             }
         }
-    }
-}
-
-/* get_key: generate key string composed the nucleotides at variable
- base positions in the input read sequence */
-int get_key(char * key, char * end5p, char * qscore5p, char * minQv, target *refs, int key_type)
-{
-    int i = 0;                                     //general purpose index
-    int len = strlen(end5p);                       //length of the input read sequence
-    opt_ref * crnt_ref_val = (opt_ref *)refs->opt; //pointer to reference target optional values
-    
-    if (crnt_ref_val->vb_cnt > SEQ2BIN_MAX_KEY) {  //check that the number of variable bases is allowable
-        printf("get_key: error - the number of variable bases specified by a reference sequence (%d) exceeds the maximum key length (%d). aborting...\n", crnt_ref_val->vb_cnt, SEQ2BIN_MAX_KEY);
-    }
-    
-    //construct a hash table key using the variable base positions
-    //specified by the reference sequence. checks are performed to
-    //ensure that the read sequence is long enough to contain a
-    //nucleotide at each variable base position, that the variable
-    //bases are of sufficient quality, and that the resulting key
-    //contains the number of bases specified by the reference sequence
-    
-    for (i = 0; i < crnt_ref_val->vb_cnt && i < SEQ2BIN_MAX_KEY; i++) {
- 
-        if (crnt_ref_val->vb_pos[i] < len) { // check that vb_pos index doesn't exceed string length
-            
-            if (key_type == TARGET_KEY) {                 //input sequence is a target, no qscore check needed
-                key[i] = end5p[crnt_ref_val->vb_pos[i]];  //copy variable position base to key string
-                
-            } else if (key_type == READ_KEY && qscore5p[crnt_ref_val->vb_pos[i]] >= *minQv) {
-                //input sequence is a read, check that qscore exceeds minimum qscore value
-                key[i] = end5p[crnt_ref_val->vb_pos[i]];  //copy variable position base to key string
-                
-            } else {
-                if (key_type != TARGET_KEY && key_type != READ_KEY) {
-                    printf("get_key: error - unrecognized key type. aborting...\n");
-                    abort();
-                } else {
-                    if (debug) {printf("variable base is too low quality to generate key\n");}
-                    return 0; //minimum qscore not met, return 0
-                }
-            }
-        } else {
-            if (debug) {printf("read is too short to generate key\n");}
-            return 0; //sequence too short to get all variable bases, return 0
-        }
-    }
-    key[i] = '\0'; //terminate key string
-    
-    //check that key string contains the correct number of variable bases
-    if ((i != crnt_ref_val->vb_cnt) || (strlen(key) != crnt_ref_val->vb_cnt)) {
-        if (debug) {printf("key does not contain the correct number of variable bases\n");}
-        return 0;
-    } else {
-        return 1;
     }
 }
 

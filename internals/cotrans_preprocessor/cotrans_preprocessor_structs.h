@@ -17,6 +17,8 @@
 #include "../seq_utils/seq2bin_hash.h"
 #include "../seq_utils/seq2bin_long.h"
 
+#include "../TECdisplay_mapper/TECdisplay_mapper_structs.h"
+
 #include "cotrans_preprocessor_defs.h"
 
 /* NOTE: the structures used for the hash table are defined in seq2bin_hash.h */

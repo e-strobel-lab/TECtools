@@ -1,5 +1,5 @@
 //
-//  call_fastp.c
+//  call_fastp_TDSPLY.c
 //  
 //
 //  Created by Eric Strobel on 3/15/22.
@@ -15,10 +15,10 @@
 #include "../../TECdisplay_mapper_defs.h"
 #include "../../TECdisplay_mapper_structs.h"
 
-#include "call_fastp.h"
+#include "call_fastp_TDSPLY.h"
 
-/* call_fastp: performs a system call to initiate fastp preprocessing, opens resulting files */
-int call_fastp(TDSPLY_names * nm, fastp_params prms)
+/* call_fastp_TDSPLY: performs a system call to initiate fastp preprocessing, opens resulting files */
+int call_fastp_TDSPLY(TDSPLY_names * nm, fastp_params prms)
 {
     static const char smRNA_adpt1[41] = "--adapter_sequence=TGGAATTCTCGGGTGCCAAGG";		//small RNA adapter 1
     static const char smRNA_adpt2[44] = "--adapter_sequence_r2=GATCGTCGGACTGTAGAACTC";	//small RNA adapter 2
@@ -38,19 +38,19 @@ int call_fastp(TDSPLY_names * nm, fastp_params prms)
     //construct output file options
     ret = snprintf(merged_out, 256, "--merged_out ./processed/%s.fq.gz", nm->mrg);
     if (ret >= 256 || ret < 0) {
-        printf("call_fastp: error - error when constructing merged_out name. aborting...\n");
+        printf("call_fastp_TDSPLY: error - error when constructing merged_out name. aborting...\n");
         abort();
     }
     
     ret = snprintf(unmerged_out1, 256, "--out1 ./processed/%s_unmerged.fq.gz", nm->smpl[READ1]);
     if (ret >= 256 || ret < 0) {
-        printf("call_fastp: error - error when constructing unmerged_out1 name. aborting...\n");
+        printf("call_fastp_TDSPLY: error - error when constructing unmerged_out1 name. aborting...\n");
         abort();
     }
     
     ret = snprintf(unmerged_out2, 256, "--out2 ./processed/%s_unmerged.fq.gz", nm->smpl[READ2]);
     if (ret >= 256 || ret < 0) {
-        printf("call_fastp: error - error when constructing unmerged_out2 name. aborting...\n");
+        printf("call_fastp_TDSPLY: error - error when constructing unmerged_out2 name. aborting...\n");
         abort();
     }
     
@@ -83,7 +83,7 @@ int call_fastp(TDSPLY_names * nm, fastp_params prms)
     //record fastp command
     FILE * out_fp = NULL;
     if ((out_fp = fopen("./fastp_command.txt", "w")) == NULL) {
-        printf("call_fastp: error - could not open fastp command file. Aborting program...\n");
+        printf("call_fastp_TDSPLY: error - could not open fastp command file. Aborting program...\n");
         abort();
     }
     
@@ -91,7 +91,7 @@ int call_fastp(TDSPLY_names * nm, fastp_params prms)
     fprintf(out_fp, "%s\n", command);	//print fastp command to file
     
     if ((fclose(out_fp)) == EOF ) {
-        printf("call_fastp: error - error occurred when closing fastp command file. Aborting program...\n");
+        printf("call_fastp_TDSPLY: error - error occurred when closing fastp command file. Aborting program...\n");
         abort();
     }
     

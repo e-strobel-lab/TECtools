@@ -56,6 +56,7 @@ typedef struct target_params {
     int nr_cnt;                     //number of non-redundant targets
     int rdndnt;                     //number of redundant targets
     int mapped2;                    //number of targets with at least 1 mapped read
+    int BClen;                      //barcode length (used in some cases)
 } target_params;
 
 
@@ -70,13 +71,13 @@ typedef struct TDSPLY_names {
 } TDSPLY_names;
 
 /* fasta: structure to store fasta entries */
-typedef struct fasta {
+typedef struct TDSPLY_fasta {
     char * nm;           //sequence name
     char * sq;           //sequence with multiple sequence alignment characters preserved
     int * pos;           //position number of base
     int ex;              //flag to exclude variant
     int start_pos;       //position of first nucleotide in sequence
-} fasta;
+} TDSPLY_fasta;
 
 /* metrics: structure containing seq read processing metrics */
 typedef struct TDSPLY_metrics {

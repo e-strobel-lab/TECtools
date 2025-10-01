@@ -129,7 +129,7 @@ int mk_3pEnd_testdata(char name[MAX_LINE], char seq[MAX_LINE], target3p_genVals 
                 }
                 
                 mk_rndmzd_bc(chnl_bc, mk_chnl[j], mk_mtch[j]); //generate channel barcode
-                print_fq(out_rd1, out_rd2, insrt2use, chnl_bc, i, end_rnd_typ); //print read to output fastq files
+                print_3pEnd_fq(out_rd1, out_rd2, insrt2use, chnl_bc, i, end_rnd_typ); //print read to output fastq files
             }
         }
     }
@@ -330,8 +330,8 @@ int rndmz_end(char * out, char * ipt, char * seq, target3p_genVals * ends, int m
 
 
 
-/* print_fq: construct read sequences and print to fastq file */
-void print_fq(FILE * out_rd1, FILE * out_rd2, char * insrt2use, char * chnl_bc, int end3p, int end_rnd_typ) {
+/* print_3pEnd_fq: construct read sequences and print to fastq file */
+void print_3pEnd_fq(FILE * out_rd1, FILE * out_rd2, char * insrt2use, char * chnl_bc, int end3p, int end_rnd_typ) {
     
     static int cnt = 0; //number of read pairs generated
     

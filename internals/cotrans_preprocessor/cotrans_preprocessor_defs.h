@@ -13,6 +13,8 @@
 #include "../global/global_defs.h"
 #include "../global/global_structs.h"
 
+#include "../TECdisplay_mapper/TECdisplay_mapper_defs.h"
+
 /* run_modes */
 #define MK_3pEND_TARGETS 0	//multi-length cotrans target generation mode
 #define PRCS_READS 1		//seq read pre-processing mode

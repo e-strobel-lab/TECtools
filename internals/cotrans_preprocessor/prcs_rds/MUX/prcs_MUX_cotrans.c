@@ -16,13 +16,17 @@
 
 #include "../../../variant_maker/make_barcodes.h"
 
+#include "../../../TECdisplay_mapper/TECdisplay_mapper_defs.h"
+#include "../../../TECdisplay_mapper/TECdisplay_mapper_structs.h"
+#include "../../../TECdisplay_mapper/map_reads/map_expected/parse_mx_trgts.h"
+
 #include "../../cotrans_preprocessor_defs.h"
 #include "../../cotrans_preprocessor_structs.h"
 #include "../../../utils/io_management.h"
 
-#include "../UNV/call_fastp.h"
+#include "../UNV/call_fastp_TPROBE.h"
 #include "../UNV/bypass_fastp.h"
-#include "../UNV/prcs_chnl.h"
+#include "../UNV/prcs_chnl_TPROBE.h"
 #include "../UNV/print_splitting_metrics.h"
 
 #include "../../MUX_trgt_gen/mk_MUX_trgts.h"
@@ -45,11 +49,19 @@ int prcs_MUX_cotrans(TPROBE_names * nm, FILE * fp_MUXtrgs, fastp_params fastp_pr
     compact_target * ctrg  = NULL; //pointer to compact target structures
     opt_BC * BC_val = NULL;        //pointer to optional target value structures
     
+    target_params trg_prms = {0};  //structure for storing target parameters
+    TDSPLY_fasta wt = {0};         //storage for wt sequence information
+    
     int brcd_cnt = 0;              //number of barcodes
     int ctrg_cnt = 0;              //number of compact targets stored
     int clcd_ctrg_cnt = 0;         //calculated number of barcode targets
     
     char line[MAX_LINE+1] = {0};   //array to store line
+    
+    /*parse_header_lines(fp_MUXtrgs, &trg_prms, &wt);
+    printf("%d expected targets\n", trg_prms.xpctd);
+    printf("%s: %s\n", wt.nm, wt.sq);
+    abort();*/
     
     //count number of targets
     while (get_line(line, fp_MUXtrgs)) { //until all lines have been read
@@ -122,7 +134,7 @@ int prcs_MUX_cotrans(TPROBE_names * nm, FILE * fp_MUXtrgs, fastp_params fastp_pr
     if (testdata_MUX->run && run_bypass_fastp) {
         bypass_fastp(nm->file[READ1], nm->file[READ2], &ifp[0]);
     } else {
-        call_fastp(nm->file[READ1], nm->file[READ2], &ifp[0], fastp_prms); //fastp pre-processing
+        call_fastp_TPROBE(nm->file[READ1], nm->file[READ2], &ifp[0], fastp_prms); //fastp pre-processing
     }
     
     //split input fastq by channel and barcode
@@ -502,7 +514,7 @@ void split_MUX_reads(FILE **ifp, compact_h_node **htbl_MUX, TPROBE_names * nm, c
             //is removed from the read during fastp UMI processing and appended to the read id
             //line (line 1) of reads 1 and 2
             
-            channel = prcs_chnl(&read1[LINE1][0], met, mode);
+            channel = prcs_chnl_TPROBE(&read1[LINE1][0], met, mode);
             switch (channel) {
                 case UNT: sprintf(chan_str, "UNT"); break;
                 case MOD: sprintf(chan_str, "MOD"); break;

@@ -62,7 +62,7 @@ void mk_rndmzd_bc(char * bc, int chnl, int mtch);
 int rndmz_end(char * out, char * ipt, char * seq, target3p_genVals * ends, int min_len);
 
 
-/* print_fq: construct read sequences and print to fastq file
+/* print_3pEnd_fq: construct read sequences and print to fastq file
  ***arguments***
  FILE * out_rd1: file pointer for read 1 output
  FILE * out_rd2: file pointer for read 2 output
@@ -71,7 +71,7 @@ int rndmz_end(char * out, char * ipt, char * seq, target3p_genVals * ends, int m
  int end3p: transcript length of sequence that was used to generate insert
  int end_rnd_typ: randomization type
  */
-void print_fq(FILE * out_rd1, FILE * out_rd2, char * insrt2use, char * chnl_bc, int end3p, int end_rnd_typ);
+void print_3pEnd_fq(FILE * out_rd1, FILE * out_rd2, char * insrt2use, char * chnl_bc, int end3p, int end_rnd_typ);
 
 
 /* print_var_map: print map that illustrates 3' end randomization

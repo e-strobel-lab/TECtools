@@ -1,5 +1,5 @@
 //
-//  prcs_chnl.c
+//  prcs_chnl_TDSPLY.c
 //  
 //
 //  Created by Eric Strobel on 3/15/22.
@@ -14,9 +14,9 @@
 #include "../../TECdisplay_mapper_defs.h"
 #include "../../TECdisplay_mapper_structs.h"
 
-#include "prcs_chnl.h"
+#include "prcs_chnl_TDSPLY.h"
 
-/* prcs_chnl: identify channel code from read 1 ID.
+/* prcs_chnl_TDSPLY: identify channel code from read 1 ID.
  these barcodes are used to split reads into modified and untreated channels
  barcodes:
  bound  = RYYY
@@ -24,7 +24,7 @@
  
  in TECdisplay experiments the channel barcode is the first four nucleotides of read2
  */
-int prcs_chnl(char * read_ID, TDSPLY_metrics  * met, int * chnl_match_type)
+int prcs_chnl_TDSPLY(char * read_ID, TDSPLY_metrics  * met, int * chnl_match_type)
 {
     extern int debug;    //flag to turn on debug mode
     
@@ -46,10 +46,10 @@ int prcs_chnl(char * read_ID, TDSPLY_metrics  * met, int * chnl_match_type)
     
     //check that the read_ID contained a space and that expected UMI location is within array bounds
     if (!read_ID[i]) { //check that loop did not exit on null character
-        printf("prcs_chnl: error - unexpected read id line format. aborting...\n");
+        printf("prcs_chnl_TDSPLY: error - unexpected read id line format. aborting...\n");
         abort();
     } else if (i <= TDSPLY_UMI_LENGTH) {//check that 1-TDSPLY_UMI_LENGTH will not be negative
-        printf("prcs_chnl: error - unexpected short read id line. aborting...\n");
+        printf("prcs_chnl_TDSPLY: error - unexpected short read id line. aborting...\n");
         abort();
     }
     
@@ -88,7 +88,7 @@ int prcs_chnl(char * read_ID, TDSPLY_metrics  * met, int * chnl_match_type)
                 if (debug) {printf("N");}
                 break;
             default:
-                printf("prcs_chnl: error - unexpected character %c(%d) in channel barcode. aborting...\n", barcode[i], barcode[i]);
+                printf("prcs_chnl_TDSPLY: error - unexpected character %c(%d) in channel barcode. aborting...\n", barcode[i], barcode[i]);
                 abort();
                 break;
         }

@@ -21,8 +21,9 @@
 #include "../../cotrans_preprocessor_structs.h"
 #include "../../../utils/io_management.h"
 
-#include "../UNV/call_fastp.h"
-#include "../UNV/prcs_chnl.h"
+#include "../UNV/call_fastp_TPROBE.h"
+#include "../UNV/bypass_fastp.h"
+#include "../UNV/prcs_chnl_TPROBE.h"
 #include "../UNV/print_splitting_metrics.h"
 
 #include "../../MUX_trgt_gen/mk_MUX_trgts.h"

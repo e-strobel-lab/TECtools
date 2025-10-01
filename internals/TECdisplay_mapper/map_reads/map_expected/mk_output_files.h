@@ -32,6 +32,6 @@ void print_output(target * trgts, target_params * trg_prms, TDSPLY_names * nm);
 void print_metrics(target * trgts, target_params * trg_prms, TDSPLY_metrics * met, TDSPLY_names * nm);
 
 /* print_navigator_template: make template files for TECdisplay_navigator */
-void print_navigator_template(target *refs, fasta * wt, target_params * trg_prms);
+void print_navigator_template(target *refs, TDSPLY_fasta * wt, target_params * trg_prms);
 
 #endif /* mk_output_files_h */

@@ -25,24 +25,24 @@
 #include "../../../seq_utils/seq2bin_hash.h"
 #include "../../../seq_utils/basemap.h"
 
-#include "../map_reads.h"
+#include "./set_trgt.h"
 
 #define TDSPLY_TRGS 0
 #define TPROBE_TRGS 1
 
 /* parse_header_lines: parse targets file header lines for expected variant count
  and wild type sequence information */
-void parse_header_lines(FILE * ifp, target_params *trg_prms, fasta * wt);
+void parse_header_lines(FILE * ifp, target_params *trg_prms, TDSPLY_fasta * wt);
 
 /* parse_mx_trgts: parse targets file to obtain target ids, sequences, attributes,
   and min/max transcript lengths */
-void parse_mx_trgts(FILE * ifp, target * refs, opt_ref * ref_val, void * trgts, void * optmx, target_params * trg_prms, fasta * wt, int mode);
+void parse_mx_trgts(FILE * ifp, target * refs, opt_ref * ref_val, void * trgts, void * optmx, target_params * trg_prms, TDSPLY_fasta * wt, int mode);
 
 /* check_tpr_match: check that expected tpr matches actual tpr */
 void check_tpr_match(int cnt, int actual, int xpctd);
 
 /* validate_ref_seq: check that reference comprises valid characters and is not too long */
-void validate_ref_seq(char * ref_nm, char * ref_sq, fasta * wt);
+void validate_ref_seq(char * ref_nm, char * ref_sq, TDSPLY_fasta * wt);
 
 /* validate_trgt_seq: check that target comprises valid characters and
  matches its associated reference target at all non-variable positions */
@@ -53,9 +53,6 @@ int process_trgt_seq(char * ipt, char * processed_seq);
 
 /* set_ref: set reference target values in targets structure */
 void set_ref(target * refs,  opt_ref * ref_val, char * ref_id, char * ref_sq, int tpr, char * vbases, char * cnstnts);
-
-/* set_trgt: set target values in target struct */
-void set_trgt(target * trgts, opt_mx_trg * trg_val, target * crnt_ref, char * trgt_id, char * trgt_sq);
 
 /* print_reference_debug: print debug messages for reference processing outcome */
 void print_reference_debug(target * trgt, target_params * trg_prms);

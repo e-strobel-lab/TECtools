@@ -1,5 +1,5 @@
 //
-//  mk_test_data.c
+//  mk_TDSPLY_test_data.c
 //  
 //
 //  Created by Eric Strobel on 4/26/23.
@@ -21,12 +21,12 @@
 
 #include "../../utils/debug.h"
 
-#include "mk_test_data.h"
+#include "mk_TDSPLY_test_data.h"
 
 extern int debug;
 
-/* mk_test_data: coordinates test data generation */
-int mk_test_data(TDSPLY_names * nm, target *refs, target *trgts, target_params *trg_prms)
+/* mk_TDSPLY_test_data: coordinates test data generation */
+int mk_TDSPLY_test_data(TDSPLY_names * nm, target *refs, target *trgts, target_params *trg_prms)
 {
     
     srand(time(NULL)); //seed pseudorandom number generator
@@ -38,7 +38,7 @@ int mk_test_data(TDSPLY_names * nm, target *refs, target *trgts, target_params *
     //construct output directory name
     ret = snprintf(out_dir, MAX_LINE, "%s_test_data", nm->trgs_prefix);
     if (ret >= MAX_LINE || ret < 0) {
-        printf("mk_test_data: error - error when constructing output directory name. aborting...\n");
+        printf("mk_TDSPLY_test_data: error - error when constructing output directory name. aborting...\n");
         abort();
     }
     mk_out_dir(out_dir); //make output directory
@@ -49,22 +49,22 @@ int mk_test_data(TDSPLY_names * nm, target *refs, target *trgts, target_params *
     //generate read 1 output file
     ret = snprintf(nm->file[READ1], MAX_LINE, "./%s/%s_testdata_R1.fq", out_dir, nm->trgs_prefix);
     if (ret >= MAX_LINE || ret < 0) {
-        printf("mk_test_data: error - error when constructing read one output file name. aborting...\n");
+        printf("mk_TDSPLY_test_data: error - error when constructing read one output file name. aborting...\n");
         abort();
     }
     if ((out_rd1 = fopen(nm->file[READ1], "w")) == NULL) {
-        printf("mk_test_data: error - could not generate test data read one file. Aborting program...\n");
+        printf("mk_TDSPLY_test_data: error - could not generate test data read one file. Aborting program...\n");
         abort();
     }
     
     //generate read 2 output file
     ret = snprintf(nm->file[READ2], MAX_LINE, "./%s/%s_testdata_R2.fq", out_dir, nm->trgs_prefix);
     if (ret >= MAX_LINE || ret < 0) {
-        printf("mk_test_data: error - error when constructing read two output file name. aborting...\n");
+        printf("mk_TDSPLY_test_data: error - error when constructing read two output file name. aborting...\n");
         abort();
     }
     if ((out_rd2 = fopen(nm->file[READ2], "w")) == NULL) {
-        printf("mk_test_data: error - could not generate test data read two file. Aborting program...\n");
+        printf("mk_TDSPLY_test_data: error - could not generate test data read two file. Aborting program...\n");
         abort();
     }
     
@@ -128,7 +128,7 @@ int mk_test_data(TDSPLY_names * nm, target *refs, target *trgts, target_params *
                     mk_rndmzd_bc(chnl_bc, mk_chnl[i], mk_mtch[i]); //generate randomized channel barcode
                     
                     //make reads from native sequence
-                    print_fq(out_rd1, out_rd2, &trgts[trg_indx].id[0], &trgts[trg_indx].sq[0], chnl_bc, NAT);
+                    print_TDSPLY_fq(out_rd1, out_rd2, &trgts[trg_indx].id[0], &trgts[trg_indx].sq[0], chnl_bc, NAT);
                 }
                 
                 //make mutant sequence reads
@@ -139,7 +139,7 @@ int mk_test_data(TDSPLY_names * nm, target *refs, target *trgts, target_params *
                     mut_cd = mutate_insrt(vb_map, mut_insrt); //generate mutant target sequence
                     
                     //make reads from mutated sequence
-                    print_fq(out_rd1, out_rd2, &trgts[trg_indx].id[0], &mut_insrt[0], chnl_bc, mut_cd);
+                    print_TDSPLY_fq(out_rd1, out_rd2, &trgts[trg_indx].id[0], &mut_insrt[0], chnl_bc, mut_cd);
                 }
             }
         }
@@ -147,13 +147,13 @@ int mk_test_data(TDSPLY_names * nm, target *refs, target *trgts, target_params *
     
     //close read 1 output file
     if ((fclose(out_rd1)) == EOF) {
-        printf("mk_test_data: error - error occurred when closing test data read 1 file. Aborting program...\n");
+        printf("mk_TDSPLY_test_data: error - error occurred when closing test data read 1 file. Aborting program...\n");
         abort();
     }
     
     //close read 2 output file
     if ((fclose(out_rd2)) == EOF) {
-        printf("mk_test_data: error - error occurred when closing test data read 2 file. Aborting program...\n");
+        printf("mk_TDSPLY_test_data: error - error occurred when closing test data read 2 file. Aborting program...\n");
         abort();
     }
     
@@ -242,8 +242,8 @@ void mk_rndmzd_bc(char * bc, int chnl, int mtch)
     return;
 }
 
-/* print_fq: construct read sequences and print to fastq file */
-void print_fq(FILE * out_rd1, FILE * out_rd2, char * var_id, char * insrt2use, char * chnl_bc, int end_rnd_typ) {
+/* print_TDSPLY_fq: construct read sequences and print to fastq file */
+void print_TDSPLY_fq(FILE * out_rd1, FILE * out_rd2, char * var_id, char * insrt2use, char * chnl_bc, int end_rnd_typ) {
     
     static int cnt = 0; //number of read pairs generated
     

@@ -1,12 +1,12 @@
 //
-//  assess_test_data.h
+//  assess_TDSPLY_test_data.h
 //  
 //
 //  Created by Eric Strobel on 5/3/23.
 //
 
-#ifndef assess_test_data_h
-#define assess_test_data_h
+#ifndef assess_TDSPLY_test_data_h
+#define assess_TDSPLY_test_data_h
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -30,4 +30,4 @@ int eval_testdata_mtch(testdata_vars * testdata, char * td_trg_id, int crnt_mut_
  outcomes and print results to a file and to the screen */
 void print_testdata_analysis(TDSPLY_metrics *met, testdata_vars * testdata, target_params * trg_prms, target * trgts);
 
-#endif /* assess_test_data_h */
+#endif /* assess_TDSPLY_test_data_h */

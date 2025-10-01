@@ -1,5 +1,5 @@
 //
-//  assess_test_data.c
+//  assess_TDSPLY_test_data.c
 //  
 //
 //  Created by Eric Strobel on 5/3/23.
@@ -17,7 +17,7 @@
 
 #include "../../utils/gen_utils.h"
 
-#include "assess_test_data.h"
+#include "assess_TDSPLY_test_data.h"
 
 /* parse_testdata_id: parse test data id line and store attributes*/
 void parse_testdata_id(testdata_vars * testdata, char **td_trg_id, int * crnt_mut_cd, char * id_line)

@@ -15,8 +15,8 @@
 #include "../../../utils/io_management.h"
 #include "../../../seq_utils/seq2bin_hash.h"
 #include "parse_3pEnd_trgts.h"
-#include "../UNV/call_fastp.h"
-#include "../UNV/prcs_chnl.h"
+#include "../UNV/call_fastp_TPROBE.h"
+#include "../UNV/prcs_chnl_TPROBE.h"
 #include "../UNV/print_splitting_metrics.h"
 #include "../UNV/mk_config.h"
 #include "../../../seq_utils/appnd_att.h"
@@ -95,7 +95,7 @@ int prcs_MLT_cotrans(TPROBE_names * nm, FILE * fp_3pEnd, fastp_params fastp_prms
     
     /************* process and split sequencing reads **************/
     mk_out_dir("split");					//make directory for output files
-    call_fastp(nm->file[READ1], nm->file[READ2], &ifp[0], fastp_prms);	//fastp pre-processing
+    call_fastp_TPROBE(nm->file[READ1], nm->file[READ2], &ifp[0], fastp_prms);	//fastp pre-processing
     
     //split input fastq by channel and 3' end
     split_reads_3pEnd(&ifp[0], htbl_3end, nm, &met, trg_prms, fastp_prms.mode);
@@ -483,7 +483,7 @@ int split_reads_3pEnd(FILE **ifp, h_node **htbl, TPROBE_names * nm, metrics  * m
             //is removed from the read during fastp UMI processing and appended to the read id
             //line (line 1) of reads 1 and 2
             
-            channel = prcs_chnl(&read1[LINE1][0], met, mode);
+            channel = prcs_chnl_TPROBE(&read1[LINE1][0], met, mode);
             switch (channel) {
                 case UNT: sprintf(chan_str, "UNT"); break;
                 case MOD: sprintf(chan_str, "MOD"); break;
