@@ -1,5 +1,5 @@
 //
-//  parse_mx_trgts.c
+//  parse_vmt_trgts.c
 //  
 //
 //  Created by Eric Strobel on 3/15/22.
@@ -20,11 +20,13 @@
 #include "../../../seq_utils/isDNAbase.h"
 #include "../../../seq_utils/isIUPACbase.h"
 #include "../../../seq_utils/seq2bin_hash.h"
+#include "../../../seq_utils/seq2bin_long.h"
 #include "../../../seq_utils/basemap.h"
 
 #include "./set_trgt.h"
+#include "../../../cotrans_preprocessor/MUX_trgt_gen/set_barcoded_compact_target.h"
 
-#include "parse_mx_trgts.h"
+#include "parse_vmt_trgts.h"
 
 /* parse_header_lines: parse targets file header lines for expected variant count
  and wild type sequence information */
@@ -97,9 +99,9 @@ void parse_header_lines(FILE * ifp, target_params * trg_prms, TDSPLY_fasta * wt)
     return;
 }
 
-/* parse_mx_trgts: parse targets file to obtain target ids, sequences, attributes,
- and min/max transcript lengths */
-void parse_mx_trgts(FILE * ifp, target * refs, opt_ref * ref_val, void * trgts, void * trg_val, target_params * trg_prms, TDSPLY_fasta * wt, int mode)
+/* parse_vmt_trgts: parse targets file to obtain target ids, sequences, attributes,
+  and min/max transcript lengths */
+void parse_vmt_trgts(FILE * ifp, int trgt_ftype, target * refs, opt_ref * ref_val, void * trgts, void * trg_val, target_params * trg_prms, TDSPLY_fasta * wt, int mode)
 {
     //TODO: double check that reversion from revcomp is all correct
     extern int debug;				           //flag to run debug mode
@@ -140,19 +142,19 @@ void parse_mx_trgts(FILE * ifp, target * refs, opt_ref * ref_val, void * trgts, 
         //contents of targets file line 1 and not enough
         //memory was allocated.
         if (trg_prms->t_cnt > trg_prms->xpctd) {
-            printf("parse_mx_trgts: error - more targets than expected in targets file. aborting...\n");
+            printf("parse_vmt_trgts: error - more targets than expected in targets file. aborting...\n");
             abort();
         }
                 
         //split input line into target name and sequence
         for (i = 0; line[i] != '\t' && line[i] && i < MAX_LINE; i++) { ;} //iterate to first tab
         if (!line[i] || i == MAX_LINE) { //check loop exit condition for unexpected line format
-            printf("parse_mx_trgts: error - unexpected end target line format (missing tab delimiter). aborting...\n");
+            printf("parse_vmt_trgts: error - unexpected end target line format (missing tab delimiter). aborting...\n");
             abort();
         } else {
-            line[i] = '\0';			         //replace tab with null to split line
-            trgt_id = &line[0];		         //set pointer to target id (starts at index 0)
-            trgt_sq = &line[i+1];	         //set pointer to target sequence (starts at index i+1)
+            line[i] = '\0';	      //replace tab with null to split line
+            trgt_id = &line[0];   //set pointer to target id (starts at index 0)
+            trgt_sq = &line[i+1]; //set pointer to target sequence (starts at index i+1)
         }
                         
         if (!memcmp(trgt_id, ref_code, strlen(ref_code)) && trgt_id[strlen(ref_code)]) { //check if ref target
@@ -161,7 +163,7 @@ void parse_mx_trgts(FILE * ifp, target * refs, opt_ref * ref_val, void * trgts, 
             check_tpr_match(trg_prms->r_cnt, trg_prms->t_per_r[trg_prms->r_cnt-1], xpctd_tpr);
             
             if (trg_prms->r_cnt >= MAXREF) { //check that maximum reference target numer has not been reached
-                printf("parse_mx_trgts: error - more reference targets than expected maximum (%d) in targets file. aborting...\n", MAXREF);
+                printf("parse_vmt_trgts: error - more reference targets than expected maximum (%d) in targets file. aborting...\n", MAXREF);
                 abort();
             }
             
@@ -192,12 +194,12 @@ void parse_mx_trgts(FILE * ifp, target * refs, opt_ref * ref_val, void * trgts, 
                             cnstnts_ptr = &tmp_ptr[strlen(cnst_code)];  //set pointer to constant indels string
                             
                         } else { //unrecognized target id format
-                            printf("parse_mx_trgts: error - unrecognized target id format for reference target %s\n. aborting...\n", ref_name_ptr);
+                            printf("parse_vmt_trgts: error - unrecognized target id format for reference target %s\n. aborting...\n", ref_name_ptr);
                             abort();
                         }
                         
                     } else { //target is missing attribute
-                        printf("parse_mx_trgts: error - separator character in target id for reference target %s is not followed by an attribute. aborting...\n", ref_name_ptr);
+                        printf("parse_vmt_trgts: error - separator character in target id for reference target %s is not followed by an attribute. aborting...\n", ref_name_ptr);
                         abort();
                     }
                 }
@@ -207,7 +209,7 @@ void parse_mx_trgts(FILE * ifp, target * refs, opt_ref * ref_val, void * trgts, 
             //convert the expected tpr string to an int
             for (i = 0; xpctd_tpr_ptr[i]; i++) {
                 if (!isdigit(xpctd_tpr_ptr[i])) {
-                    printf("parse_mx_trgts: error - transcripts per reference value for reference target %s contains a non-digit character. aborting...\n", ref_name_ptr);
+                    printf("parse_vmt_trgts: error - transcripts per reference value for reference target %s contains a non-digit character. aborting...\n", ref_name_ptr);
                     abort();
                 }
             }
@@ -230,21 +232,27 @@ void parse_mx_trgts(FILE * ifp, target * refs, opt_ref * ref_val, void * trgts, 
             //this confirms that the target matches its reference at all non-variable
             //positions and that target sequence length matches reference sequencel length
             if (!validate_trgt_seq(trgt_id, trgt_sq, unprcsd_ref_sq)) {
-                printf("parse_mx_targets: error - target %s is associated with reference %s but is not a complete match at non-variable positions. aborting...\n", trgt_id, crnt_ref->id);
+                printf("parse_vmt_trgts: error - target %s is associated with reference %s but is not a complete match at non-variable positions. aborting...\n", trgt_id, crnt_ref->id);
                 abort();
             }
             
             //set target structure values for the current target
             if (mode == TDSPLY_TRGS) {
-                set_trgt(&(((target *)trgts)[trg_prms->t_cnt]), &(((opt_mx_trg *)trg_val)[trg_prms->t_cnt]), crnt_ref, trgt_id, trgt_sq);
+                set_trgt(&(((target *)trgts)[trg_prms->t_cnt]),
+                         &(((opt_mx_trg *)trg_val)[trg_prms->t_cnt]),
+                         crnt_ref, trgt_id, trgt_sq);
                 if (debug) {print_target_debug(&(((target *)trgts)[trg_prms->t_cnt]), trg_prms);} //print debug messages
+            } else if (mode == TPROBE_TRGS) {
+                set_barcoded_compact_target(&(((compact_target *)trgts)[trg_prms->t_cnt]),
+                                            &(((opt_BC *)trg_val)[trg_prms->t_cnt]),
+                                            crnt_ref, trgt_id, trgt_sq, trg_prms, trgt_ftype);
             }
             
             trg_prms->t_cnt++;                       //increment parsed target counter
             trg_prms->t_per_r[trg_prms->r_cnt-1]++;  //increment targets per reference counter
             
         } else { //file must begin with a reference target. throw error and abort.
-            printf("parse_mx_targets: error - first target must be a reference target. aborting...\n");
+            printf("parse_vmt_trgts: error - first target must be a reference target. aborting...\n");
             abort();
         }
     }
@@ -255,7 +263,7 @@ void parse_mx_trgts(FILE * ifp, target * refs, opt_ref * ref_val, void * trgts, 
     //if t_cnt is less than xpctd, the targets file
     //did not contain the correct number of targets
     if (trg_prms->t_cnt != trg_prms->xpctd) { //t_cnt should be equal to xpctd
-        printf("parse_mx_trgts: error - incorrect number (%d) of targets in targets file. expected (%d). aborting...\n", trg_prms->t_cnt, trg_prms->xpctd);
+        printf("parse_vmt_trgts: error - incorrect number (%d) of targets in targets file. expected (%d). aborting...\n", trg_prms->t_cnt, trg_prms->xpctd);
         abort();
     }
 
@@ -268,7 +276,7 @@ void parse_mx_trgts(FILE * ifp, target * refs, opt_ref * ref_val, void * trgts, 
 void check_tpr_match(int cnt, int actual, int xpctd)
 {
     if (actual != xpctd) {
-        printf("parse_mx_trgts: error - actual number of targets for reference %d (%d) is not equal to the expected number indicated in targets file (%d). aborting...", cnt, actual, xpctd);
+        printf("check_tpr_match: error - actual number of targets for reference %d (%d) is not equal to the expected number indicated in targets file (%d). aborting...", cnt, actual, xpctd);
         abort();
     } else if (cnt) {
         printf("reference target %d: %d/%d\t(%5.2f%%) of expected targets were processed\n", cnt, actual, xpctd, ((float)(actual)/(float)(xpctd))*100);
@@ -421,7 +429,7 @@ void set_ref(target * refs, opt_ref * ref_val, char * ref_id, char * ref_sq, int
             if (p_ref_val->vb_cnt < SEQ2BIN_MAX_KEY) {      //check that number of variable bases does not exceed max
                 p_ref_val->vb_pos[p_ref_val->vb_cnt++] = i; //set variable base position in reference target
             } else { //if number of variable bases exceeds max, throw error and abort
-                printf("parse_mx_trgts: number of variable bases (%d) exceeds allowed maximum (%d). aborting...\n", p_ref_val->vb_cnt, SEQ2BIN_MAX_KEY);
+                printf("set_ref: number of variable bases (%d) exceeds allowed maximum (%d). aborting...\n", p_ref_val->vb_cnt, SEQ2BIN_MAX_KEY);
                 abort();
             }
         }

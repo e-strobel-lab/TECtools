@@ -25,13 +25,13 @@
 #include "./map_expected/get_key.h"
 #include "../../seq_utils/revcomp.h"
 #include "../../seq_utils/basemap.h"
-#include "./map_expected/parse_mx_trgts.h"
+#include "./map_expected/parse_vmt_trgts.h"
 #include "./map_expected/mk_output_files.h"
 #include "../testdata_analysis/mk_TDSPLY_test_data.h"
 #include "../testdata_analysis/assess_TDSPLY_test_data.h"
 
 /* map_reads: coordinates targets parsing, fastp processing, read mapping, and output file generation */
-int map_reads (TDSPLY_names * nm, FILE * fp_trgs, char * minQ, fastp_params fastp_prms, testdata_vars * testdata, int mode);
+int map_reads (TDSPLY_names * nm, FILE * fp_trgs, int trgt_ftype, char * minQ, fastp_params fastp_prms, testdata_vars * testdata, int mode);
 
 /* mk_htbl_TDSPLY: construct hash table from target structure */
 int mk_htbl_TDSPLY(h_node **htbl, h_node_bank *bank, target *trgts, target *refs, target_params *trg_prms);

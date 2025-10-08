@@ -17,6 +17,14 @@
 #include "../../../seq_utils/seq2bin_hash.h"
 #include "../../../seq_utils/seq2bin_long.h"
 
+#include "../../../variant_maker/variant_maker_defs.h"
+#include "../../../variant_maker/vmt_suffix.h"
+#include "../../../variant_maker/make_barcodes.h"
+
+#include "../../../TECdisplay_mapper/TECdisplay_mapper_defs.h"
+#include "../../../TECdisplay_mapper/TECdisplay_mapper_structs.h"
+#include "../../../TECdisplay_mapper/map_reads/map_expected/parse_vmt_trgts.h"
+
 #include "../../cotrans_preprocessor_defs.h"
 #include "../../cotrans_preprocessor_structs.h"
 #include "../../../utils/io_management.h"
@@ -29,12 +37,14 @@
 #include "../../MUX_trgt_gen/mk_MUX_trgts.h"
 #include "../../MUX_trgt_gen/mk_MUX_testdata.h"
 
+#include "../MLT/prcs_MLT_cotrans.h"
+
 #include "./testdataMUX_analysis.h"
 
 #include "prcs_MUX_cotrans.h"
 
 /* prcs_MUX_cotrans: manages processing of TECprobe-MUX data */
-int prcs_MUX_cotrans(TPROBE_names * nm, FILE * fp_MUXtrgs, fastp_params fastp_prms, testdata_MUX_vars * testdata_MUX, int run_bypass_fastp);
+int prcs_MUX_cotrans(TPROBE_names * nm, FILE * fp_MUXtrgs, int trgt_ftype, fastp_params fastp_prms, testdata_MUX_vars * testdata_MUX, int run_bypass_fastp);
 
 /* mk_htbl_MUX: makes compact target hash table */
 /* hash table has linked list buckets for possible collisions */

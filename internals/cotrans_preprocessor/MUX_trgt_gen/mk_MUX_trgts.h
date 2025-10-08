@@ -22,16 +22,13 @@
 #include "../../seq_utils/seq2bin_long.h"
 
 #include "../../variant_maker/constant_seqs.h"
+#include "../../variant_maker/vmt_suffix.h"
 #include "../../variant_maker/read_bcFile.h"
 
-#define MAX_UINT64_LEN 20 //maximum number of characters in an unsigned 64-bit integer
+#include "../../TECdisplay_mapper/map_reads/map_expected/parse_vmt_trgts.h"
 
-#define MUTCODE_BITS 16   //number of bits allocated for barcode mutation codes
-#define NUMERICAL_ID 0    //indicates that barcode ID is strictly numerical
-#define COMPLEX_ID 1      //indicates that barcode ID is not strictly numerical
-
-#define NATIVE_BRCD 0     //barcode contains no mutations
-#define MUTANT_BRCD 1     //barcode contains a mutation
+#include "./parse_fa_trgts.h"
+#include "./mk_barcoded_target_fastas.h"
 
 #define MIN_SUB_CODE 1    //minimum mutcode value for substitutions
 #define MAX_SUB_CODE 48   //maximum mutcode value for substitutions
@@ -41,19 +38,7 @@
 #define MAX_DEL_CODE 128  //maximum mutcode value for deletions
 
 /* mk_MUX_trgts: manages TECprobe-MUX target generation */
-int mk_MUX_trgts(TPROBE_names * nm, compact_target * ctrg, opt_BC * BC_val, FILE * fp_MUXtrgs, int brcd_cnt, int clcd_ctrg_cnt);
-
-/* store_barcode_targets: stores input barcodes as compact targets */
-int store_barcode_targets(TPROBE_names * nm,compact_target * ctrg, opt_BC * BC_val, int * brcd_len, FILE * fp_MUXtrgs, int brcd_cnt);
-
-/* set_BC_val: set optional values for barcode target */
-void set_BC_val(compact_target * ctrg, opt_BC * BC_val, char * tsq, compact_target * ntv, int mode);
-
-/* parsce_barcode_id: parse barcode id to set full id and numerical id pointers */
-int parse_barcode_id(char ** p_nid, char ** p_fid, char * crnt_bcid);
-
-/* parse_oligo_seq: parse oligonucleotide sequence to identify barcode and target RNA sequences */
-void parse_oligo_seq(char ** p_trgt, char ** p_brcd, int * brcd_len, char * crnt_oligo);
+int mk_MUX_trgts(TPROBE_names * nm, target * refs, opt_ref * ref_val, compact_target * ctrg, opt_BC * BC_val, FILE * fp_MUXtrgs, int trgt_ftype, target_params * trg_prms, int clcd_ctrg_cnt, TDSPLY_fasta * wt);
 
 /* mk_SUB_trgts: generates single substitution targets for input barcode */
 int mk_SUB_trgts(compact_target * ctrg, opt_BC * BC_val, int * ctrg_cnt, compact_target * src_ctrg, int brcd_len, uint64_t * mutCode);

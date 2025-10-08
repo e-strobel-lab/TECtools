@@ -14,8 +14,14 @@
 #include "../../global/global_defs.h"
 #include "../../global/global_structs.h"
 
+#include "../../variant_maker/variant_maker_defs.h"
+
 #include "../TECdisplay_mapper_structs.h"
 #include "../TECdisplay_mapper_defs.h"
+
+#include "../map_reads/map_expected/parse_vmt_trgts.h"
+
+#include "../../utils/debug.h"
 
 /* mk_TDSPLY_test_data: coordinates test data generation */
 int mk_TDSPLY_test_data(TDSPLY_names * nm, target *refs, target *trgts, target_params *trg_prms);

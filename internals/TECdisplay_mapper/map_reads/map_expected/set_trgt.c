@@ -23,7 +23,7 @@
 #include "../../../seq_utils/basemap.h"
 
 #include "./get_key.h"
-#include "./parse_mx_trgts.h"
+#include "./parse_vmt_trgts.h"
 
 #include "set_trgt.h"
 
@@ -34,8 +34,8 @@ void set_trgt(target * trgts, opt_mx_trg * trg_val, target * crnt_ref, char * tr
     
     int i = 0; //general purpose index
     
-    opt_mx_trg * p_trg_val = NULL;     //pointer for dereferencing opt pointer in targets structure to opt_mx_trg
-    opt_ref * p_ref_val = NULL;         //pointer for dereferencing opt pointer in targets structure to opt_ref
+    opt_mx_trg * p_trg_val = NULL; //pointer for dereferencing opt pointer in targets structure to opt_mx_trg
+    opt_ref * p_ref_val = NULL;    //pointer for dereferencing opt pointer in targets structure to opt_ref
     
     //filter non-base chars from input seq
     char processed_seq[MAXLEN+1] = {0}; //array to store seq w/o non-base chars

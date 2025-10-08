@@ -32,6 +32,7 @@
 #include "./variant_maker_defs.h"
 #include "./variant_maker_structs.h"
 #include "./constant_seqs.h"
+#include "./vmt_suffix.h"
 #include "./read_varFile.h"
 #include "./count_variants.h"
 #include "./expand_variant_template.h"
@@ -43,7 +44,7 @@
 
 /* check_input: check that correct input files were supplied for
  variant generation and print input file information to file*/
-void check_input(names * nm, int varFile_supplied, int brcdFile_supplied, int append_barcode, int first_bc_2_use, char * out_dir);
+void check_input(names * nm, int varFile_supplied, int brcdFile_supplied, int lib_type, int lib_type_set, int append_priming, int append_barcode, int first_bc_2_use, int bcs_per_var, char * cstm_lnkr, int make_fasta, char * out_dir);
 
 //variant storage
 fasta *vrnts = NULL;  //pointer to fasta structures used when generating variants
@@ -74,6 +75,8 @@ int main(int argc, char *argv[])
     extern char vra3[27];
     extern char RLA29synch_3p11[34]; //v2
     
+    extern char vmt_suffix[4]; //variant maker target file suffix
+    
     FILE * fp_var = NULL;      //pointer to variant parameters file
     FILE * fp_brcd = NULL;     //pointer to barcode sequences file
     
@@ -86,8 +89,10 @@ int main(int argc, char *argv[])
     int append_barcode = 0;    //flag to append barcodes to variants
     int first_bc_2_use = 1;    //first barcode id to use. default = 1
     int append_priming = 0;    //flag to append C3-SC1 and VRA3 priming sites
+    int bcs_per_var = 1;       //number of barcodes to apply to each variant
     int make_fasta = 0;        //flag to make fasta file
     int lib_type = -1;         //flag to indicate library type
+    int lib_type_set = 0;      //flag that library type was set
         
     char usr_resp[4] = {0};         //storage for user response
     char discard[MAX_LINE+1] = {0}; //array for flushing stdin
@@ -97,9 +102,6 @@ int main(int argc, char *argv[])
     int j = 0; //general purpose index
     
     int ret = 0; //variable for storing snprintf return value
-    
-    int TECd_library = 0; //flag that sequences are for a TECdisplay library
-    int MUX_library = 0;  //flag that sequences are for a TECprobe-MUX library
     
     char cstm_lnkr[MAX_LINKER+1] = {"exclude"}; //array for storing custom linker sequence
     char *lnkr = NULL; //pointer to linker that will be used during library generation
@@ -114,16 +116,18 @@ int main(int argc, char *argv[])
             {"mk-variants",     required_argument,  0,  'v'},  //variant template input file, sets MAKE_VARIANTS mode
             /* WARNING: mk-barcodes mode should only be run on systems with >= 128 GB of RAM */
             {"mk-barcodes",     required_argument,  0,  'b'},  //flag to make barcode file
-            {"append-priming",  required_argument,  0,  'p'},  //append priming sites
+            {"library-type",    required_argument,  0,  't'},  //type of library to be generated
+            {"append-priming",  no_argument,        0,  'p'},  //append priming sites
             {"append-barcode",  required_argument,  0,  'a'},  //flag to append barcodes to variants
             {"first-bc-2-use",  required_argument,  0,  'i'},  //first barcode id to use
+            {"brcds-per-vrnt",  required_argument,  0,  'c'},  //number of barcodes to apply to each variant
             {"custom-linker",   required_argument,  0,  'l'},  //use custom linker
             {"make_fasta",      no_argument,        0,  'f'},  //make fasta file
             {"debug",           no_argument,        0,  'd'},  //run debug mode
             {0, 0, 0, 0}
         };
         
-        c = getopt_long(argc, argv, "v:b:p:a:i:l:fd", long_options, &option_index);
+        c = getopt_long(argc, argv, "v:b:t:pa:i:c:l:fd", long_options, &option_index);
         
         if (c == -1) {
             break;
@@ -177,32 +181,34 @@ int main(int argc, char *argv[])
                 
                 break;
                 
-            //append C3-SC1 and VRA3 priming sites to variants
+            case 't':
+                if (!strcmp(argv[optind-1], "TECdisplay")) {          //making TECdisplay library
+                    fwd2use = &c3sc1[0];
+                    rev2use = &vra3[0];
+                    lnkr = &cstm_lnkr[0];
+                    lib_type = TECDISPLAY_LIB;
+                    lib_type_set = 1;
+                    
+                } else if (!strcmp(argv[optind-1], "TECprobe-MUX")) { //making TECprobe-MUX library
+                    fwd2use = &pra1_sc1[0];
+                    rev2use = &vra3[0];
+                    lnkr = &RLA29synch_3p11[0];
+                    lib_type = TECPROBE_MUX_LIB;
+                    lib_type_set = 1;
+                    
+                } else {
+                    printf("variant_maker: ERROR - unrecognized library type. aborting...\n");
+                    abort();
+                }
+                break;
+                
+            //append priming sites to variants in fasta file
             case 'p':
                 if (append_priming == 1) {
                     printf("variant_maker: error - append_priming option can only be supplied once. aborting...\n");
                     abort();
                 } else {
                     append_priming = 1;
-                }
-                                
-                if (!strcmp(argv[optind-1], "TECdisplay")) {      //use TECdisplay priming sites
-                    fwd2use = &c3sc1[0];
-                    rev2use = &vra3[0];
-                    lnkr = &cstm_lnkr[0];
-                    TECd_library = 1;
-                    lib_type = TECDISPLAY_LIB;
-                    
-                } else if (!strcmp(argv[optind-1], "TECprobe-MUX")) { //use TECprobe priming sites
-                    fwd2use = &pra1_sc1[0];
-                    rev2use = &vra3[0];
-                    lnkr = &RLA29synch_3p11[0];
-                    MUX_library = 1;
-                    lib_type = TECPROBE_MUX_LIB;
-                    
-                } else {
-                    printf("variant_maker: ERROR - unrecognized priming site set. aborting...\n");
-                    abort();
                 }
                 break;
             
@@ -224,6 +230,28 @@ int main(int argc, char *argv[])
                     }
                 }
                 first_bc_2_use = atoi(argv[optind-1]);
+                break;
+                
+            //set number of barcodes per variant
+            case 'c':
+                for (i = 0; argv[optind-1][i]; i++) {
+                    if (!isdigit(argv[optind-1][i])) {
+                        printf("variant_maker: ERROR - argument for number of barcodes per variant must be composed of digits. aborting...\n");
+                        abort();
+                    }
+                }
+                
+                bcs_per_var = atoi(argv[optind-1]); //set barcodes per variant
+                
+                if (!bcs_per_var) { //check that bcs_per_var is not set to 0
+                    printf("variant_maker: error - number of barcodes per variant cannot be set to 0. aborting...");
+                    abort();
+                    
+                } else if (bcs_per_var > MAX_BRCDS_PER_VAR) { //check that bcs_per_var is not > max
+                    printf("variant_maker: error - number of barcodes per variant (%d) exceeds maximum (%d). aborting...\n", bcs_per_var, MAX_BRCDS_PER_VAR);
+                    abort();
+                }
+                
                 break;
                 
             //set custom linker
@@ -265,11 +293,6 @@ int main(int argc, char *argv[])
         return 1;           //end program after barcodes are made
     }
     
-    if ((lib_type == TECPROBE_MUX_LIB) && strcmp(cstm_lnkr, "exclude")) {
-        printf("variant_maker: error - custom linker sequences cannot be used in TECprobe-MUX libraries. aborting...\n");
-        abort();
-    }
-    
     /* ******* make output directory ******* */
     char out_dir[MAX_LINE] = {0}; //array to store output directory name
     
@@ -280,6 +303,9 @@ int main(int argc, char *argv[])
         abort();
     }
     mk_out_dir(out_dir); //make output directory
+    
+    //check and print input files
+    check_input(&nm, varFile_supplied, brcdFile_supplied, lib_type, lib_type_set, append_priming, append_barcode, first_bc_2_use, bcs_per_var, cstm_lnkr, make_fasta, out_dir);
     
     //generate input details file
     ret = snprintf(prcs_out_nm, MAX_LINE, "./%s/%s_processing.txt", out_dir, nm.vTmp);
@@ -292,9 +318,6 @@ int main(int argc, char *argv[])
         printf("main: ERROR - could not open processing messages file. Aborting program...\n");
         abort();
     }
-    
-    //check and print input files
-    check_input(&nm, varFile_supplied, brcdFile_supplied, append_barcode, first_bc_2_use, out_dir);
     
     /* ******* make variants ******* */
     struct wt_source wt  =  {0};         //storage for wt name and sequence
@@ -352,9 +375,15 @@ int main(int argc, char *argv[])
             abort();
         }
     }
+        
+    print_output(&nm, &bmap[0], vTmpCnt, varCnt, out_dir, append_priming, append_barcode, fp_brcd, first_bc_2_use, bcs_per_var, lnkr, make_fasta, lib_type);
     
-    print_output(&nm, &bmap[0], vTmpCnt, varCnt, out_dir, append_priming, append_barcode, fp_brcd, first_bc_2_use, lnkr, make_fasta, lib_type);
-    sprintf(out_msg, "\n%llu variants were generated from %d variant template(s)\n", (long long unsigned int)(v_indx-vTmpCnt), vTmpCnt);
+    if (append_barcode) {
+        sprintf(out_msg, "\n%llu variants (%llu variants, %d barcode(s) per variant) were generated from %d variant template(s)\n", (long long unsigned int)((v_indx-vTmpCnt) * bcs_per_var), (long long unsigned int)(v_indx-vTmpCnt), bcs_per_var, vTmpCnt);
+    } else {
+        sprintf(out_msg, "\n%llu variants were generated from %d variant template(s)\n", (long long unsigned int)(v_indx-vTmpCnt), vTmpCnt);
+    }
+    
     printf2_scrn_n_fl(prcs_ofp, out_msg);
     /* ******* end of variant generation ******* */
     
@@ -367,7 +396,7 @@ int main(int argc, char *argv[])
 
 /* check_input: check that correct input files were supplied for
  variant generation and print input file information to file*/
-void check_input(names * nm, int varFile_supplied, int brcdFile_supplied, int append_barcode, int first_bc_2_use, char * out_dir)
+void check_input(names * nm, int varFile_supplied, int brcdFile_supplied, int lib_type, int lib_type_set, int append_priming, int append_barcode, int first_bc_2_use, int bcs_per_var, char * cstm_lnkr, int make_fasta, char * out_dir)
 {
     FILE * out_fp = NULL;         //output file pointer
     char out_nm[MAX_LINE] = {0};  //output file name
@@ -395,6 +424,19 @@ void check_input(names * nm, int varFile_supplied, int brcdFile_supplied, int ap
         abort();
     }
     
+    //check that library type was defined if either append_priming or append_barcode options were set
+    if ((append_priming || append_barcode) && !lib_type_set) {
+        //TODO: expand library types listed in error message when new methods are ready to be made public
+        printf("check_input: error - option to append priming sites and/or barcode was provided, but library type was not defined. define library type as TECdisplay using the --library-type/-t option\n");
+        abort();
+    }
+    
+    //check that make_fasta option was set if priming sites are to be appended
+    if (append_priming && !make_fasta) {
+        printf("check_input: error - priming sites are only appended to sequences within the fasta output file, and the 'make fasta' option (--make-fasta/-a) was not turned on. aborting...\n");
+        abort();
+    }
+    
     //check that one or fewer barcodes file were supplied
     if (brcdFile_supplied == 1) {
         fprintf(out_fp, "barcodes: %s\n", nm->iptB);
@@ -417,9 +459,22 @@ void check_input(names * nm, int varFile_supplied, int brcdFile_supplied, int ap
         abort();
     }
     
+    //check that bcs_per_var is set to 1 if append barcode option was not turned on
+    if (!append_barcode && bcs_per_var != 1) {
+        printf("check_input: error - barcodes per variant value was set but append_barcode option was not provided. aborting...\n");
+        abort();
+    }
+    
+    
+    //if lib_type is TECprobe-MUX, check that custom linker was not provided
+    if ((lib_type == TECPROBE_MUX_LIB) && strcmp(cstm_lnkr, "exclude")) {
+        printf("check_input: error - custom linker sequences cannot be used in TECprobe-MUX libraries. aborting...\n");
+        abort();
+    }
+    
     //close input details file
     if (fclose(out_fp) == EOF) {
-        printf("print_input: error - error occurred when closing variant output file. Aborting program...\n");
+        printf("check_input: error - error occurred when closing input details file. Aborting program...\n");
         abort();
     }
     

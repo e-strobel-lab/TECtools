@@ -45,7 +45,7 @@ int get_line(char *line, FILE *ifp);
  char * file_name: file name from which sample name will be extracted
  char * sample_name: pointer to array that will contain the sample name
  */
-int get_sample_name(char * file_name, char * sample_name);
+char * get_sample_name(char * file_name, char * sample_name);
 
 
 

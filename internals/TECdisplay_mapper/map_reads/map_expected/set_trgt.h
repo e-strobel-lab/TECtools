@@ -26,7 +26,7 @@
 #include "../../../seq_utils/basemap.h"
 
 #include "./get_key.h"
-#include "./parse_mx_trgts.h"
+#include "./parse_vmt_trgts.h"
 
 /* set_trgt: set target values in target struct */
 void set_trgt(target * trgts, opt_mx_trg * trg_val, target * crnt_ref, char * trgt_id, char * trgt_sq);

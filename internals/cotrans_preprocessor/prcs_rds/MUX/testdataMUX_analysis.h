@@ -26,6 +26,8 @@
 
 #include "../../../variant_maker/make_barcodes.h"
 
+#define MAX_UINT64_LEN 20 //maximum number of characters in an unsigned 64-bit integer
+
 typedef struct testdata_MUX_vars { //structure containing variables for testdata metrics
     int run;                       //flag indicating whether to perform testdata analysis
     int bid_match;

@@ -14,11 +14,13 @@
 #include "../../../seq_utils/seq2bin_hash.h"
 #include "../../../seq_utils/seq2bin_long.h"
 
+#include "../../../variant_maker/variant_maker_defs.h"
+#include "../../../variant_maker/vmt_suffix.h"
 #include "../../../variant_maker/make_barcodes.h"
 
 #include "../../../TECdisplay_mapper/TECdisplay_mapper_defs.h"
 #include "../../../TECdisplay_mapper/TECdisplay_mapper_structs.h"
-#include "../../../TECdisplay_mapper/map_reads/map_expected/parse_mx_trgts.h"
+#include "../../../TECdisplay_mapper/map_reads/map_expected/parse_vmt_trgts.h"
 
 #include "../../cotrans_preprocessor_defs.h"
 #include "../../cotrans_preprocessor_structs.h"
@@ -39,12 +41,15 @@
 #include "prcs_MUX_cotrans.h"
 
 /* prcs_MUX_cotrans: manages processing of TECprobe-MUX data */
-int prcs_MUX_cotrans(TPROBE_names * nm, FILE * fp_MUXtrgs, fastp_params fastp_prms, testdata_MUX_vars * testdata_MUX, int run_bypass_fastp)
+int prcs_MUX_cotrans(TPROBE_names * nm, FILE * fp_MUXtrgs, int trgt_ftype, fastp_params fastp_prms, testdata_MUX_vars * testdata_MUX, int run_bypass_fastp)
 {
     printf("processing multiplex cotrans\n");
         
     FILE *ifp[READ_MAX] = {NULL};  //pointers for input fastq files
     metrics met = {0};             //read processing metrics storage
+    
+    target * refs = {NULL};        //pointer for array of reference targets
+    opt_ref * ref_val = {NULL};    //pointer for array of optional reference target structures
     
     compact_target * ctrg  = NULL; //pointer to compact target structures
     opt_BC * BC_val = NULL;        //pointer to optional target value structures
@@ -52,31 +57,53 @@ int prcs_MUX_cotrans(TPROBE_names * nm, FILE * fp_MUXtrgs, fastp_params fastp_pr
     target_params trg_prms = {0};  //structure for storing target parameters
     TDSPLY_fasta wt = {0};         //storage for wt sequence information
     
-    int brcd_cnt = 0;              //number of barcodes
     int ctrg_cnt = 0;              //number of compact targets stored
     int clcd_ctrg_cnt = 0;         //calculated number of barcode targets
     
     char line[MAX_LINE+1] = {0};   //array to store line
     
-    /*parse_header_lines(fp_MUXtrgs, &trg_prms, &wt);
-    printf("%d expected targets\n", trg_prms.xpctd);
-    printf("%s: %s\n", wt.nm, wt.sq);
-    abort();*/
     
-    //count number of targets
-    while (get_line(line, fp_MUXtrgs)) { //until all lines have been read
-        if (line[0] == '>') {            //if reading first line of fasta entry
-            get_line(line, fp_MUXtrgs);  //get the second line of the fasta entry
-            brcd_cnt++;                  //increment barcode count
-        } else {
-            printf("prcs_MUX_cotrans: error - unexpected format for targets file. aborting...\n");
-            abort();
-        }
+    //allocate memory for reference targets
+    if ((refs = calloc(MAXREF, sizeof(*refs))) == NULL) {
+        printf("prcs_MUX_cotrans: error - reference target memory allocation failed\n");
+        return 1;
     }
-    fclose(fp_MUXtrgs);                  //close targets file
-    get_file(&(fp_MUXtrgs), nm->trgts);  //re-open targets file
     
-    clcd_ctrg_cnt = brcd_cnt * 129;  //caculate expected number of barcode targets, including single subs and indels
+    if ((ref_val = calloc(MAXREF, sizeof(*ref_val))) == NULL) {
+        printf("prcs_MUX_cotrans: error - reference target value memory allocation failed\n");
+        return 1;
+    }
+    
+    //determine expected target count
+    if (trgt_ftype == VMT_FILE) {
+        
+        //parse header to determine expected number of targets
+        parse_header_lines(fp_MUXtrgs, &trg_prms, &wt);
+        printf("%d expected targets\n", trg_prms.xpctd);
+        printf("%s: %s\n", wt.nm, wt.sq);
+        
+    } else if (trgt_ftype == FASTA_FILE) {
+        
+        //iterate through file to count number of targets
+        while (get_line(line, fp_MUXtrgs)) { //until all lines have been read
+            if (line[0] == '>') {            //if reading first line of fasta entry
+                get_line(line, fp_MUXtrgs);  //get the second line of the fasta entry
+                trg_prms.xpctd++;            //increment expected barcode count
+            } else {
+                printf("prcs_MUX_cotrans: error - unexpected format for targets fasta file. aborting...\n");
+                abort();
+            }
+        }
+        
+        fclose(fp_MUXtrgs);                  //close targets file
+        get_file(&(fp_MUXtrgs), nm->trgts);  //re-open targets file
+        
+    } else {
+        printf("prcs_MUX_cotrans: unrecognized barcoded target file type. aborting...\n");
+        abort();
+    }
+    
+    clcd_ctrg_cnt = trg_prms.xpctd * 129;  //caculate expected number of BC targs, including single subs and indels
     
     //allocate memory for compact targets
     if ((ctrg = calloc(clcd_ctrg_cnt, sizeof(*ctrg))) == NULL) {
@@ -90,9 +117,10 @@ int prcs_MUX_cotrans(TPROBE_names * nm, FILE * fp_MUXtrgs, fastp_params fastp_pr
         abort();
     }
     
-    ctrg_cnt = mk_MUX_trgts(nm, ctrg, BC_val, fp_MUXtrgs, brcd_cnt, clcd_ctrg_cnt); //generate barcode targets
-    met.srcTrgs = brcd_cnt; //record number of source barcodes
-    met.targets = ctrg_cnt; //record number of targets generated
+    //generate barcode targets
+    ctrg_cnt = mk_MUX_trgts(nm, refs, ref_val, ctrg, BC_val, fp_MUXtrgs, trgt_ftype, &trg_prms, clcd_ctrg_cnt, &wt);
+    met.srcTrgs = trg_prms.t_cnt; //record number of source barcodes
+    met.targets = ctrg_cnt;       //record number of targets generated
     
     /********* hash table initialization and construction **********/
     compact_h_node **htbl_MUX = NULL;                  //hash table root
@@ -138,7 +166,7 @@ int prcs_MUX_cotrans(TPROBE_names * nm, FILE * fp_MUXtrgs, fastp_params fastp_pr
     }
     
     //split input fastq by channel and barcode
-    split_MUX_reads(&ifp[0], htbl_MUX, nm, ctrg, brcd_cnt, ctrg_cnt, &met, fastp_prms.mode);
+    split_MUX_reads(&ifp[0], htbl_MUX, nm, ctrg, trg_prms.t_cnt, ctrg_cnt, &met, fastp_prms.mode);
     /********** end of process and split sequencing reads **********/
     
     print_splitting_metrics(nm, &met, fastp_prms); //print metrics

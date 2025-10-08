@@ -17,7 +17,7 @@
 #include "../TECdisplay_mapper_structs.h"
 #include "../TECdisplay_mapper_defs.h"
 
-#include "../map_reads/map_expected/parse_mx_trgts.h"
+#include "../map_reads/map_expected/parse_vmt_trgts.h"
 
 #include "../../utils/debug.h"
 

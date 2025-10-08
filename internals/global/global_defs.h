@@ -22,4 +22,9 @@
 #define LINE3 2			//specifies fastq line 3
 #define LINE4 3			//specifies fastq line 4
 
+/* target type definitions */
+#define FILE_TYPE_INIT 0    //file type initializer
+#define VMT_FILE 1          //targets file is a variant maker targets file
+#define FASTA_FILE 2        //targets file is a fasta file
+
 #endif /* global_defs_h */

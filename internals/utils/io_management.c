@@ -69,13 +69,13 @@ int get_line(char *line, FILE *ifp)
  the sample name is expected to be flanked by /  on
  the left and . on the right. e.g. ./directory/samplename.suffix
  */
-int get_sample_name(char * file_name, char * sample_name)
+char * get_sample_name(char * file_name, char * sample_name)
 {
     int i = 0;
     int j = 0;
     
     int len = strlen(file_name);	//length of file name
-    int nearest_dot = -1;			//index of left-most . character
+    int nearest_dot = -1;			//index of right-most . character
     int start = -1;					//index of sample name start
     
     //identify index of left-most . character
@@ -105,7 +105,7 @@ int get_sample_name(char * file_name, char * sample_name)
         abort();
     }
     
-    return 1;
+    return &file_name[nearest_dot+1];
 }
 
 

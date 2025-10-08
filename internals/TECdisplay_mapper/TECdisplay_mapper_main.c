@@ -22,6 +22,9 @@
 
 #include "../utils/io_management.h"
 #include "../utils/debug.h"
+
+#include "../variant_maker/vmt_suffix.h"
+
 #include "./map_reads/map_reads.h"
 
 extern int debug;            //flag to run debug mode
@@ -34,6 +37,8 @@ int check_testdata_options(int fq1_provided, int fq2_provided, int trgs_provided
 
 int main(int argc, char *argv[])
 {
+    extern char vmt_suffix[4]; //variant maker targets file suffix
+    
     testdata_vars testdata = {0};   //structure for tracking testdata metrics
     FILE *fp_trgs = NULL;           //pointer to targets file
     int run_mode = -1;              //run mode setting
@@ -52,6 +57,9 @@ int main(int argc, char *argv[])
     char min_qscore[2] = {0};     //array of quality score thresholds
     min_qscore[Q_VARIABLE] = '5'; //initialize variable base qscore threshold to 20 (ascii: 5);
     min_qscore[Q_CONSTANT] = '!'; //initialize constant base qscore threshold to  0 (ascii: !);
+    
+    char * file_suffix = {0};        //pointer to file suffix
+    int trgt_ftype = FILE_TYPE_INIT; //target file type
     
     /****** parse options using getopt_long ******/
     int c = -1;
@@ -103,9 +111,19 @@ int main(int argc, char *argv[])
                 
             /* get targets input file */
             case 't':
-                trgs_provided++;                            //count targets files provided
-                strcpy(nm.trgs, argv[optind-1]);            //store targets filename
-                get_sample_name(nm.trgs, nm.trgs_prefix);   //get targets sample name
+                trgs_provided++;                                        //count targets files provided
+                strcpy(nm.trgs, argv[optind-1]);                        //store targets filename
+                file_suffix = get_sample_name(nm.trgs, nm.trgs_prefix); //get targets sample name
+                
+                if (!strcmp(file_suffix, vmt_suffix)) { //check and set barcoded targets file type
+                    trgt_ftype = VMT_FILE;
+                } else if (!strcmp(file_suffix, "fasta") || !strcmp(file_suffix, "fa")) {
+                    trgt_ftype = FASTA_FILE;
+                } else {
+                    printf("TECdisplay_mapper: error - unrecognized targets file type (.%s). aborting...\n", file_suffix);
+                    abort();
+                }
+                
                 get_file(&(fp_trgs), argv[optind-1]);       //set file pointer to input target file
                 break;
                 
@@ -172,13 +190,13 @@ int main(int argc, char *argv[])
         
     if (run_mode == MAP_SEQ_READS) {                                   //run MAP_SEQ_READS mode
         check_options(fq1_provided, fq2_provided, trgs_provided);      //check that correct options were supplied
-        map_reads(&nm, fp_trgs, min_qscore, fastp_prms, &testdata, MAP_SEQ_READS); //map sequencing reads
+        map_reads(&nm, fp_trgs, trgt_ftype, min_qscore, fastp_prms, &testdata, MAP_SEQ_READS); //map sequencing reads
         
                 
     } else if (run_mode == MAP_TEST_DATA) {                               //run MAP_TEST_DATA mode
         check_testdata_options(fq1_provided, fq2_provided, trgs_provided, &fastp_prms); //check options
         testdata.run = 1;                                                 //turn testdata run flag on
-        map_reads(&nm, fp_trgs, min_qscore, fastp_prms, &testdata, MAP_TEST_DATA   ); //map test data reads to target
+        map_reads(&nm, fp_trgs, trgt_ftype, min_qscore, fastp_prms, &testdata, MAP_TEST_DATA   ); //map test data reads to target
         
     } else {
         printf("TECDisplay_mapper_main: error - unrecognized run mode. aborting...\n");

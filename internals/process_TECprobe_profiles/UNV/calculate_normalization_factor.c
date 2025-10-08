@@ -85,6 +85,14 @@ double calculate_normalization_factor(double * reactivity_list, int len, int pct
     //reactivity relative to the upper threshold index
     lwr_thresh_ix = upr_thresh_ix - pct10;
     
+    if (lwr_thresh_ix < 0 || lwr_thresh_ix >= len) {
+        printf("calculate_normalization_factor: error - lower threshold index (%d) is outside of array bounds (%d, %d). aborting...\n", lwr_thresh_ix, 0, len);
+        abort();
+    } else if (upr_thresh_ix < 0 || upr_thresh_ix >= len) {
+        printf("calculate_normalization_factor: error - upper threshold index (%d) is outside of array bounds (%d, %d). aborting...\n", upr_thresh_ix, 0, len);
+        abort();
+    }
+    
     //calculate the normalization factore by finding the
     //average of the top 10% of reactivities relative to
     //the upper threshold limit (the average of all

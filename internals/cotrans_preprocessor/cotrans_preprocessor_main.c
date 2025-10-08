@@ -21,6 +21,8 @@
 #include "../TECdisplay_mapper/TECdisplay_mapper_defs.h"
 #include "../TECdisplay_mapper/TECdisplay_mapper_structs.h"
 
+#include "../variant_maker/vmt_suffix.h"
+
 #include "cotrans_preprocessor_defs.h"
 #include "cotrans_preprocessor_structs.h"
 #include "../utils/io_management.h"
@@ -57,6 +59,8 @@ int get_target_len(FILE * ifp);
 
 int main(int argc, char *argv[])
 {
+    extern char vmt_suffix[4]; //variant maker target file suffix
+    
     FILE *fp_fasta = NULL;			//pointer to fasta file
     FILE *fp_3pEnd = NULL;			//pointer to 3' ends file
     FILE *fp_faRef = NULL;          //pointer to fasta reference file, used for TECprobe-SL
@@ -95,7 +99,10 @@ int main(int argc, char *argv[])
     
     int run_bypass_fastp = 0; //flag to indicate that bypass_fastp function should be run during MUX test data processing
     
-    char * trim_ptr = NULL; //pointer for trimming "_variants" from barcode targets sample name
+    char * trgt_suffix = NULL; //pointer to targets file suffix
+    char * trim_ptr = NULL;    //pointer for trimming "_variants" from barcode targets sample name
+    
+    int trgt_ftype = FILE_TYPE_INIT; //target file type
         
     TPROBE_names nm = {{{0}}};				    //file and sample names
     fastp_params fastp_prms = {"fastp", -1, 0}; //parameters for fastp processing
@@ -259,9 +266,19 @@ int main(int argc, char *argv[])
                 
                 
             case 'b':
-                MUX_trgs_provided++;                           //count MUX targets files provided
-                strcpy(nm.trgts, argv[optind-1]);              //store barcode targets filename
-                get_sample_name(nm.trgts, nm.trgts_prfx);      //get targets sample name
+                MUX_trgs_provided++;                                         //count MUX targets files provided
+                strcpy(nm.trgts, argv[optind-1]);                            //store barcode targets filename
+                trgt_suffix = get_sample_name(nm.trgts, nm.trgts_prfx);      //get targets sample name and suffix
+                
+                if (!strcmp(trgt_suffix, vmt_suffix)) { //check and set barcoded targets file type
+                    trgt_ftype = VMT_FILE;
+                } else if (!strcmp(trgt_suffix, "fasta") || !strcmp(trgt_suffix, "fa")) {
+                    trgt_ftype = FASTA_FILE;
+                } else {
+                    printf("cotrans_preprocessor: error - unrecognized barcoded targets file type (.%s). aborting...\n", trgt_suffix);
+                    abort();
+                }
+                
                 trim_ptr = strstr(nm.trgts_prfx, "_variants"); //set pointer to "_variants" string for trimming
                 if (trim_ptr == NULL) { //if "_variants string was not found, throw error
                     printf("cotrans_preprocessor_main: error - unrecognized format for barcode targets file name. name string should contain ""_variants"" ahead of the file suffix. aborting...\n");
@@ -442,7 +459,7 @@ int main(int argc, char *argv[])
                 check_standard_cotrans(fq1_provided, fq2_provided, ends_provided, fa_ref_provided, MUX_trgs_provided, fastp_prms, testdata_MUX.run);
                 
                 //start sequencing read processing
-                prcs_MUX_cotrans(&nm, fp_MUXtrgs, fastp_prms, &testdata_MUX, run_bypass_fastp);
+                prcs_MUX_cotrans(&nm, fp_MUXtrgs, trgt_ftype, fastp_prms, &testdata_MUX, run_bypass_fastp);
             }
             
             break;

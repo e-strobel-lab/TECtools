@@ -18,14 +18,43 @@
 
 #include "./variant_maker_defs.h"
 #include "./variant_maker_structs.h"
+#include "./vmt_suffix.h"
+#include "./make_barcodes.h"
 
 #include "print_output.h"
 
 /* print_output: print variants to output file */
-void print_output(names * nm, basemap * bmap, int vTmpCnt, int varCnt, char * out_dir, int append_priming, int append_barcode, FILE * fp_brcd, int first_bc_2_use, char * lnkr, int make_fasta, int lib_type)
+void print_output(names * nm, basemap * bmap, int vTmpCnt, int varCnt, char * out_dir, int append_priming, int append_barcode, FILE * fp_brcd, int first_bc_2_use, int bcs_per_var, char * lnkr, int make_fasta, int lib_type)
 {
-    extern fasta *vrnts;    //array of variant sequences
-    extern uint64_t v_indx; //index for vrnts array
+    //print_output rules:
+    
+    //append priming == FALSE and append barcode == FALSE
+    //if neither priming sites nor a barcode are to be appended to the target sequence,
+    //variant sequences are printed to both the target and fasta files. in this case,
+    //both files contain the same sequences
+    
+    //append priming == TRUE and append barcode == FALSE
+    //if priming sites, but not a barcode, are to be appended to the target sequence,
+    //the priming sites are only included in the fasta file. the target file contains
+    //target sequences without the priming sites
+    
+    //append priming == FALSE and append barcode == TRUE
+    //if a barcode, but not priming sites, is to be appended to the target sequence,
+    //the barcode and the linker that connects the barcode to the target are included
+    //in both the target and fasta files. in the target file, the wild type and reference
+    //sequences contain the linker and a string of N bases in place of a specific barcode
+    
+    //append priming == TRUE and append barcode == TRUE
+    //if both priming sites and a barcode are to be appended to the target sequence,
+    //both the priming sites and the barcode are included in the fasta file, but only the
+    //barcode and the linker that connects the barcode to the target are included in the
+    //target file. as above, in the target file, the wild type and reference sequences
+    //contain the linker and a string of N bases in place of a specific barcode
+    
+    
+    extern fasta *vrnts;       //array of variant sequences
+    extern uint64_t v_indx;    //index for vrnts array
+    extern char vmt_suffix[4]; //variant maker targets file suffix
     
     srand(time(NULL));
     
@@ -40,7 +69,6 @@ void print_output(names * nm, basemap * bmap, int vTmpCnt, int varCnt, char * ou
     int filtered_tot = 0; //total number of variants after filtering
     
     int trgs_per_ref = 0; //targets made per reference sequence
-    int bcs_per_var = 3;  //number of barcodes assigned to each variant //TODO: make option?
     
     for (i = 0; i < MAXREF; i++) {
         filtered_tot += bmap[i].cnt[FILTERED];
@@ -53,7 +81,7 @@ void print_output(names * nm, basemap * bmap, int vTmpCnt, int varCnt, char * ou
     char out_nm[MAX_LINE] = {0}; //output file name
     
     //construct variant output file name
-    ret = snprintf(out_nm, MAX_LINE, "./%s/%s_variants.txt", out_dir, nm->vTmp);
+    ret = snprintf(out_nm, MAX_LINE, "./%s/%s_variants.%s", out_dir, nm->vTmp, vmt_suffix);
     if (ret >= MAX_LINE || ret < 0) {
         printf("print_output: error - error when constructing variant output file name. aborting...\n");
         abort();
@@ -82,10 +110,12 @@ void print_output(names * nm, basemap * bmap, int vTmpCnt, int varCnt, char * ou
         }
     }
     
-        
-    fprintf(out_fp, "variants:%d\n", filtered_tot); //print the number of variants in the output file (excluding reference variants)
-    
-    fprintf(out_fp, "WT:%s\t%s\n", bmap[0].wt->nm, bmap[0].wt->sq); //print wt name and sequence
+    if (append_barcode) {                                             //if appending barcode
+        fprintf(out_fp, "variants:%d\n", filtered_tot * bcs_per_var); //tot vars is filtered_tot * bcs_per_var
+    } else {                                                          //otherwise,
+        fprintf(out_fp, "variants:%d\n", filtered_tot);               //tot vars is filtered_tot
+    }
+    print_reference_seq(out_fp, bmap[0].wt->nm, bmap[0].wt->sq, lnkr, append_barcode, "WT"); //print WT sequence
     
     //print variants to the output file
     for (i = 0, j = 0; i < v_indx; i++) {
@@ -147,8 +177,8 @@ void print_output(names * nm, basemap * bmap, int vTmpCnt, int varCnt, char * ou
                     }
                 }
                 
-                fprintf(out_fp, "\t%s\n", vrnts[i].sq); //print reference sequence
-                j++;                                    //increment basemap index
+                print_reference_seq(out_fp, NULL, vrnts[i].sq, lnkr, append_barcode, "REF"); //print reference sequence
+                j++; //increment basemap index
                 
             } else {
                 printf("print_output: error - >%d reference targets were generated for %d variant templates. aborting...\n", j, vTmpCnt);
@@ -156,7 +186,7 @@ void print_output(names * nm, basemap * bmap, int vTmpCnt, int varCnt, char * ou
             }
         } else {
             if (append_barcode) { //print variant sequence that contains a barcode
-                print_barcoded_variant(fp_brcd, out_fp, fasta_fp, append_priming, lnkr, vTmpCnt, i, bcs_per_var, first_bc_2_use, make_fasta);
+                print_barcoded_variant(fp_brcd, out_fp, fasta_fp, append_priming, lnkr, vTmpCnt, i, first_bc_2_use, bcs_per_var, make_fasta);
             } else { //print variant sequence that does not contain a barcode
                 print_standard_variant(out_fp, fasta_fp, append_priming, i, make_fasta, lib_type);
             }
@@ -180,6 +210,37 @@ void print_output(names * nm, basemap * bmap, int vTmpCnt, int varCnt, char * ou
     return;
 }
 
+/* print_reference_seq: print reference sequence to output file */
+void print_reference_seq(FILE * out_fp, char * nm, char * seq, char * lnkr, int append_barcode, char * type)
+{
+    int i = 0; //general purpose index
+    
+    if (!strcmp(type, "WT")) {          //if printing wild type reference
+        fprintf(out_fp, "WT:%s", nm);   //print WT designator and sequence name
+        
+    } else if (!strcmp(type, "REF")) {  //if printing variable base reference seq
+        ;                               //do nothing, preceding text is printed in print_output function
+        
+    } else {
+        printf("print_reference_seq: error - unrecognized reference seq type. aborting...\n");
+        abort();
+    }
+    
+    if (append_barcode) {               //if appending barcode
+        fprintf(out_fp, "\t%s", seq);   //print sequence
+        if (strcmp(lnkr, "exclude")) {  //if linker is to be included,
+            fprintf(out_fp,"%s", lnkr); //print linker
+        }
+        for (i = 0; i < MAX_BARCODE_LEN; i++) { //print one N for every barcode char
+            fprintf(out_fp, "N");
+        }
+        fprintf(out_fp, "\n"); //terminate line with newline
+        
+    } else {
+        fprintf(out_fp, "\t%s\n", seq); //print sequence
+    }
+}
+
 /* print_standard_variant: print variant sequence that does not contain a barcode */
 void print_standard_variant(FILE * out_fp, FILE * fasta_fp, int append_priming, int crrnt_var, int make_fasta, int lib_type)
 {
@@ -196,6 +257,10 @@ void print_standard_variant(FILE * out_fp, FILE * fasta_fp, int append_priming, 
     
     char * rndm_spcr = NULL; //pointer for storing randomized spacer sequence, if necessary
     
+    int trg_start_indx = 0;      //index at which target starts
+    int trg_end_indx = 0;        //index 1 char after target end
+    char * target_start = NULL;  //pointer to target start
+    
     //calculate output sequence length
     len += strlen(vrnts[crrnt_var].sq);
     len += append_priming ? (strlen(fwd2use) + strlen(rev2use)) : 0;
@@ -209,7 +274,10 @@ void print_standard_variant(FILE * out_fp, FILE * fasta_fp, int append_priming, 
         strcat(seq, fwd2use);         //append the forward priming site sequence
     }
     
-    strcat(seq, vrnts[crrnt_var].sq); //append variant sequence
+    trg_start_indx = strlen(seq);        //store target start index
+    strcat(seq, vrnts[crrnt_var].sq);    //append variant sequence
+    target_start = &seq[trg_start_indx]; //set target start pointer
+    trg_end_indx = strlen(seq);          //set target end index
     
     //when generating a designed TECdisplay libary, it is necessary to include
     //5 random DNA bases between the target sequence and the downstream priming
@@ -226,15 +294,16 @@ void print_standard_variant(FILE * out_fp, FILE * fasta_fp, int append_priming, 
     }
     
     //print output sequence to file(s)
-    fprintf(out_fp, "%s\t%s\n", vrnts[crrnt_var].nm, seq); //print variant to standard output file
-    
-    if (make_fasta) {
-        fprintf(fasta_fp, ">%s\n%s\n", vrnts[crrnt_var].nm, seq); //print variant to fasta file
+    if (make_fasta) { //if make fasta option was provided, print full variant seq to fasta file
+        fprintf(fasta_fp, ">%s\n%s\n", vrnts[crrnt_var].nm, seq);
     }
+    
+    seq[trg_end_indx] = '\0'; //terminate string after barcode for printing to standard targets file
+    fprintf(out_fp, "%s\t%s\n", vrnts[crrnt_var].nm, target_start); //print variant to standard output file
 }
 
 /* print_barcoded_variant: print variant that contains barcode */
-void print_barcoded_variant(FILE * fp_brcd, FILE * out_fp, FILE * fasta_fp, int append_priming, char * lnkr, int vTmpCnt, int crrnt_var, int bcs_per_var, int first_bc_2_use, int make_fasta)
+void print_barcoded_variant(FILE * fp_brcd, FILE * out_fp, FILE * fasta_fp, int append_priming, char * lnkr, int vTmpCnt, int crrnt_var, int first_bc_2_use, int bcs_per_var, int make_fasta)
 {
     extern fasta *vrnts;    //array of variant sequences
     extern uint64_t v_indx; //index for vrnts array
@@ -250,6 +319,10 @@ void print_barcoded_variant(FILE * fp_brcd, FILE * out_fp, FILE * fasta_fp, int 
     static int bc_indx = 0;             //current barcode index
     
     static int incld_lnkr = 1;          //flag to include linker
+    
+    int trg_start_indx = 0;      //index at which target starts
+    int brcd_end_indx = 0;       //index 1 char after barcode end
+    char * target_start = NULL;  //pointer to target start
     
     if (crrnt_var == 1) {                            //if processing first variant
         bc_cnt = read_bcFile(fp_brcd, HEADER, crrnt_bc, MAX_LINE+1); //parse barcode file header
@@ -298,20 +371,30 @@ void print_barcoded_variant(FILE * fp_brcd, FILE * out_fp, FILE * fasta_fp, int 
             if (append_priming) {             //if appending priming sites
                 strcat(seq, fwd2use);         //append the forward priming site sequence
             }
-            strcat(seq, vrnts[crrnt_var].sq); //append variant sequence
+            
+            trg_start_indx = strlen(seq);        //store target start index
+            strcat(seq, vrnts[crrnt_var].sq);    //append variant sequence
+            target_start = &seq[trg_start_indx]; //set pointer to target start
+            
             if (incld_lnkr) {                 //if including linker sequence
                 strcat(seq, lnkr);            //append linker sequence
             }
+            
             strcat(seq, crrnt_bc);            //append barcode
+            brcd_end_indx = strlen(seq);      //store barcode end index
+            
             if (append_priming) {             //if appending priming sites
                 strcat(seq, rev2use);         //append the reverse priming site sequence
             }
             
-            
-            fprintf(out_fp, "%s_%05d\t%s\n", vrnts[crrnt_var].nm, bc_indx, seq); //print variant to standard output file
-            if (make_fasta) {
-                fprintf(fasta_fp, ">%s_%05d\n%s\n", vrnts[crrnt_var].nm, bc_indx, seq); //print variant to fasta file
+            //print output sequence to file(s)
+            if (make_fasta) { //if make fasta option was provided, print full variant seq to fasta file
+                fprintf(fasta_fp, ">%s_%05d\n%s\n", vrnts[crrnt_var].nm, bc_indx, seq);
             }
+            
+            seq[brcd_end_indx] = '\0'; //terminate string after barcode for printing to standard targets file
+            fprintf(out_fp, "%s_%05d\t%s\n", vrnts[crrnt_var].nm, bc_indx, target_start); //print var to std output file
+            
         }
     }
 }

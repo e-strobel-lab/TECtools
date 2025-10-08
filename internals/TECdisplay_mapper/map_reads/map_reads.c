@@ -23,7 +23,7 @@
 #include "./UNV/call_fastp_TDSPLY.h"
 #include "./UNV/prcs_chnl_TDSPLY.h"
 #include "./map_expected/get_key.h"
-#include "./map_expected/parse_mx_trgts.h"
+#include "./map_expected/parse_vmt_trgts.h"
 #include "./map_expected/mk_output_files.h"
 #include "../testdata_analysis/mk_TDSPLY_test_data.h"
 #include "../testdata_analysis/assess_TDSPLY_test_data.h"
@@ -33,7 +33,7 @@
 extern int debug;
 
 /* map_reads: coordinates targets parsing, fastp processing, read mapping, and output file generation */
-int map_reads (TDSPLY_names * nm, FILE * fp_trgs, char * minQ, fastp_params fastp_prms, testdata_vars * testdata, int mode)
+int map_reads (TDSPLY_names * nm, FILE * fp_trgs, int trgt_ftype, char * minQ, fastp_params fastp_prms, testdata_vars * testdata, int mode)
 {
     FILE *ifp = NULL;               //pointers for merged fastq file
     TDSPLY_metrics met = {0};       //read processing metrics storage
@@ -72,7 +72,11 @@ int map_reads (TDSPLY_names * nm, FILE * fp_trgs, char * minQ, fastp_params fast
     }
     
     printf("\nProcessing targets file that contains %d targets\n\n", trg_prms.xpctd);
-    parse_mx_trgts(fp_trgs, refs, ref_val, trgts, trg_val, &trg_prms, &wt, TDSPLY_TRGS); //parse targets file
+    
+    //parse targets file
+    if (trgt_ftype == VMT_FILE) {
+        parse_vmt_trgts(fp_trgs, trgt_ftype, refs, ref_val, trgts, trg_val, &trg_prms, &wt, TDSPLY_TRGS);
+    }
     /********** end of targets initialization and parsing **********/
 
     
