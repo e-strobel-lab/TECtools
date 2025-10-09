@@ -25,6 +25,7 @@
 #include "./map_expected/get_key.h"
 #include "./map_expected/parse_vmt_trgts.h"
 #include "./map_expected/mk_output_files.h"
+#include "./map_expected/print_navigator_template.h"
 #include "../testdata_analysis/mk_TDSPLY_test_data.h"
 #include "../testdata_analysis/assess_TDSPLY_test_data.h"
 

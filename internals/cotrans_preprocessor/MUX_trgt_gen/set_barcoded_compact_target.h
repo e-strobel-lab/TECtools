@@ -23,6 +23,8 @@
 #include "../../variant_maker/make_barcodes.h"
 #include "../../variant_maker/constant_seqs.h"
 
+#include "../../TECdisplay_mapper/map_reads/map_expected/parse_vmt_trgts.h"
+
 #define NUMERICAL_ID 0    //indicates that barcode ID is strictly numerical
 #define COMPLEX_ID 1      //indicates that barcode ID is not strictly numerical
 

@@ -24,6 +24,7 @@
 #include "../../../TECdisplay_mapper/TECdisplay_mapper_defs.h"
 #include "../../../TECdisplay_mapper/TECdisplay_mapper_structs.h"
 #include "../../../TECdisplay_mapper/map_reads/map_expected/parse_vmt_trgts.h"
+#include "../../../TECdisplay_mapper/map_reads/map_expected/print_navigator_template.h"
 
 #include "../../cotrans_preprocessor_defs.h"
 #include "../../cotrans_preprocessor_structs.h"

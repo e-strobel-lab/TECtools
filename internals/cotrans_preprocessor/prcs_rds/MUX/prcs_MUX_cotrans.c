@@ -21,6 +21,7 @@
 #include "../../../TECdisplay_mapper/TECdisplay_mapper_defs.h"
 #include "../../../TECdisplay_mapper/TECdisplay_mapper_structs.h"
 #include "../../../TECdisplay_mapper/map_reads/map_expected/parse_vmt_trgts.h"
+#include "../../../TECdisplay_mapper/map_reads/map_expected/print_navigator_template.h"
 
 #include "../../cotrans_preprocessor_defs.h"
 #include "../../cotrans_preprocessor_structs.h"
@@ -178,6 +179,10 @@ int prcs_MUX_cotrans(TPROBE_names * nm, FILE * fp_MUXtrgs, int trgt_ftype, fastp
     system("gzip ./split/*.fq");   //compress split fastq files
     
     mk_config(nm, NULL, fastp_prms.mode); //make config file for run script generation
+    
+    if (trgt_ftype == VMT_FILE) {
+        print_navigator_template(refs, &wt, &trg_prms); //print navigator template file
+    }
     
     return 1;
 }

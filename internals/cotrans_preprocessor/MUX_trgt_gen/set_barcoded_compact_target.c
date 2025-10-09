@@ -20,6 +20,8 @@
 #include "../../variant_maker/make_barcodes.h"
 #include "../../variant_maker/constant_seqs.h"
 
+#include "../../TECdisplay_mapper/map_reads/map_expected/parse_vmt_trgts.h"
+
 #include "set_barcoded_compact_target.h"
 
 
@@ -198,18 +200,28 @@ void set_BC_val(compact_target * ctrg, opt_BC * BC_val, char * tsq, compact_targ
     ctrg->opt = BC_val;             //point opt to corresponding barcode values
     p_opt_BC = (opt_BC *)ctrg->opt; //set pointer for handling BC_val below
         
+    char processed_seq[MAX_LINE+1] = {0}; //array for storing processed target sequence
+    
     int len = 0; //target sequence length
     
     if (mode == NATIVE_BRCD) { //if setting values for native barcode
         p_opt_BC->ref = ctrg;  //point reference to self
         len = strlen(tsq);     //determine target sequence length
         
+        //convert target seq to uppercase and remove spacing characters
+        if (len > MAX_LINE) {
+            printf("set_BC_val: error - target sequence length exceeds array bounds. aborting...\n");
+            abort();
+        } else {
+            process_trgt_seq(tsq, processed_seq);
+        }
+        
         //allocate memory for target sequence and store target sequence in barcode target optional values
         if ((p_opt_BC->tsq = malloc((len+1) * sizeof(*p_opt_BC->tsq))) == NULL) {
             printf("set_BC_val: error - memory allocation for target sequence failed. aborting...\n");
             abort();
         }
-        strcpy(p_opt_BC->tsq, tsq);
+        strcpy(p_opt_BC->tsq, processed_seq);
         
     } else if (mode == MUTANT_BRCD) { //if setting values for mutant barcode
         p_opt_BC->ref = ntv;          //point ref to reference native barcode from which the mutant was derived
