@@ -23,8 +23,8 @@
 #include "../../variant_maker/vmt_suffix.h"
 
 #include "../../TECdisplay_mapper/map_reads/map_expected/parse_vmt_trgts.h"
+#include "../../TECdisplay_mapper/map_reads/map_expected/parse_fa_trgts.h"
 
-#include "./parse_fa_trgts.h"
 #include "./mk_barcoded_target_fastas.h"
 
 #include "mk_MUX_trgts.h"

@@ -14,6 +14,8 @@
 #include "../../global/global_defs.h"
 #include "../../global/global_structs.h"
 
+#include "../../variant_maker/constant_seqs.h"
+
 #include "../cotrans_preprocessor_defs.h"
 #include "../cotrans_preprocessor_structs.h"
 #include "../../utils/io_management.h"

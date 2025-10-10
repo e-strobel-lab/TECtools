@@ -8,19 +8,19 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "../../global/global_defs.h"
-#include "../../global/global_structs.h"
+#include "../../../global/global_defs.h"
+#include "../../../global/global_structs.h"
 
-#include "../cotrans_preprocessor_defs.h"
-#include "../cotrans_preprocessor_structs.h"
+#include "../../../cotrans_preprocessor/cotrans_preprocessor_defs.h"
+#include "../../../cotrans_preprocessor/cotrans_preprocessor_structs.h"
 
-#include "../../seq_utils/seq2bin_hash.h"
-#include "../../seq_utils/seq2bin_long.h"
+#include "../../../seq_utils/seq2bin_hash.h"
+#include "../../../seq_utils/seq2bin_long.h"
 
-#include "../../variant_maker/make_barcodes.h"
-#include "../../variant_maker/constant_seqs.h"
+#include "../../../variant_maker/make_barcodes.h"
+#include "../../../variant_maker/constant_seqs.h"
 
-#include "../../TECdisplay_mapper/map_reads/map_expected/parse_vmt_trgts.h"
+#include "./parse_vmt_trgts.h"
 
 #include "set_barcoded_compact_target.h"
 
@@ -36,7 +36,7 @@ void set_barcoded_compact_target(compact_target * ctrg, opt_BC * BC_val, target 
     uint64_t nid = 0; //numerical barcode id
     
     parse_barcode_id(&p_nid, &p_fid, trgt_id, trgt_ftype); //parse barcode id to isolate full and numerical ids
-    parse_target_seq(&p_trgt, &p_brcd, &trg_prms->BClen, trgt_sq, trgt_ftype); //parse seq to isolate target and BC seqs
+    parse_MUX_target_seq(&p_trgt, &p_brcd, &trg_prms->BClen, trgt_sq, trgt_ftype); //parse seq to isolate target and BC seqs
     
     //printf("%s\t%s\t%s\t%s\n", p_nid, p_fid, p_brcd, p_trgt);
     
@@ -119,8 +119,8 @@ int parse_barcode_id(char ** p_nid, char ** p_fid, char * crnt_bcid, int trgt_ft
     }
 }
 
-/* parse_target_seq: parse oligonucleotide sequence to identify barcode and target RNA sequences */
-void parse_target_seq(char ** p_trgt, char ** p_brcd, int * brcd_len, char * crnt_seq, int trgt_ftype)
+/* parse_MUX_target_seq: parse TECprobe-MUX target sequence to identify barcode and target RNA sequences */
+void parse_MUX_target_seq(char ** p_trgt, char ** p_brcd, int * brcd_len, char * crnt_seq, int trgt_ftype)
 {
     extern char pra1_sc1[41];        //PRA1_SC1 adapter
     extern char vra3[27];            //VRA3_adapter

@@ -11,19 +11,19 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "../../global/global_defs.h"
-#include "../../global/global_structs.h"
+#include "../../../global/global_defs.h"
+#include "../../../global/global_structs.h"
 
-#include "../cotrans_preprocessor_defs.h"
-#include "../cotrans_preprocessor_structs.h"
+#include "../../../cotrans_preprocessor/cotrans_preprocessor_defs.h"
+#include "../../../cotrans_preprocessor/cotrans_preprocessor_structs.h"
 
-#include "../../seq_utils/seq2bin_hash.h"
-#include "../../seq_utils/seq2bin_long.h"
+#include "../../../seq_utils/seq2bin_hash.h"
+#include "../../../seq_utils/seq2bin_long.h"
 
-#include "../../variant_maker/make_barcodes.h"
-#include "../../variant_maker/constant_seqs.h"
+#include "../../../variant_maker/make_barcodes.h"
+#include "../../../variant_maker/constant_seqs.h"
 
-#include "../../TECdisplay_mapper/map_reads/map_expected/parse_vmt_trgts.h"
+#include "./parse_vmt_trgts.h"
 
 #define NUMERICAL_ID 0    //indicates that barcode ID is strictly numerical
 #define COMPLEX_ID 1      //indicates that barcode ID is not strictly numerical
@@ -39,8 +39,8 @@ void set_barcoded_compact_target(compact_target * ctrg, opt_BC * BC_val, target 
 /* parse_barcode_id: parse barcode id to set full id and numerical id pointers */
 int parse_barcode_id(char ** p_nid, char ** p_fid, char * crnt_bcid, int trgt_ftype);
 
-/* parse_target_seq: parse oligonucleotide sequence to identify barcode and target RNA sequences */
-void parse_target_seq(char ** p_trgt, char ** p_brcd, int * brcd_len, char * crnt_seq, int trgt_ftype);
+/* parse_MUX_target_seq: parse TECprobe-MUX target sequence to identify barcode and target RNA sequences */
+void parse_MUX_target_seq(char ** p_trgt, char ** p_brcd, int * brcd_len, char * crnt_seq, int trgt_ftype);
 
 /* set_BC_val: set optional values for barcode target */
 void set_BC_val(compact_target * ctrg, opt_BC * BC_val, char * tsq, compact_target * ntv, int mode);

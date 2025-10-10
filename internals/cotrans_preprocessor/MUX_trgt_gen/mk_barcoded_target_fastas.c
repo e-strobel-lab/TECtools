@@ -18,7 +18,6 @@
 #include "../../utils/io_management.h"
 
 #include "./mk_MUX_trgts.h"
-#include "./set_barcoded_compact_target.h"
 
 #include "mk_barcoded_target_fastas.h"
 
@@ -78,7 +77,7 @@ void mk_barcoded_target_fastas(TPROBE_names * nm, compact_target * ctrg, target_
             abort();
         }
         fprintf(fp_trgt, ">%s\n", ctrg[i].cid);  //print target name
-        fprintf(fp_trgt, "%s\n", p_opt_BC->tsq); //print target sequence with sc1 and linker
+        fprintf(fp_trgt, "%s\n", p_opt_BC->tsq); //print target sequence
         
         //close current target fasta file
         if (fclose(fp_trgt) == EOF) {

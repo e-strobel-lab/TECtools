@@ -26,8 +26,8 @@
 #include "../../variant_maker/read_bcFile.h"
 
 #include "../../TECdisplay_mapper/map_reads/map_expected/parse_vmt_trgts.h"
+#include "../../TECdisplay_mapper/map_reads/map_expected/parse_fa_trgts.h"
 
-#include "./parse_fa_trgts.h"
 #include "./mk_barcoded_target_fastas.h"
 
 #define MIN_SUB_CODE 1    //minimum mutcode value for substitutions

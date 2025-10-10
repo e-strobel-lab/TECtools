@@ -24,7 +24,7 @@
 #include "../../../seq_utils/basemap.h"
 
 #include "./set_trgt.h"
-#include "../../../cotrans_preprocessor/MUX_trgt_gen/set_barcoded_compact_target.h"
+#include "./set_barcoded_compact_target.h"
 
 #include "parse_vmt_trgts.h"
 
