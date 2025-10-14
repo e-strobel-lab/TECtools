@@ -26,8 +26,8 @@
 #include "../../variant_maker/read_bcFile.h"
 
 #include "../../TECdisplay_mapper/map_reads/map_expected/parse_vmt_trgts.h"
-#include "../../TECdisplay_mapper/map_reads/map_expected/parse_fa_trgts.h"
 
+#include "./parse_fa_trgts.h"
 #include "./mk_barcoded_target_fastas.h"
 
 #define MIN_SUB_CODE 1    //minimum mutcode value for substitutions
@@ -48,8 +48,5 @@ int mk_INS_trgts(compact_target * ctrg, opt_BC * BC_val, int * ctrg_cnt, compact
 
 /* mk_DEL_trgts: generate single deletion targets for input barcode */
 int mk_DEL_trgts(compact_target * ctrg, opt_BC * BC_val, int * ctrg_cnt, compact_target * src_ctrg, int brcd_len, uint64_t * mutCode, char upstrm_nt);
-
-/* get_target_type: determine target type using mutcode */
-char * get_target_type(uint64_t mutcode, int * type_val);
 
 #endif /* mk_MUX_trgts_h */

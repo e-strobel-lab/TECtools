@@ -23,8 +23,8 @@
 #include "../../variant_maker/vmt_suffix.h"
 
 #include "../../TECdisplay_mapper/map_reads/map_expected/parse_vmt_trgts.h"
-#include "../../TECdisplay_mapper/map_reads/map_expected/parse_fa_trgts.h"
 
+#include "./parse_fa_trgts.h"
 #include "./mk_barcoded_target_fastas.h"
 
 #include "mk_MUX_trgts.h"
@@ -309,32 +309,3 @@ int mk_DEL_trgts(compact_target * ctrg, opt_BC * BC_val, int * ctrg_cnt, compact
     return del_trgts_made; //return number of deletion targets made
 }
 
-/* get_target_type: determine target type using mutcode */
-char * get_target_type(uint64_t mutcode, int * type_val)
-{
-    static char nat_type[4] = {"NAT"};
-    static char sub_type[4] = {"SUB"};
-    static char ins_type[4] = {"INS"};
-    static char del_type[4] = {"DEL"};
-    
-    if (!mutcode) {
-        *type_val = NAT;
-        return nat_type;
-        
-    } else if (mutcode >= MIN_SUB_CODE && mutcode <= MAX_SUB_CODE) {
-        *type_val = SUB;
-        return sub_type;
-        
-    } else if (mutcode >= MIN_INS_CODE && mutcode <= MAX_INS_CODE) {
-        *type_val = INS;
-        return ins_type;
-        
-    } else if (mutcode >= MIN_DEL_CODE && mutcode <= MAX_DEL_CODE) {
-        *type_val = DEL;
-        return del_type;
-        
-    } else {
-        printf("error: mutcode value is out of expected bounds. aborting...\n");
-        abort();
-    }
-}

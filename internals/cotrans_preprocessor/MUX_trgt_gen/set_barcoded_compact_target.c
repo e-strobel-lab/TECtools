@@ -8,19 +8,19 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "../../../global/global_defs.h"
-#include "../../../global/global_structs.h"
+#include "../../global/global_defs.h"
+#include "../../global/global_structs.h"
 
-#include "../../../cotrans_preprocessor/cotrans_preprocessor_defs.h"
-#include "../../../cotrans_preprocessor/cotrans_preprocessor_structs.h"
+#include "../cotrans_preprocessor_defs.h"
+#include "../cotrans_preprocessor_structs.h"
 
-#include "../../../seq_utils/seq2bin_hash.h"
-#include "../../../seq_utils/seq2bin_long.h"
+#include "../../seq_utils/seq2bin_hash.h"
+#include "../../seq_utils/seq2bin_long.h"
 
-#include "../../../variant_maker/make_barcodes.h"
-#include "../../../variant_maker/constant_seqs.h"
+#include "../../variant_maker/make_barcodes.h"
+#include "../../variant_maker/constant_seqs.h"
 
-#include "./parse_vmt_trgts.h"
+#include "../../TECdisplay_mapper/map_reads/map_expected/parse_vmt_trgts.h"
 
 #include "set_barcoded_compact_target.h"
 
