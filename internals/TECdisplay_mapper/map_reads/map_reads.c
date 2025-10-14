@@ -77,6 +77,9 @@ int map_reads (TDSPLY_names * nm, FILE * fp_trgs, int trgt_ftype, char * minQ, f
     //parse targets file
     if (trgt_ftype == VMT_FILE) {
         parse_vmt_trgts(fp_trgs, trgt_ftype, refs, ref_val, trgts, trg_val, &trg_prms, &wt, TDSPLY_TRGS);
+    } else {
+        printf("map_reads: error - expected vmt file input. aborting...\n");
+        abort();
     }
     /********** end of targets initialization and parsing **********/
 
