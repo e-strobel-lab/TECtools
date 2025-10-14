@@ -18,6 +18,7 @@
 #include "../../../utils/gen_utils.h"
 #include "../../../seq_utils/seq2bin_hash.h"
 #include "../../../seq_utils/seq2bin_long.h"
+#include "../../../seq_utils/mapping_metrics.h"
 
 #include "../../MUX_trgt_gen/mk_MUX_trgts.h"
 
@@ -81,7 +82,7 @@ void compare_testdata_barcode_id(compact_target * ctrg, char * rd_id, char * sq)
 
 
 /* print_MUX_testdata_analysis: report outcome of test data read mapping */
-void print_MUX_testdata_analysis(metrics * met, compact_target * ctrg)
+void print_MUX_testdata_analysis(mapping_metrics * met, compact_target * ctrg)
 {
     extern struct testdata_MUX_vars testdata_MUX;
     
@@ -129,7 +130,7 @@ void print_MUX_testdata_analysis(metrics * met, compact_target * ctrg)
     double expctd_chan[3] = {0.4, 0.4, 0.2};
     char chan_nm[3][32] = {"untreated", "modified", "unmappable"};
     
-    for (i = 0; i < CHANNEL_MAX; i++) {
+    for (i = 0; i < TPROBE_CHANNEL_MAX; i++) {
         //calculate fraction of reads in channel i
         test_val = (double)(met->chan_count[i])/(double)(met->reads_processed);
         

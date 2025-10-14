@@ -30,7 +30,7 @@
 #define BND 0                //specifies bound sample
 #define UNB 1                //specifies unbound sample
 #define ERR 2                //specifies undetermined channel barcode
-#define CHANNEL_MAX 3        //number of channel codes (BND, UNB, ERR)
+#define TDSPLY_CHANNEL_MAX 3 //number of channel codes (BND, UNB, ERR)
 
 /* test data generation */
 #define NO_CHNL_MATCH -1     //no match code

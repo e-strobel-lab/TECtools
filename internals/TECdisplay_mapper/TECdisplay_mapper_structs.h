@@ -79,17 +79,6 @@ typedef struct TDSPLY_fasta {
     int start_pos;       //position of first nucleotide in sequence
 } TDSPLY_fasta;
 
-/* metrics: structure containing seq read processing metrics */
-typedef struct TDSPLY_metrics {
-    int reads_processed;            //number of processed reads
-    int chan_count[CHANNEL_MAX];    //tracks number of reads from each channel
-    int full_match[CHANNEL_MAX];    //tracks number of full channel matches
-    int part_match[CHANNEL_MAX];    //tracks number of partial channel matches
-    int hits;                       //tracks number of reads wit ha key that maps to the hash table
-    int matches;                    //tracks number of reads with an exact target match
-} TDSPLY_metrics;
-
-
 /* testdata_vars: structure containing variable for tracking test data processing metrics */
 typedef struct testdata_vars {      //structure containing variables for testdata metrics
     int run;                        //flag indicating whether to perform testdata analysis

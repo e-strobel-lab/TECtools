@@ -19,6 +19,7 @@
 #include "../UNV/prcs_chnl_TPROBE.h"
 #include "../UNV/print_splitting_metrics.h"
 #include "../UNV/mk_config.h"
+#include "../../../seq_utils/mapping_metrics.h"
 #include "../../../seq_utils/appnd_att.h"
 #include "../../../seq_utils/isDNAbase.h"
 #include "testdata3pEnd_analysis.h"
@@ -34,8 +35,9 @@ extern struct testdata_3pEnd_vars testdata_3pEnd; //structure containing test da
 int prcs_MLT_cotrans(TPROBE_names * nm, FILE * fp_3pEnd, fastp_params fastp_prms)
 {
     FILE *ifp[READ_MAX] = {NULL};	//pointers for input fastq files
-    metrics  met = {0};				//read processing metrics storage
+    mapping_metrics  met = {0};		//read processing metrics storage
     
+    init_chnl_mtrcs_mem(&met, TPROBE_CHANNEL_MAX); //initialize channel tracking memory
     
     /***************** obtain sample name prefix *******************/
     get_sample_name(nm->file[READ1], nm->smpl[READ1]);
@@ -185,7 +187,7 @@ void check_diff(target old, target new)
 
 /* map_3pEnd: map RNA 3' end using hash table, return transcript length of the match.
  the sequence of the match is stored in end_trg_sq for use in clip_flanking */
-int map_3pEnd(char * read, h_node **htbl, char * end_str, metrics * met, int trg_len)
+int map_3pEnd(char * read, h_node **htbl, char * end_str, mapping_metrics * met, int trg_len)
 {
     extern int debug;							//flag to turn on debug mode
     extern struct testdata_3pEnd_vars testdata_3pEnd;	//structure containing test data read analysis variables
@@ -344,7 +346,7 @@ int verify_read(char (*rd)[MAX_LINE])
  structure probing experiments into modified and untreated channels
  for each RNA 3' end length
  */
-int split_reads_3pEnd(FILE **ifp, h_node **htbl, TPROBE_names * nm, metrics  * met, target3p_params trg_prms, int mode)
+int split_reads_3pEnd(FILE **ifp, h_node **htbl, TPROBE_names * nm, mapping_metrics  * met, target3p_params trg_prms, int mode)
 {
     printf("\nsplitting reads\n");
     
@@ -354,13 +356,13 @@ int split_reads_3pEnd(FILE **ifp, h_node **htbl, TPROBE_names * nm, metrics  * m
     int i = 0;
     int j = 0;
     
-    FILE *out_fp[CHANNEL_MAX][END_MAX][READ_MAX] = {{{NULL}}};	//array for output file pointers
-    char out_nm[READ_MAX][(MAX_LINE*2)] = {{0}}; 				//arrays for output names
+    FILE *out_fp[TPROBE_CHANNEL_MAX][END_MAX][READ_MAX] = {{{NULL}}}; //array for output file pointers
+    char out_nm[READ_MAX][(MAX_LINE*2)] = {{0}}; 				      //arrays for output names
     
     int chnls2make = 2;
     
     //array for appending channel code to output fastq file names
-    static const char chnl_code[CHANNEL_MAX][4] = {"UNT", "MOD", "ERR"};
+    static const char chnl_code[TPROBE_CHANNEL_MAX][4] = {"UNT", "MOD", "ERR"};
     //UNT 0
     //MOD 1
     //ERR 2

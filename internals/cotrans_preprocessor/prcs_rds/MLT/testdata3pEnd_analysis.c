@@ -17,6 +17,7 @@
 #include "../../cotrans_preprocessor_structs.h"
 #include "../../../utils/gen_utils.h"
 #include "../../../seq_utils/seq2bin_hash.h"
+#include "../../../seq_utils/mapping_metrics.h"
 
 #include "testdata3pEnd_analysis.h"
 
@@ -179,7 +180,7 @@ void compare_testdata_3pEnd(int end, char id[MAX_LINE], char sq[MAX_LINE])
 
 /* print_3pEnd_testdata_analysis: assess testdata analysis
  outcomes and print results to a file and to the screen */
-void print_3pEnd_testdata_analysis(metrics *met, target3p_params trg_prms, target * trgts)
+void print_3pEnd_testdata_analysis(mapping_metrics *met, target3p_params trg_prms, target * trgts)
 {
     extern struct testdata_3pEnd_vars testdata_3pEnd; //structure containing test data read analysis variables
     
@@ -277,7 +278,7 @@ void print_3pEnd_testdata_analysis(metrics *met, target3p_params trg_prms, targe
     double expctd_chan[3] = {0.45, 0.45, 0.1};
     char chan_nm[3][32] = {"untreated", "modified", "unmappable"};
     
-    for (i = 0; i < CHANNEL_MAX; i++) {
+    for (i = 0; i < TPROBE_CHANNEL_MAX; i++) {
         //calculate fraction of reads in channel i
         test_val = (double)(met->chan_count[i])/(double)(met->reads_processed);
         

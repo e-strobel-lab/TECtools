@@ -14,6 +14,7 @@
 #include "../../cotrans_preprocessor_defs.h"
 #include "../../cotrans_preprocessor_structs.h"
 #include "../../../utils/gen_utils.h"
+#include "../../../seq_utils/mapping_metrics.h"
 
 #include "../MLT/testdata3pEnd_analysis.h"
 #include "../MUX/testdataMUX_analysis.h"
@@ -21,7 +22,7 @@
 #include "print_splitting_metrics.h"
 
 /* print_metrics: prints a report of channel and 3' end processing metrics */
-void print_splitting_metrics(TPROBE_names * nm, metrics  * met, fastp_params fastp_prms)
+void print_splitting_metrics(TPROBE_names * nm, mapping_metrics  * met, fastp_params fastp_prms)
 {
     extern struct testdata_3pEnd_vars testdata_3pEnd; //structure containing test data read analysis variables
     extern struct testdata_MUX_vars testdata_MUX;     //structure containing test data read analysis variables
@@ -157,7 +158,7 @@ void print_splitting_metrics(TPROBE_names * nm, metrics  * met, fastp_params fas
 
 
 /* print_len_dist: print the observed 3' end distribution */
-void print_len_dist(metrics *met, target3p_params trg_prms)
+void print_len_dist(mapping_metrics *met, target3p_params trg_prms)
 {
     extern struct testdata_3pEnd_vars testdata_3pEnd;    //structure containing test data read analysis variables
     

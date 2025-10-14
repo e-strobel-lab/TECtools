@@ -14,6 +14,8 @@
 #include "../../TECdisplay_mapper_defs.h"
 #include "../../TECdisplay_mapper_structs.h"
 
+#include "../../../seq_utils/mapping_metrics.h"
+
 #include "prcs_chnl_TDSPLY.h"
 
 /* prcs_chnl_TDSPLY: identify channel code from read 1 ID.
@@ -24,7 +26,7 @@
  
  in TECdisplay experiments the channel barcode is the first four nucleotides of read2
  */
-int prcs_chnl_TDSPLY(char * read_ID, TDSPLY_metrics  * met, int * chnl_match_type)
+int prcs_chnl_TDSPLY(char * read_ID, mapping_metrics  * met, int * chnl_match_type)
 {
     extern int debug;    //flag to turn on debug mode
     

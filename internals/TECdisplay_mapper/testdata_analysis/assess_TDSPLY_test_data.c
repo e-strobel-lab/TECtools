@@ -16,6 +16,7 @@
 #include "../TECdisplay_mapper_defs.h"
 
 #include "../../utils/gen_utils.h"
+#include "../../seq_utils/mapping_metrics.h"
 
 #include "assess_TDSPLY_test_data.h"
 
@@ -132,7 +133,7 @@ int eval_testdata_mtch(testdata_vars * testdata, char * td_trg_id, int crnt_mut_
 
 /* print_testdata_analysis: assess testdata analysis
  outcomes and print results to a file and to the screen */
-void print_testdata_analysis(TDSPLY_metrics *met, testdata_vars * testdata, target_params * trg_prms, target * trgts)
+void print_testdata_analysis(mapping_metrics *met, testdata_vars * testdata, target_params * trg_prms, target * trgts)
 {
     int i = 0;                //general purpose index
     char out_str[8192] = {0}; //string for storing output line
@@ -212,7 +213,7 @@ void print_testdata_analysis(TDSPLY_metrics *met, testdata_vars * testdata, targ
     double expctd_chan[3] = {0.4, 0.4, 0.2}; //expected channel distribution for native reads
     char chan_nm[3][32] = {"bound", "unbound", "unmappable"}; //channel names
     
-    for (i = 0; i < CHANNEL_MAX; i++) {
+    for (i = 0; i < TDSPLY_CHANNEL_MAX; i++) {
         //calculate fraction of reads in channel i
         test_val = (double)(met->chan_count[i])/(double)(met->matches);
         

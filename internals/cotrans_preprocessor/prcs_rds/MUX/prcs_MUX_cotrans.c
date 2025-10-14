@@ -26,6 +26,7 @@
 #include "../../cotrans_preprocessor_defs.h"
 #include "../../cotrans_preprocessor_structs.h"
 #include "../../../utils/io_management.h"
+#include "../../../seq_utils/mapping_metrics.h"
 
 #include "../UNV/call_fastp_TPROBE.h"
 #include "../UNV/bypass_fastp.h"
@@ -47,7 +48,9 @@ int prcs_MUX_cotrans(TPROBE_names * nm, FILE * fp_MUXtrgs, int trgt_ftype, fastp
     printf("processing multiplex cotrans\n");
         
     FILE *ifp[READ_MAX] = {NULL};  //pointers for input fastq files
-    metrics met = {0};             //read processing metrics storage
+    mapping_metrics met = {0};     //read processing metrics storage
+    
+    init_chnl_mtrcs_mem(&met, TPROBE_CHANNEL_MAX); //initialize channel tracking memory
     
     target * refs = {NULL};        //pointer for array of reference targets
     opt_ref * ref_val = {NULL};    //pointer for array of optional reference target structures
@@ -189,7 +192,7 @@ int prcs_MUX_cotrans(TPROBE_names * nm, FILE * fp_MUXtrgs, int trgt_ftype, fastp
 
 /* mk_htbl_MUX: makes compact target hash table */
 /* hash table has linked list buckets for possible collisions */
-void mk_htbl_MUX(compact_h_node ** htbl_MUX, compact_h_node_bank * bank, compact_target * ctrg, int count, metrics * met)
+void mk_htbl_MUX(compact_h_node ** htbl_MUX, compact_h_node_bank * bank, compact_target * ctrg, int count, mapping_metrics * met)
 {
     extern uint64_t mutcode_mask; //mask to used to isolate barcode mutation code
     
@@ -353,7 +356,7 @@ int check_brcd_diff(compact_target * old, compact_target * new)
     }
 }
 /* map_brcd: map barcode to target using hash table */
-compact_target * map_brcd(char * brcd_str, char * rc_brcd_str, compact_h_node **htbl_MUX, compact_target ** mpd_trg, metrics * met)
+compact_target * map_brcd(char * brcd_str, char * rc_brcd_str, compact_h_node **htbl_MUX, compact_target ** mpd_trg, mapping_metrics * met)
 {
     extern struct testdata_MUX_vars testdata_MUX; //structure containing test data read analysis variables
     
@@ -424,7 +427,7 @@ compact_target * map_brcd(char * brcd_str, char * rc_brcd_str, compact_h_node **
 }
 
 /* split_MUX_reads: demultiplex TECprobe-MUX reads into separate fastq file */
-void split_MUX_reads(FILE **ifp, compact_h_node **htbl_MUX, TPROBE_names * nm, compact_target * ctrg, int brcd_cnt, int ctrg_cnt, metrics * met, int mode)
+void split_MUX_reads(FILE **ifp, compact_h_node **htbl_MUX, TPROBE_names * nm, compact_target * ctrg, int brcd_cnt, int ctrg_cnt, mapping_metrics * met, int mode)
 {
     extern int debug;                             //flag to turn on debug mode
     extern struct testdata_MUX_vars testdata_MUX; //structure containing test data read analysis variables
@@ -439,7 +442,7 @@ void split_MUX_reads(FILE **ifp, compact_h_node **htbl_MUX, TPROBE_names * nm, c
     opt_BC * BC_val = NULL; //pointer to barcode target optional values
     
     //array for appending channel code to output fastq file names
-    static const char chnl_code[CHANNEL_MAX][4] = {"UNT", "MOD", "ERR"};
+    static const char chnl_code[TPROBE_CHANNEL_MAX][4] = {"UNT", "MOD", "ERR"};
     //UNT 0
     //MOD 1
     //ERR 2

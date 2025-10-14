@@ -55,14 +55,14 @@
 #define TRG_DIF_THRESHOLD 2	//max distance for 3' value of targets with the same sequence
 
 /* channel ID definitions */
-#define VL_CHNL_BC_LEN 5	//length of the channel barcode at the head of read 1
-#define VL_MIN_MATCH 4	    //minimum channel barcode match (4/5 nucleotides)
-#define VL_MAX_MATCH 5	    //maximum possible channel barcode match (5/5 nucleotides)
-#define VL_UMI_LENGTH 9		//length of the unique molecular identifier
-#define UNT 0				//specifies untreated sample
-#define MOD 1				//specifies modified sample
-#define ERR 2				//specifies undetermined channel barcode
-#define CHANNEL_MAX 3		//number of channel codes (UNT, MOD, ERR)
+#define VL_CHNL_BC_LEN 5	 //length of the channel barcode at the head of read 1
+#define VL_MIN_MATCH 4	     //minimum channel barcode match (4/5 nucleotides)
+#define VL_MAX_MATCH 5	     //maximum possible channel barcode match (5/5 nucleotides)
+#define VL_UMI_LENGTH 9		 //length of the unique molecular identifier
+#define UNT 0				 //specifies untreated sample
+#define MOD 1				 //specifies modified sample
+#define ERR 2				 //specifies undetermined channel barcode
+#define TPROBE_CHANNEL_MAX 3 //number of channel codes (UNT, MOD, ERR)
 
 /* barcode mapping definitions */
 #define MAX_BRCD_CNT 20000  //maximum number of TECprobe-MUX barcodes

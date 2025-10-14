@@ -22,6 +22,8 @@
 #include "../../../utils/io_management.h"
 #include "../../../utils/gen_utils.h"
 
+#include "../../../seq_utils/mapping_metrics.h"
+
 /* print_output_header: print data output file header line */
 void print_output_header(FILE * out_fp, char * out_nm);
 
@@ -29,6 +31,6 @@ void print_output_header(FILE * out_fp, char * out_nm);
 void print_output(target * trgts, target_params * trg_prms, TDSPLY_names * nm);
 
 /* print_metrics: print read mapping metrics */
-void print_metrics(target * trgts, target_params * trg_prms, TDSPLY_metrics * met, TDSPLY_names * nm);
+void print_metrics(target * trgts, target_params * trg_prms, mapping_metrics * met, TDSPLY_names * nm);
 
 #endif /* mk_output_files_h */

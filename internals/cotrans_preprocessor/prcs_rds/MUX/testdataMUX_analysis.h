@@ -21,6 +21,7 @@
 #include "../../../utils/gen_utils.h"
 #include "../../../seq_utils/seq2bin_hash.h"
 #include "../../../seq_utils/seq2bin_long.h"
+#include "../../../seq_utils/mapping_metrics.h"
 
 #include "../../MUX_trgt_gen/mk_MUX_trgts.h"
 
@@ -40,6 +41,6 @@ uint64_t get_testdata_barcode_id(char * id);
 void compare_testdata_barcode_id(compact_target * ctrg, char * rd_id, char * sq);
 
 /* print_MUX_testdata_analysis: report outcome of test data read mapping */
-void print_MUX_testdata_analysis(metrics * met, compact_target * ctrg);
+void print_MUX_testdata_analysis(mapping_metrics * met, compact_target * ctrg);
 
 #endif /* testdataMUX_analysis_h */

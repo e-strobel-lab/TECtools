@@ -14,6 +14,8 @@
 #include "../../cotrans_preprocessor_defs.h"
 #include "../../cotrans_preprocessor_structs.h"
 
+#include "../../../seq_utils/mapping_metrics.h"
+
 #include "../../../variant_maker/make_barcodes.h"
 
 #include "prcs_chnl_TPROBE.h"
@@ -24,7 +26,7 @@
  modified  = RRRYY
  untreated = YYYRR
  */
-int prcs_chnl_TPROBE(char * read1_ID, metrics  * met, int mode)
+int prcs_chnl_TPROBE(char * read1_ID, mapping_metrics  * met, int mode)
 {
     extern int debug;    //flag to turn on debug mode
     

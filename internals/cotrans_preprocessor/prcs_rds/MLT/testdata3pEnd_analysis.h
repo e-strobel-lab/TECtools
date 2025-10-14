@@ -20,6 +20,7 @@
 #include "../../cotrans_preprocessor_structs.h"
 #include "../../../utils/gen_utils.h"
 #include "../../../seq_utils/seq2bin_hash.h"
+#include "../../../seq_utils/mapping_metrics.h"
 
 #include "testdata3pEnd_analysis.h"
 
@@ -45,6 +46,6 @@ void compare_testdata_3pEnd(int end, char id[MAX_LINE], char sq[MAX_LINE]);
 
 /* print_3pEnd_testdata_analysis: assess testdata analysis
  outcomes and print results to a file and to the screen */
-void print_3pEnd_testdata_analysis(metrics * met, target3p_params trg_prms, target * trgts); //print report of test data analysis
+void print_3pEnd_testdata_analysis(mapping_metrics * met, target3p_params trg_prms, target * trgts); //print report of test data analysis
 
 #endif /* testdata3pEnd_analysis_h */

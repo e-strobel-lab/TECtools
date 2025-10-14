@@ -22,6 +22,7 @@
 #include "../UNV/prcs_chnl_TPROBE.h"
 #include "../UNV/print_splitting_metrics.h"
 #include "../UNV/mk_config.h"
+#include "../../../seq_utils/mapping_metrics.h"
 #include "../../../seq_utils/appnd_att.h"
 #include "../../../seq_utils/isDNAbase.h"
 #include "testdata3pEnd_analysis.h"
@@ -73,10 +74,10 @@ void check_diff(target prev, target new);
  char * read: full sequence of the read that will be assessed (always read 1 of a pair)
  h_node **htbl: pointer to hash table node pointer array
  char * end_str: array for storing transcript length value as chars
- metrics * met: pointer metrics structure for read processing QC
+ mapping_metrics * met: pointer metrics structure for read processing QC
  int trg_len: length of 3' end target sequences
  */
-int map_3pEnd(char * read, h_node **htbl, char * end_str, metrics * met, int trg_len);
+int map_3pEnd(char * read, h_node **htbl, char * end_str, mapping_metrics * met, int trg_len);
 
 
 /* verify_read: perform checks to assess the integrity of a read */
@@ -88,12 +89,12 @@ int verify_read(char (*rd)[MAX_LINE]);
  FILE **ifp: pointer to read 1 and read 2 fastq file pointers
  h_node **htbl:  pointer to hash table node pointer array
  TPROBE_names * nm: contains sample names to use as prefix when generating output fastq files
- metrics  * met: pointer metrics structure for read processing QC
+ mapping_metrics  * met: pointer metrics structure for read processing QC
  target3p_params trg_prms: 3' end targets parameters
  int mode: MULTI or SINGLE mode specification
  */
 
-int split_reads_3pEnd(FILE **ifp, h_node **htbl, TPROBE_names * nm, metrics  * met, target3p_params trg_prms, int mode);
+int split_reads_3pEnd(FILE **ifp, h_node **htbl, TPROBE_names * nm, mapping_metrics  * met, target3p_params trg_prms, int mode);
 
 
 #endif /* prcs_MLT_cotrans_h */

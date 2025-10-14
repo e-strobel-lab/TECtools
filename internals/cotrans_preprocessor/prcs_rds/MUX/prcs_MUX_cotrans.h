@@ -34,6 +34,7 @@
 #include "../UNV/bypass_fastp.h"
 #include "../UNV/prcs_chnl_TPROBE.h"
 #include "../UNV/print_splitting_metrics.h"
+#include "../../../seq_utils/mapping_metrics.h"
 
 #include "../../MUX_trgt_gen/mk_MUX_trgts.h"
 #include "../../MUX_trgt_gen/mk_MUX_testdata.h"
@@ -49,7 +50,7 @@ int prcs_MUX_cotrans(TPROBE_names * nm, FILE * fp_MUXtrgs, int trgt_ftype, fastp
 
 /* mk_htbl_MUX: makes compact target hash table */
 /* hash table has linked list buckets for possible collisions */
-void mk_htbl_MUX(compact_h_node ** htbl_MUX, compact_h_node_bank * bank, compact_target * ctrg, int count, metrics * met);
+void mk_htbl_MUX(compact_h_node ** htbl_MUX, compact_h_node_bank * bank, compact_target * ctrg, int count, mapping_metrics * met);
 
 /* hash_brcd_trgt: generates hash key for binary encoded sequence (up to 32 nt/64 bits */
 uint64_t hash_brcd_trgt(binary_seq * bsq);
@@ -58,10 +59,10 @@ uint64_t hash_brcd_trgt(binary_seq * bsq);
 int check_brcd_diff(compact_target * old, compact_target * new);
 
 /* map_brcd: map barcode to target using hash table */
-compact_target * map_brcd(char * brcd_str, char * rc_brcd_str, compact_h_node **htbl_MUX, compact_target ** mpd_trg, metrics * met);
+compact_target * map_brcd(char * brcd_str, char * rc_brcd_str, compact_h_node **htbl_MUX, compact_target ** mpd_trg, mapping_metrics * met);
 
 /* split_MUX_reads: demultiplex TECprobe-MUX reads into separate fastq file */
-void split_MUX_reads(FILE **ifp, compact_h_node **htbl_MUX, TPROBE_names * nm, compact_target * ctrg, int brcd_cnt, int ctrg_cnt, metrics * met, int mode);
+void split_MUX_reads(FILE **ifp, compact_h_node **htbl_MUX, TPROBE_names * nm, compact_target * ctrg, int brcd_cnt, int ctrg_cnt, mapping_metrics * met, int mode);
 
 /* get_brcd_str: get barcode string from UMI in read ID */
 void get_brcd_str(char * brcd_str, char * read1_ID);

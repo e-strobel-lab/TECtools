@@ -19,6 +19,7 @@
 #include "../TECdisplay_mapper_defs.h"
 
 #include "../../utils/gen_utils.h"
+#include "../../seq_utils/mapping_metrics.h"
 
 /* parse_testdata_id: parse test data id line and store attributes */
 void parse_testdata_id(testdata_vars * testdata, char **td_trg_id, int * crnt_mut_cd, char * id_line);
@@ -28,6 +29,6 @@ int eval_testdata_mtch(testdata_vars * testdata, char * td_trg_id, int crnt_mut_
 
 /* print_testdata_analysis: assess testdata analysis
  outcomes and print results to a file and to the screen */
-void print_testdata_analysis(TDSPLY_metrics *met, testdata_vars * testdata, target_params * trg_prms, target * trgts);
+void print_testdata_analysis(mapping_metrics *met, testdata_vars * testdata, target_params * trg_prms, target * trgts);
 
 #endif /* assess_TDSPLY_test_data_h */
