@@ -14,6 +14,8 @@
 #include "../variant_maker/variant_maker_defs.h"
 #include "../seq_utils/seq2bin_hash.h"
 
+#include "../cotrans_preprocessor/cotrans_preprocessor_defs.h"
+
 /* run_modes */
 #define MAP_TEST_DATA 0      //map test data mode
 #define MAP_SEQ_READS 1      //map sequencing reads mode

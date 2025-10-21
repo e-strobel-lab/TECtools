@@ -22,13 +22,21 @@
 #include "../../../utils/io_management.h"
 #include "../../../utils/gen_utils.h"
 
+#include "../../../seq_utils/seq2bin_hash.h"
+#include "../../../seq_utils/seq2bin_long.h"
 #include "../../../seq_utils/mapping_metrics.h"
 
 /* print_output_header: print data output file header line */
 void print_output_header(FILE * out_fp, char * out_nm);
 
 /* print_output: print data output file */
-void print_output(target * trgts, target_params * trg_prms, TDSPLY_names * nm);
+void print_output(void * trgts, target_params * trg_prms, TDSPLY_names * nm, int mode);
+
+/* print_target_line: print target data line to output file*/
+void print_target_line(target * trgt, FILE * ofp);
+
+/* print_compact_target_line: print compact_target data line to output file */
+void print_compact_target_line(compact_target * ctrg, FILE * ofp);
 
 /* print_metrics: print read mapping metrics */
 void print_metrics(target_params * trg_prms, mapping_metrics * met, TDSPLY_names * nm);

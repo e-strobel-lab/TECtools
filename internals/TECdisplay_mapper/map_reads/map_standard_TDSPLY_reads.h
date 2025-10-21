@@ -48,8 +48,8 @@ int test_cbase_qscores(char * qscore5p, char * minQc, target *refs);
 int count_matched_targets(target * trgts, target_params * trg_prms);
 
 /* crrct_testdata_nonsrc_mtch: decrement match counters when a mutant testdata read maps to a target
- from a different source sequence. this allows testdata analysis to be run correctly using targets
- that were generated from very closely related variant templates */
-void crrct_testdata_nonsrc_mtch(target * trg, opt_mx_trg * trg_vals, mapping_metrics * met, int channel, int chnl_mtch_typ, testdata_vars * testdata);
+ from a different source sequence or maps to the correct target sequence by creating/extending a
+ homopolymer at the 3' end of the target. */
+void crrct_aberrant_testdata_mtch(target * trg, opt_mx_trg * trg_vals, mapping_metrics * met, int channel, int chnl_mtch_typ, testdata_vars * testdata);
 
 #endif /* map_standard_TDSPLY_reads_h */

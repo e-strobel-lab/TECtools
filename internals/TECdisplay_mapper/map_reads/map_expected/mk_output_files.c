@@ -18,6 +18,8 @@
 #include "../../../utils/io_management.h"
 #include "../../../utils/gen_utils.h"
 
+#include "../../../seq_utils/seq2bin_hash.h"
+#include "../../../seq_utils/seq2bin_long.h"
 #include "../../../seq_utils/mapping_metrics.h"
 
 #include "mk_output_files.h"
@@ -59,17 +61,12 @@ void print_output_header(FILE * out_fp, char * out_nm)
 }
 
 /* print_output: print data output file */
-void print_output(target * trgts, target_params * trg_prms, TDSPLY_names * nm)
+void print_output(void * trgts, target_params * trg_prms, TDSPLY_names * nm, int mode)
 {
-    extern const char TECdsply_clmn_hdrs[4][32]; //column headers from TECdisplay_output_column_headers.c
-    
     int i = 0; //general purpose index
-    int j = 0; //general purpose index
     
     FILE *out_fp = {NULL};            //array for output file pointer
     char out_nm[256];                 //array for output name
-    opt_mx_trg * crnt_trg_val = NULL; //pointer for dereferencing target values
-    opt_ref * crnt_ref_val = NULL;    //pointer for dereferencing reference values
     
     int ret = 0; //variable for storing snprintf return value
     
@@ -102,40 +99,16 @@ void print_output(target * trgts, target_params * trg_prms, TDSPLY_names * nm)
     //2. bound read count
     //3. unbound read count
     //4. fraction bound
-    for (i = 0; i < trg_prms->t_cnt; i++) {                    //for every target
-        if (!trgts[i].mul) {                                   //if target is non-redundant
-            crnt_trg_val = (opt_mx_trg *)trgts[i].opt;         //set pointer to target values
-            crnt_ref_val = (opt_ref *)crnt_trg_val->ref->opt;  //set pointer to reference values
+    for (i = 0; i < trg_prms->t_cnt; i++) {
+        if (mode == STD_TDSPLY) {
+            print_target_line(&(((target *)trgts)[i]), out_fp);
             
-            for (j = 0; j < TDSPLY_HDR_CNT; j++) {                         //for every column header
-                switch (j) {
-                    case TDSPLY_VID_HDR: //printing variant id column
-                        fprintf(out_fp, "%s", trgts[i].id);                //print variant id
-                        if (crnt_ref_val->cnstnts != NULL) {               //if ref target contains constant seq
-                            fprintf(out_fp, "_%s", crnt_ref_val->cnstnts); //print constants string
-                        }
-                        break;
-                        
-                    case TDSPLY_BND_HDR: //printing bount read count
-                        fprintf(out_fp, "\t%d", crnt_trg_val->bnd);
-                        break;
-                        
-                    case TDSPLY_UNB_HDR: //printing unbound read count
-                        fprintf(out_fp, "\t%d", crnt_trg_val->unb);
-                        break;
-                        
-                    case TDSPLY_FRC_HDR: //printing fraction bound
-                        fprintf(out_fp, "\t%.4f",
-                                (double)(crnt_trg_val->bnd)/(double)(crnt_trg_val->bnd + crnt_trg_val->unb));
-                        break;
-                        
-                    default: //this should not be reachable
-                        printf("print_output: error - header index exceeded the maximum. aborting...\n");
-                        abort();
-                        break;
-                }
-            }
-            fprintf(out_fp, "\n"); //print newline at the end of data line
+        } else if (mode == BRCD_TDSPLY) {
+            print_compact_target_line(&(((compact_target *)trgts)[i]), out_fp);
+            
+        } else {
+            printf("print_output: error - unrecognized mode. aborting...\n");
+            abort();
         }
     }
     
@@ -146,6 +119,93 @@ void print_output(target * trgts, target_params * trg_prms, TDSPLY_names * nm)
     }
         
     return;
+}
+
+/* print_target_line: print target data line to output file*/
+void print_target_line(target * trgt, FILE * ofp)
+{
+    extern const char TECdsply_clmn_hdrs[4][32]; //column headers from TECdisplay_output_column_headers.c
+    
+    int i = 0; //general purpose index
+    
+    opt_mx_trg * crnt_trg_val = NULL; //pointer for dereferencing target values
+    opt_ref * crnt_ref_val = NULL;    //pointer for dereferencing reference values
+    
+    if (!trgt->mul) {                                        //if target is non-redundant
+        crnt_trg_val = (opt_mx_trg *)(trgt->opt);            //set pointer to target values
+        crnt_ref_val = (opt_ref *)(crnt_trg_val->ref->opt);  //set pointer to reference values
+        
+        for (i = 0; i < TDSPLY_HDR_CNT; i++) { //for every column header
+            switch (i) {
+                case TDSPLY_VID_HDR: //printing variant id column
+                    fprintf(ofp, "%s", trgt->id);                   //print variant id
+                    if (crnt_ref_val->cnstnts != NULL) {            //if ref target contains constant seq
+                        fprintf(ofp, "_%s", crnt_ref_val->cnstnts); //print constants string
+                    }
+                    break;
+                    
+                case TDSPLY_BND_HDR: //printing bound read count
+                    fprintf(ofp, "\t%d", crnt_trg_val->bnd);
+                    break;
+                    
+                case TDSPLY_UNB_HDR: //printing unbound read count
+                    fprintf(ofp, "\t%d", crnt_trg_val->unb);
+                    break;
+                    
+                case TDSPLY_FRC_HDR: //printing fraction bound
+                    fprintf(ofp, "\t%.4f",
+                            (double)(crnt_trg_val->bnd)/(double)(crnt_trg_val->bnd + crnt_trg_val->unb));
+                    break;
+                    
+                default: //this should not be reachable
+                    printf("print_output: error - header index exceeded the maximum. aborting...\n");
+                    abort();
+                    break;
+            }
+        }
+        fprintf(ofp, "\n"); //print newline at the end of data line
+    }
+}
+
+/* print_compact_target_line: print compact_target data line to output file */
+void print_compact_target_line(compact_target * ctrg, FILE * ofp)
+{
+    extern const char TECdsply_clmn_hdrs[4][32]; //column headers from TECdisplay_output_column_headers.c
+    
+    int i = 0; //general purpose index
+    
+    opt_BC * BC_val = NULL; //pointer for dereferencing optional barcode target values
+    
+    if (!ctrg->mul) {                   //if target is non-redundant
+        BC_val = (opt_BC *)(ctrg->opt); //set pointer to target values
+        
+        for (i = 0; i < TDSPLY_HDR_CNT; i++) { //for every column header
+            switch (i) {
+                case TDSPLY_VID_HDR: //printing variant id column
+                    fprintf(ofp, "%s", ctrg->cid);
+                    break;
+                    
+                case TDSPLY_BND_HDR: //printing bound read count
+                    fprintf(ofp, "\t%d", BC_val->chnl[BND]);
+                    break;
+                    
+                case TDSPLY_UNB_HDR: //printing unbound read count
+                    fprintf(ofp, "\t%d", BC_val->chnl[UNB]);
+                    break;
+                    
+                case TDSPLY_FRC_HDR: //printing fraction bound
+                    fprintf(ofp, "\t%.4f",
+                            (double)(BC_val->chnl[BND])/(double)(BC_val->chnl[BND] + BC_val->chnl[UNB]));
+                    break;
+                    
+                default: //this should not be reachable
+                    printf("print_output: error - header index exceeded the maximum. aborting...\n");
+                    abort();
+                    break;
+            }
+        }
+        fprintf(ofp, "\n"); //print newline at the end of data line
+    }
 }
 
 /* print_metrics: print read mapping metrics */

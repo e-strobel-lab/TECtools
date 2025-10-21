@@ -208,9 +208,8 @@ int prcs_barcoded_TDSPLY_reads(TDSPLY_names * nm, FILE * fp_trgs, int trgt_ftype
     //count non-redundant targets with >=1 mapped read
     trg_prms.mapped2 = count_matched_compact_targets(ctrg, &trg_prms, ctrg_cnt);
     
-    /*
-    print_output(trgts, &trg_prms, nm); //print output file
-    */
+    //print output file
+    print_output(ctrg, &trg_prms, nm, fastp_prms.mode);
      
     //close merged read file
     if ((fclose(ifp)) == EOF) {

@@ -20,6 +20,8 @@
 
 #include "../variant_maker/variant_maker_defs.h"
 
+#include "../cotrans_preprocessor/cotrans_preprocessor_structs.h"
+
 /* NOTE: the structures used for the hash table are defined in seq2bin_hash.h */
 
 /* opt_ref: structure for storing reference target values.
