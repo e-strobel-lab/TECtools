@@ -25,9 +25,22 @@ int call_fastp_TDSPLY(TDSPLY_names * nm, fastp_params prms)
     static const char ovrlp_len_req[25] = "--overlap_len_require=15";                   //overlap length requirement
     static const char crrct[13] = "--correction";										//flag for error correction
     static const char merge[8] = "--merge";                                             //flag to merge reads
-    static const char umi[35] = "--umi --umi_loc=read2 --umi_len=16";                    //single length UMI settings
+    static const char umi_STD[35] = "--umi --umi_loc=read2 --umi_len=16";               //standard UMI settings
+    static const char umi_BRCD[38] = "--umi --umi_loc=per_read --umi_len=16";           //barcoded UMI settings
     static const char ipt1[3] = "-i";													//option for read 1 input
     static const char ipt2[3] = "-I";													//option for read 2 input
+    
+    const char * umi = NULL; //pointer to umi command to use
+    
+    //set umi command
+    if (prms.mode == STD_TDSPLY) {
+        umi = umi_STD;
+    } else if (prms.mode == BRCD_TDSPLY) {
+        umi = umi_BRCD;
+    } else {
+        printf("call_fastp_TDSPLY: error - unrecognized processing mode. aborting...\n");
+        abort();
+    }
     
     char merged_out[256] = {0};    //array to store merged output option
     char unmerged_out1[256] = {0}; //array to store read 1 output option

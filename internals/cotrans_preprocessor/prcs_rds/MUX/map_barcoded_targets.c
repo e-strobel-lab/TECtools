@@ -28,7 +28,7 @@
 
 /* mk_htbl_MUX: makes compact target hash table */
 /* hash table has linked list buckets for possible collisions */
-void mk_htbl_MUX(compact_h_node ** htbl_MUX, compact_h_node_bank * bank, compact_target * ctrg, int count, mapping_metrics * met)
+void mk_htbl_MUX(compact_h_node ** htbl_MUX, compact_h_node_bank * bank, compact_target * ctrg, int count, target_params * trg_prms, mapping_metrics * met)
 {
     extern uint64_t mutcode_mask; //mask to used to isolate barcode mutation code
     
@@ -129,6 +129,8 @@ void mk_htbl_MUX(compact_h_node ** htbl_MUX, compact_h_node_bank * bank, compact
                     (*p_rdnd)->ctrg->mul = 1; //set previous target as redundant
                     (*p_rdnd)->ctrg->bl++;    //blacklist previous target
                     ctrg[i].bl++;             //blacklist current target
+                    new_node--;               //decrement new_node counter since prev target is blacklisted
+                    redundant++;              //increment redundant counter to count prev target as blacklisted
                     //as above, mul does not need to be set here since it is set above for all redundant
                     //targets regardless of whether a collision occurred
                 }
@@ -141,6 +143,9 @@ void mk_htbl_MUX(compact_h_node ** htbl_MUX, compact_h_node_bank * bank, compact
     printf("%6d barcode targets were assessed\n", i);
     printf("%6d barcode target sequences were assigned a node\n", new_node);
     printf("%6d redundant barcode target sequences were not assigned a node\n\n\n", redundant);
+    
+    trg_prms->nr_cnt = new_node;  //set non-redundant node count
+    trg_prms->rdndnt = redundant; //set redundant node count
     
     if (error) { //if a serious error occurred above, throw error and abort
         printf("aborting due to fatal error. see message above for cause.\n");

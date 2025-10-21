@@ -28,7 +28,7 @@
 
 /* mk_htbl_MUX: makes compact target hash table */
 /* hash table has linked list buckets for possible collisions */
-void mk_htbl_MUX(compact_h_node ** htbl_MUX, compact_h_node_bank * bank, compact_target * ctrg, int count, mapping_metrics * met);
+void mk_htbl_MUX(compact_h_node ** htbl_MUX, compact_h_node_bank * bank, compact_target * ctrg, int count, target_params * trg_prms, mapping_metrics * met);
 
 /* hash_brcd_trgt: generates hash key for binary encoded sequence (up to 32 nt/64 bits */
 uint64_t hash_brcd_trgt(binary_seq * bsq);

@@ -55,12 +55,13 @@ typedef struct target3p_params {
 
 /* opt_BC: structure for storing barcode target-specific variables */
 typedef struct opt_BC {
-    compact_target * ref;                     //pointer to reference target, for native targets this points to self
+    compact_target * ref; //pointer to reference target, for native targets this points to self
     FILE * ofp[TPROBE_CHANNEL_MAX][READ_MAX]; //output file pointer (only used for native targets)
-    uint64_t mpd;                      //number of reads that mapped to native+mutant targets (used for native targets)
-    uint64_t cnt;                      //number of reads that mapped to the current target
-    char * tsq;                        //template sequence
-    int typ;                           //target type (NAT, SUB, INS, DEL)
+    uint64_t mpd; //number of reads that mapped to native+mutant targets (used for native targets)
+    uint64_t cnt; //number of reads that mapped to the current target
+    char * tsq;   //template sequence
+    int typ;      //target type (NAT, SUB, INS, DEL)
+    int chnl[TDSPLY_CHANNEL_MAX]; //number of reads that map to each channel
 } opt_BC;
 
 

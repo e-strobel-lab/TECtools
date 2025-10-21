@@ -105,7 +105,7 @@ int main(int argc, char *argv[])
     int trgt_ftype = FILE_TYPE_INIT; //target file type
         
     TPROBE_names nm = {{{0}}};				    //file and sample names
-    fastp_params fastp_prms = {"fastp", -1, 0}; //parameters for fastp processing
+    fastp_params fastp_prms = {"fastp", FASTP_MODE_INIT, 0}; //parameters for fastp processing
     
     /****** parse options using getopt_long ******/
     int c = -1;
@@ -312,7 +312,7 @@ int main(int argc, char *argv[])
                 
             /* turn on test data read analysis mode */
             case 't':
-                if (fastp_prms.mode == -1) {
+                if (fastp_prms.mode == FASTP_MODE_INIT) {
                     printf("cotrans_preprocessor: error - run mode option must be provided before test data option. aborting...\n");
                     abort();
                     
@@ -611,7 +611,7 @@ int check_standard_cotrans(int fq1_provided, int fq2_provided, int ends_provided
     }
     
     //check that processing mode was set
-    if (fastp_prms.mode == -1) {
+    if (fastp_prms.mode == FASTP_MODE_INIT) {
         printf("cotrans_preprocessor_main: error - fastp processing mode was not set\n");
         abort();
     }

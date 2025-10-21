@@ -1,5 +1,5 @@
 //
-//  map_reads.c
+//  map_standard_TDSPLY_reads.c
 //  
 //
 //  Created by Eric Strobel on 6/21/22.
@@ -30,12 +30,12 @@
 #include "../testdata_analysis/mk_TDSPLY_test_data.h"
 #include "../testdata_analysis/assess_TDSPLY_test_data.h"
 
-#include "./map_reads.h"
+#include "./map_standard_TDSPLY_reads.h"
 
 extern int debug;
 
-/* map_reads: coordinates targets parsing, fastp processing, read mapping, and output file generation */
-int map_reads (TDSPLY_names * nm, FILE * fp_trgs, int trgt_ftype, char * minQ, fastp_params fastp_prms, testdata_vars * testdata, int mode)
+/* prcs_standard_TDSPLY_reads: coordinates targets parsing, fastp processing, read mapping, and output file gen */
+int prcs_standard_TDSPLY_reads(TDSPLY_names * nm, FILE * fp_trgs, int trgt_ftype, char * minQ, fastp_params fastp_prms, testdata_vars * testdata, int mode)
 {
     FILE *ifp = NULL;           //pointers for merged fastq file
     mapping_metrics met = {0};  //read processing metrics storage
@@ -56,22 +56,22 @@ int map_reads (TDSPLY_names * nm, FILE * fp_trgs, int trgt_ftype, char * minQ, f
     
     //allocate memory for reference targets and targets
     if ((refs = calloc(MAXREF, sizeof(*refs))) == NULL) {
-        printf("map_reads: error - reference target memory allocation failed\n");
+        printf("map_standard_TDSPLY_reads: error - reference target memory allocation failed\n");
         return 1;
     }
     
     if ((ref_val = calloc(MAXREF, sizeof(*ref_val))) == NULL) {
-        printf("map_reads: error - reference target value memory allocation failed\n");
+        printf("map_standard_TDSPLY_reads: error - reference target value memory allocation failed\n");
         return 1;
     }
     
     if ((trgts = calloc(trg_prms.xpctd, sizeof(*trgts))) == NULL) {
-        printf("map_reads: error - target memory allocation failed\n");
+        printf("map_standard_TDSPLY_reads: error - target memory allocation failed\n");
         return 1;
     }
     
     if ((trg_val = calloc(trg_prms.xpctd, sizeof(*trg_val))) == NULL) {
-        printf("map_reads: error - target value memory allocation failed\n");
+        printf("map_standard_TDSPLY_reads: error - target value memory allocation failed\n");
         return 1;
     }
     
@@ -79,9 +79,9 @@ int map_reads (TDSPLY_names * nm, FILE * fp_trgs, int trgt_ftype, char * minQ, f
     
     //parse targets file
     if (trgt_ftype == VMT_FILE) {
-        parse_vmt_trgts(fp_trgs, trgt_ftype, refs, ref_val, trgts, trg_val, &trg_prms, &wt, TDSPLY_TRGS);
+        parse_vmt_trgts(fp_trgs, trgt_ftype, refs, ref_val, trgts, trg_val, &trg_prms, &wt, TDSPLY);
     } else {
-        printf("map_reads: error - expected vmt file input. aborting...\n");
+        printf("map_standard_TDSPLY_reads: error - expected vmt file input. aborting...\n");
         abort();
     }
     /********** end of targets initialization and parsing **********/
@@ -120,7 +120,7 @@ int map_reads (TDSPLY_names * nm, FILE * fp_trgs, int trgt_ftype, char * minQ, f
     get_sample_name(nm->file[READ2], nm->smpl[READ2]); //get read 2 sample name
     ret = snprintf(nm->mrg, MAX_LINE, "%s_merged", nm->smpl[READ1]);    //construct merged read sample name
     if (ret >= MAX_LINE || ret < 0) {
-        printf("map_reads: error - error when constructing output file name. aborting...\n");
+        printf("map_standard_TDSPLY_reads: error - error when constructing output file name. aborting...\n");
         abort();
     }
     /************** end of obtain sample name prefix ***************/
@@ -135,14 +135,14 @@ int map_reads (TDSPLY_names * nm, FILE * fp_trgs, int trgt_ftype, char * minQ, f
     //construct merged read file name
     ret = snprintf(processed_file, MAX_LINE, "./processed/%s.fq", nm->mrg);
     if (ret >= MAX_LINE || ret < 0) {
-        printf("map_reads: error - error when constructing merged read file name. aborting...\n");
+        printf("map_standard_TDSPLY_reads: error - error when constructing merged read file name. aborting...\n");
         abort();
     }
     
     //construct gunzip command
     ret = snprintf(gunzip, MAX_LINE, "gunzip %s", processed_file);
     if (ret >= MAX_LINE || ret < 0) {
-        printf("map_reads: error - error when constructing gunzip command. aborting...\n");
+        printf("map_standard_TDSPLY_reads: error - error when constructing gunzip command. aborting...\n");
         abort();
     }
     
@@ -154,7 +154,7 @@ int map_reads (TDSPLY_names * nm, FILE * fp_trgs, int trgt_ftype, char * minQ, f
         abort();
     }
     
-    map_expected_reads(ifp, htbl, refs, trgts, minQ, &trg_prms, &met, testdata, mode); //map reads to targets
+    map_standard_TDSPLY_reads(ifp, htbl, refs, trgts, minQ, &trg_prms, &met, testdata, mode); //map reads to targets
     trg_prms.mapped2 = count_matched_targets(trgts, &trg_prms); //count non-redundant targets with >=1 mapped read
     
     print_output(trgts, &trg_prms, nm);             //print output file
@@ -162,14 +162,14 @@ int map_reads (TDSPLY_names * nm, FILE * fp_trgs, int trgt_ftype, char * minQ, f
     
     //close merged read file
     if ((fclose(ifp)) == EOF) {
-        printf("map_reads: error - error occurred when closing merged read file. Aborting program...\n");
+        printf("map_standard_TDSPLY_reads: error - error occurred when closing merged read file. Aborting program...\n");
         abort();
     }
     
     /********** end of process sequencing reads **********/
     
     /************ print metrics and clean up *************/
-    print_metrics(trgts, &trg_prms, &met, nm); //print mapping metrics
+    print_metrics(&trg_prms, &met, nm); //print mapping metrics
     
     if (testdata->run) {                       //print test data analysis
         print_testdata_analysis(&met, testdata, &trg_prms, trgts);
@@ -181,7 +181,7 @@ int map_reads (TDSPLY_names * nm, FILE * fp_trgs, int trgt_ftype, char * minQ, f
     //construct gzip command
     ret = snprintf(gzip, MAX_LINE, "gzip %s", processed_file);
     if (ret >= MAX_LINE || ret < 0) {
-        printf("map_reads: error - error when constructing gzip command. aborting...\n");
+        printf("map_standard_TDSPLY_reads: error - error when constructing gzip command. aborting...\n");
         abort();
     }
     system(gzip); //gzip merged read file
@@ -274,8 +274,8 @@ int mk_htbl_TDSPLY(h_node **htbl, h_node_bank *bank, target *trgts, target *refs
     return new_node; //return number of non-redundant targets
 }
 
-/* map_expected_reads: map reads to user-supplied targets */
-void map_expected_reads(FILE *ifp, h_node **htbl, target *refs, target *trgts, char * minQ, target_params * trg_prms, mapping_metrics * met, testdata_vars * testdata, int mode)
+/* map_standard_TDSPLY_reads: map reads to user-supplied targets */
+void map_standard_TDSPLY_reads(FILE *ifp, h_node **htbl, target *refs, target *trgts, char * minQ, target_params * trg_prms, mapping_metrics * met, testdata_vars * testdata, int mode)
 {
     extern int debug;  //flag to turn on debug mode
     

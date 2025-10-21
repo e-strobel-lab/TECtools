@@ -27,7 +27,7 @@
 #include "./set_barcoded_compact_target.h"
 
 /* parse_fa_trgts: stores input barcodes as targets */
-void parse_fa_trgts(FILE * ifp, int trgt_ftype, void * trgts, void * trg_val, target_params * trg_prms);
+void parse_fa_trgts(FILE * ifp, int trgt_ftype, void * trgts, void * trg_val, target_params * trg_prms, int data_type);
 
 
 #endif /* parse_fa_trgts_h */

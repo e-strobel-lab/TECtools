@@ -29,16 +29,13 @@
 #include "./set_trgt.h"
 #include "../../../cotrans_preprocessor/MUX_trgt_gen/set_barcoded_compact_target.h"
 
-#define TDSPLY_TRGS 0
-#define TPROBE_TRGS 1
-
 /* parse_header_lines: parse targets file header lines for expected variant count
  and wild type sequence information */
 void parse_header_lines(FILE * ifp, target_params *trg_prms, TDSPLY_fasta * wt);
 
 /* parse_vmt_trgts: parse targets file to obtain target ids, sequences, attributes,
   and min/max transcript lengths */
-void parse_vmt_trgts(FILE * ifp, int trgt_ftype, target * refs, opt_ref * ref_val, void * trgts, void * trg_val, target_params * trg_prms, TDSPLY_fasta * wt, int mode);
+void parse_vmt_trgts(FILE * ifp, int trgt_ftype, target * refs, opt_ref * ref_val, void * trgts, void * trg_val, target_params * trg_prms, TDSPLY_fasta * wt, int data_type);
 
 /* check_tpr_match: check that expected tpr matches actual tpr */
 void check_tpr_match(int cnt, int actual, int xpctd);

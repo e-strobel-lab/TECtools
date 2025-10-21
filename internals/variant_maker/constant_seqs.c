@@ -8,6 +8,8 @@
 #include "constant_seqs.h"
 
 //priming sites
+
+char pra1[51]            = "ttatcaaaaagagtattgactcttttacctctggcggtgataatggttgc"; //PRA1 promoter
 char pra1_sc1[41]        = "acctctggcggtgataatggttgcatggccttcgggccaa";
 char c3sc1[34]           = "attcggtgctcttctcttcggccttcgggccaa";
 char vra3[27]            = "gatcgtcggactgtagaactctgaac";

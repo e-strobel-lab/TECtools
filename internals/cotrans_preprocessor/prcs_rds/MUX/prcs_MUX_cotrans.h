@@ -42,6 +42,7 @@
 #include "../MLT/prcs_MLT_cotrans.h"
 
 #include "./map_barcoded_targets.h"
+#include "./get_brcd_str.h"
 #include "./testdataMUX_analysis.h"
 
 #include "prcs_MUX_cotrans.h"
@@ -52,7 +53,5 @@ int prcs_MUX_cotrans(TPROBE_names * nm, FILE * fp_MUXtrgs, int trgt_ftype, fastp
 /* split_MUX_reads: demultiplex TECprobe-MUX reads into separate fastq file */
 void split_MUX_reads(FILE **ifp, compact_h_node **htbl_MUX, TPROBE_names * nm, compact_target * ctrg, int brcd_cnt, int ctrg_cnt, mapping_metrics * met, int mode);
 
-/* get_brcd_str: get barcode string from UMI in read ID */
-void get_brcd_str(char * brcd_str, char * read1_ID);
 
 #endif /* prcs_MUX_cotrans_h */

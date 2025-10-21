@@ -27,4 +27,9 @@
 #define VMT_FILE 1          //targets file is a variant maker targets file
 #define FASTA_FILE 2        //targets file is a fasta file
 
+
+#define DATA_TYPE_INIT 0 //data type initialization value
+#define TDSPLY         1 //code for TECdisplay data
+#define TPROBE_MUX     2 //code for TECprobe-MUX data
+
 #endif /* global_defs_h */

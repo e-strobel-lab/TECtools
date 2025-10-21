@@ -10,6 +10,8 @@
 
 #include <stdio.h>
 
+#define FASTP_MODE_INIT -1
+
 /* fastp_params: structure containing parameters for fastp processing */
 typedef struct fastp_params {
     char path[MAX_LINE];  //path to fastp executable

@@ -26,8 +26,13 @@
 
 
 /* set_barcoded_compact_target: set target values in target struct */
-void set_barcoded_compact_target(compact_target * ctrg, opt_BC * BC_val, target * crnt_ref, char * trgt_id, char * trgt_sq, target_params * trg_prms, int trgt_ftype)
+void set_barcoded_compact_target(compact_target * ctrg, opt_BC * BC_val, target * crnt_ref, char * trgt_id, char * trgt_sq, target_params * trg_prms, int trgt_ftype, int data_type)
 {
+    extern char pra1_sc1[41];
+    extern char c3sc1[34];
+    extern char vra3[27];
+    extern char RLA29synch_3p11[34]; //v2
+    
     char * p_nid = NULL;  //pointer to numerical barcode id
     char * p_fid = NULL;  //pointer to full barcode id
     char * p_trgt = NULL; //pointer to target RNA sequence
@@ -35,8 +40,23 @@ void set_barcoded_compact_target(compact_target * ctrg, opt_BC * BC_val, target 
     
     uint64_t nid = 0; //numerical barcode id
     
+    char * ldr2use = NULL;  //leader sequence to search for when parsing target
+    char * trlr2use = NULL; //trailer sequence to search for when parsing target
+    char * lnkr2use = NULL; //linker sequence to search for when parsing target
+    
+    if (data_type == TDSPLY) { //when processing TECdisplay data
+        ldr2use = c3sc1;       //leader sequence is C3-SC1
+        trlr2use = vra3;       //trailer sequence is VRA3
+        lnkr2use = NULL;       //no linker is used //TODO: add ability to search for user-specified linker?
+        
+    } else if (data_type == TPROBE_MUX) { //when processing TECprobe-MUX data
+        ldr2use = pra1_sc1;               //leader sequence is PRA1-SC1 adapter
+        trlr2use = vra3;                  //trailer is VRA3
+        lnkr2use = RLA29synch_3p11;       //linker is RLA29synch_3p11
+    }
+    
     parse_barcode_id(&p_nid, &p_fid, trgt_id, trgt_ftype); //parse barcode id to isolate full and numerical ids
-    parse_MUX_target_seq(&p_trgt, &p_brcd, &trg_prms->BClen, trgt_sq, trgt_ftype); //parse seq to isolate target and BC seqs
+    parse_MUX_target_seq(&p_trgt, &p_brcd, &trg_prms->BClen, trgt_sq, trgt_ftype, ldr2use, trlr2use, lnkr2use); //parse seq to isolate target and BC seqs
     
     //printf("%s\t%s\t%s\t%s\n", p_nid, p_fid, p_brcd, p_trgt);
     
@@ -120,71 +140,89 @@ int parse_barcode_id(char ** p_nid, char ** p_fid, char * crnt_bcid, int trgt_ft
 }
 
 /* parse_MUX_target_seq: parse TECprobe-MUX target sequence to identify barcode and target RNA sequences */
-void parse_MUX_target_seq(char ** p_trgt, char ** p_brcd, int * brcd_len, char * crnt_seq, int trgt_ftype)
+void parse_MUX_target_seq(char ** p_trgt, char ** p_brcd, int * brcd_len, char * crnt_seq, int trgt_ftype, char * ldr, char * trlr, char * lnkr)
 {
-    extern char pra1_sc1[41];        //PRA1_SC1 adapter
-    extern char vra3[27];            //VRA3_adapter
-    extern char RLA29synch_3p11[34]; //RLA29synch_3p11 linker
+    char * p_ldr = NULL;  //pointer to leader
+    char * p_trlr = NULL; //pointer to trailer
+    char * p_lnkr = NULL; //pointer to linker
     
-    char * p_pra1_adptr = NULL; //pointer to PRA1_SC1 adapter
-    char * p_vra3 = NULL;       //pointer to VRA3 adapter
-    char * p_lnkr = NULL;       //pointer to linker
+    char tmp_brcd[MAX_BARCODE_LEN+1] = {0}; //array to temporarily store barcode during transposition
     
     if (trgt_ftype == VMT_FILE) { //vmt file sequences contain only the target, linker, and barcode
         *p_trgt = &crnt_seq[0];   //set target start to first array member
         
-    } else if (trgt_ftype == FASTA_FILE) { //fasta file sequences also contain PRA1-SC1 and VRA3 sequences
+    } else if (trgt_ftype == FASTA_FILE) { //fasta file sequences also contain leader and trailer sequences
         
-        //set pointer to PRA1_SC1 adapter sequence
-        if ((p_pra1_adptr = strstr(crnt_seq, pra1_sc1)) == NULL) {
-            printf("parse_target_seq: PRA1_SC1 adapter not detected in target sequence in fasta file mode. aborting...\n");
+        //set pointer to leader sequence
+        if ((p_ldr = strstr(crnt_seq, ldr)) == NULL) {
+            printf("parse_target_seq: leader not detected in target sequence in fasta file mode. aborting...\n");
             abort();
         }
         
-        //check that PRA1_SC1 sequence is at the start of the oligo sequence
-        if ((uint64_t)(&p_pra1_adptr[0]) == (uint64_t)(&crnt_seq[0])) {  //if pointer is at the start of the oligo seq
-            *p_trgt = &crnt_seq[strlen(pra1_sc1)];                       //set pointer to first nt after PRA1_SC1
+        //check that leader sequence is at the start of the target sequence
+        if ((uint64_t)(&p_ldr[0]) == (uint64_t)(&crnt_seq[0])) {  //if pointer is at the start of the target seq
+            *p_trgt = &crnt_seq[strlen(ldr)];                     //set pointer to first nt after leader
         } else {
-            printf("parse_target_seq: PRA1_SC1 sequence not detected at head of target sequence in fasta file mode. aborting...\n");
+            printf("parse_target_seq: leader not detected at head of target sequence in fasta file mode. aborting...\n");
             abort();
         }
         
-        //set pointer to VRA3 adapter sequence
-        if ((p_vra3 = strstr(crnt_seq, vra3)) == NULL) {
-            printf("parse_target_seq: VRA3 adapter not detected in target sequence in fasta file mode. aborting...\n");
+        //set pointer to trailer sequence
+        if ((p_trlr = strstr(*p_trgt, trlr)) == NULL) {
+            printf("parse_target_seq: trailer not detected in target sequence in fasta file mode. aborting...\n");
             abort();
         }
-        p_vra3[0] = '\0'; //terminate barcode string by zeroing first index of VRA3 adapter string, which follows barcode
+        p_trlr[0] = '\0'; //terminate barcode string by zeroing first index of trailer string, which follows barcode
         
     } else {
         printf("parse_target_seq: error - unrecognized target file type. aborting...");
         abort();
     }
     
-    //set pointer to RLA29synch_3p11 linker
-    if ((p_lnkr = strstr(crnt_seq, RLA29synch_3p11)) == NULL) {
-        printf("parse_target_seq: RLA29synch_3p11 linker not detected. aborting...\n");
-        abort();
-    }
-    p_lnkr[0] = '\0'; //terminate target string by zeroing first index of linker string, which follows target string
-    *p_brcd = &p_lnkr[strlen(RLA29synch_3p11)]; //set barcode pointer to nt that follows RLA29synch_3p11 linker
     
-    if (!(*brcd_len)) {
-        *brcd_len = strlen(*p_brcd); //get barcode length
-        if (*brcd_len != MAX_BARCODE_LEN) {
+    //set pointer to linker
+    if (lnkr != NULL) {
+        if ((p_lnkr = strstr(*p_trgt, lnkr)) == NULL) {
+            printf("parse_target_seq: linker not detected. aborting...\n");
+            abort();
+        }
+        p_lnkr[0] = '\0'; //terminate target string by zeroing first index of linker string
+        *p_brcd = &p_lnkr[strlen(lnkr)];   //set barcode pointer to nt that follows linker
+        (*p_brcd)[strlen(*p_brcd)] = '\0'; //guarantee null char after barcode
+        
+    } else {
+        if (strlen(*p_trgt) > MAX_BARCODE_LEN) {                       //check that target is longer than BC
+            *p_brcd = &((*p_trgt)[strlen(*p_trgt) - MAX_BARCODE_LEN]); //set pointer to start of barcode
+            strcpy(tmp_brcd, *p_brcd);                                 //store temp copy of barcode
+            (*p_brcd)[0] = '\0';                                       //terminate target string
+            *p_brcd = &((*p_brcd)[1]);                                 //point BC to char after trg str null char
+            strcpy(*p_brcd, tmp_brcd);                                 //copy barcode back to seq string
+            (*p_brcd)[strlen(*p_brcd)] = '\0';                         //guarantee null char after barcode
+            
+        } else {
+            printf("parse_target_seq: unexpected short target. aborting...\n");
+            abort();
+        }
+    }
+    
+    //set or check barcode length
+    if (!(*brcd_len)) {                     //if barcode length was not previously set,
+        *brcd_len = strlen(*p_brcd);        //set barcode length
+        if (*brcd_len != MAX_BARCODE_LEN) { //check that barcode length matches MAX_BARCODE_LEN
             printf("parse_target_seq: unexpected barcode length (%d nt, expected %d nt). aborting...\n", *brcd_len, MAX_BARCODE_LEN);
             abort();
         }
         
-        if (trgt_ftype == FASTA_FILE) {
-            //check that barcode length matches distance between the RLA29synch_3p11 linker and VRA3 adapter
-            if (*brcd_len != (uint64_t)(&p_vra3[0]) - (uint64_t)(&(*p_brcd)[0])) {
-                printf("parse_target_seq: error - unexpected distance betwen end of RLA29synch_3p11 linker and start of VRA3 adapter. aborting...\n");
+        //if linker was provided, check that barcode length matches
+        //the distance between the linker and the trailer sequences
+        if (trgt_ftype == FASTA_FILE && lnkr != NULL) {
+            if (*brcd_len != (uint64_t)(&p_trlr[0]) - (uint64_t)(&(*p_brcd)[0])) {
+                printf("parse_target_seq: error - unexpected distance betwen end of linker and start of trailer. aborting...\n");
                 abort();
             }
         }
         
-    } else if (strlen(*p_brcd) != *brcd_len) {
+    } else if (strlen(*p_brcd) != *brcd_len) { //otherwise, confirm current BC len matches first BC len
         printf("parse_target_seq: discordant barcode lengths detected. aborting...\n");
         abort();
     }

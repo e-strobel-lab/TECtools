@@ -101,7 +101,7 @@ void parse_header_lines(FILE * ifp, target_params * trg_prms, TDSPLY_fasta * wt)
 
 /* parse_vmt_trgts: parse targets file to obtain target ids, sequences, attributes,
   and min/max transcript lengths */
-void parse_vmt_trgts(FILE * ifp, int trgt_ftype, target * refs, opt_ref * ref_val, void * trgts, void * trg_val, target_params * trg_prms, TDSPLY_fasta * wt, int mode)
+void parse_vmt_trgts(FILE * ifp, int trgt_ftype, target * refs, opt_ref * ref_val, void * trgts, void * trg_val, target_params * trg_prms, TDSPLY_fasta * wt, int data_type)
 {
     //TODO: double check that reversion from revcomp is all correct
     extern int debug;				           //flag to run debug mode
@@ -237,15 +237,15 @@ void parse_vmt_trgts(FILE * ifp, int trgt_ftype, target * refs, opt_ref * ref_va
             }
             
             //set target structure values for the current target
-            if (mode == TDSPLY_TRGS) {
+            if (data_type == TDSPLY) {
                 set_trgt(&(((target *)trgts)[trg_prms->t_cnt]),
                          &(((opt_mx_trg *)trg_val)[trg_prms->t_cnt]),
                          crnt_ref, trgt_id, trgt_sq);
                 if (debug) {print_target_debug(&(((target *)trgts)[trg_prms->t_cnt]), trg_prms);} //print debug messages
-            } else if (mode == TPROBE_TRGS) {
+            } else if (data_type == TPROBE_MUX) {
                 set_barcoded_compact_target(&(((compact_target *)trgts)[trg_prms->t_cnt]),
                                             &(((opt_BC *)trg_val)[trg_prms->t_cnt]),
-                                            crnt_ref, trgt_id, trgt_sq, trg_prms, trgt_ftype);
+                                            crnt_ref, trgt_id, trgt_sq, trg_prms, trgt_ftype, data_type);
             }
             
             trg_prms->t_cnt++;                       //increment parsed target counter

@@ -125,18 +125,18 @@ int mk_TDSPLY_test_data(TDSPLY_names * nm, target *refs, target *trgts, target_p
                 
                 //make native sequence reads with variable channel codes
                 for (i = 0; i < CHNL_CLASSES; i++) {
-                    mk_rndmzd_bc(chnl_bc, mk_chnl[i], mk_mtch[i]); //generate randomized channel barcode
+                    mk_rndmzd_TDSPLY_bc(chnl_bc, mk_chnl[i], mk_mtch[i]); //generate randomized channel barcode
                     
                     //make reads from native sequence
                     print_TDSPLY_fq(out_rd1, out_rd2, &trgts[trg_indx].id[0], &trgts[trg_indx].sq[0], chnl_bc, NAT);
                 }
                 
                 //make mutant sequence reads
-                for (i = 0; i < 100; i++) {                   //make 100 mutants for every target
-                    chnl_cd = rand() % 2;                     //select random mappable channel barcode
-                    mk_rndmzd_bc(chnl_bc, chnl_cd, FULL);     //generate randomized channel barcode
-                    strcpy(mut_insrt, trgts[trg_indx].sq);    //copy target sequence to mut array
-                    mut_cd = mutate_insrt(vb_map, mut_insrt); //generate mutant target sequence
+                for (i = 0; i < 100; i++) {                      //make 100 mutants for every target
+                    chnl_cd = rand() % 2;                        //select random mappable channel barcode
+                    mk_rndmzd_TDSPLY_bc(chnl_bc, chnl_cd, FULL); //generate randomized channel barcode
+                    strcpy(mut_insrt, trgts[trg_indx].sq);       //copy target sequence to mut array
+                    mut_cd = mutate_insrt(vb_map, mut_insrt);    //generate mutant target sequence
                     
                     //make reads from mutated sequence
                     print_TDSPLY_fq(out_rd1, out_rd2, &trgts[trg_indx].id[0], &mut_insrt[0], chnl_bc, mut_cd);
@@ -160,7 +160,7 @@ int mk_TDSPLY_test_data(TDSPLY_names * nm, target *refs, target *trgts, target_p
     return 1;
 }
 
-/* mk_rndmzd_bc: generate a randomized channel barcode with variable channel and match settings.
+/* mk_rndmzd_TDSPLY_bc: generate a randomized channel barcode with variable channel and match settings.
  chnl variable:
  BND = bound barcode (RYYY)
  UNB = unbound barcode  (YRRR)
@@ -170,7 +170,7 @@ int mk_TDSPLY_test_data(TDSPLY_names * nm, target *refs, target *trgts, target_p
  FULL = 4/4 position match to expected sequence
  PART = 3/4 position match to expected sequence
  */
-void mk_rndmzd_bc(char * bc, int chnl, int mtch)
+void mk_rndmzd_TDSPLY_bc(char * bc, int chnl, int mtch)
 {
     int i = 0;  //general purpose index
     
@@ -245,16 +245,16 @@ void mk_rndmzd_bc(char * bc, int chnl, int mtch)
 /* print_TDSPLY_fq: construct read sequences and print to fastq file */
 void print_TDSPLY_fq(FILE * out_rd1, FILE * out_rd2, char * var_id, char * insrt2use, char * chnl_bc, int end_rnd_typ) {
     
-    static int cnt = 0; //number of read pairs generated
+    static int std_cnt = 0; //number of read pairs generated
     
     int i = 0; //general purpose index
     
     char rd1[MAX_LINE] = {0}; //array for generating read 1 sequence
     char rd2[MAX_LINE] = {0}; //array for generating read 2 sequence
     
-    static const char UMI[13] = "CATCATCATCAT"; //12 nt UMI placeholder, append after channel barcode
-    static const char prm[51] = "TTATCAAAAAGAGTATTGACTCTTTTACCTCTGGCGGTGATAATGGTTGC"; //PRA1 promoter
-    static const char ldr[34] = "ATTCGGTGCTCTTCTCTTCGGCCTTCGGGCCAA"; //SC1 leader sequence, append 5' end of insert
+    const char UMI[13] = "CATCATCATCAT"; //12 nt UMI placeholder, append after channel barcode
+    const char prm[51] = "TTATCAAAAAGAGTATTGACTCTTTTACCTCTGGCGGTGATAATGGTTGC"; //PRA1 promoter
+    const char ldr[34] = "ATTCGGTGCTCTTCTCTTCGGCCTTCGGGCCAA"; //C3SC1 leader sequence, append 5' end of insert
     
     sprintf(rd2, "%s%s%s%s%s", chnl_bc, UMI, prm, ldr, insrt2use); //construct read 2 sequence
     reverse_complement(rd1, rd2, REVCOMP);                         //revcomp read 2 to obtain read 1 sequence
@@ -279,9 +279,9 @@ void print_TDSPLY_fq(FILE * out_rd1, FILE * out_rd2, char * var_id, char * insrt
     //2. id of the target used to generate the read
     //3. end randomization type (NAT, SUB, INS, DEL)
     //4. read id in hexadecimal
-    //5. generalize Illumina read suffix
-    fprintf(out_rd1, "@testdata_TDsply=%s_%s_0x%08x_R1 1:N:0:INDEX\n", var_id, end_rnd_ptr, cnt);
-    fprintf(out_rd2, "@testdata_TDsply=%s_%s_0x%08x_R2 2:N:0:INDEX\n", var_id, end_rnd_ptr, cnt);
+    //5. generalized Illumina read suffix
+    fprintf(out_rd1, "@testdata_TDsply=%s_%s_0x%08x_R1 1:N:0:INDEX\n", var_id, end_rnd_ptr, std_cnt);
+    fprintf(out_rd2, "@testdata_TDsply=%s_%s_0x%08x_R2 2:N:0:INDEX\n", var_id, end_rnd_ptr, std_cnt);
     
     //print fastq line 2 (read sequence)
     fprintf(out_rd1, "%s\n", rd1);
@@ -300,7 +300,7 @@ void print_TDSPLY_fq(FILE * out_rd1, FILE * out_rd2, char * var_id, char * insrt
     fprintf(out_rd1, "\n");
     fprintf(out_rd2, "\n");
     
-    cnt++; //increment read output counter
+    std_cnt++; //increment read output counter
 }
 
 /* mutate_insrt: randomly mutate test data sequencing read insert */

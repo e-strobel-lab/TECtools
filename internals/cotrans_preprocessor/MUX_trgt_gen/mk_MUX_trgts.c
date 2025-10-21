@@ -34,7 +34,7 @@ uint64_t trgt_ID_mask = 0xFFFFFFFFFFFF0000; //barcode id mask that isolates the 
 uint64_t mutcode_mask = 0x000000000000FFFF; //barcode id mask that isolates mutation code
 
 /* mk_MUX_trgts: manages TECprobe-MUX target generation */
-int mk_MUX_trgts(TPROBE_names * nm, target * refs, opt_ref * ref_val, compact_target * ctrg, opt_BC * BC_val, FILE * fp_MUXtrgs, int trgt_ftype, target_params * trg_prms, int clcd_ctrg_cnt, TDSPLY_fasta * wt)
+int mk_MUX_trgts(target * refs, opt_ref * ref_val, compact_target * ctrg, opt_BC * BC_val, FILE * fp_MUXtrgs, int trgt_ftype, target_params * trg_prms, int clcd_ctrg_cnt, TDSPLY_fasta * wt, int data_type)
 {
     extern char RLA29synch_3p11[34]; //linker sequence for TECprobe-MUX experiments
     
@@ -44,16 +44,15 @@ int mk_MUX_trgts(TPROBE_names * nm, target * refs, opt_ref * ref_val, compact_ta
     
     //parse barcoded targets file and store as compact targets
     if (trgt_ftype == VMT_FILE) {
-        parse_vmt_trgts(fp_MUXtrgs, trgt_ftype, refs, ref_val, ctrg, BC_val, trg_prms, wt, TPROBE_TRGS);
+        parse_vmt_trgts(fp_MUXtrgs, trgt_ftype, refs, ref_val, ctrg, BC_val, trg_prms, wt, data_type);
         
     } else if (trgt_ftype == FASTA_FILE) {
-        parse_fa_trgts(fp_MUXtrgs, trgt_ftype, ctrg, BC_val, trg_prms);
+        parse_fa_trgts(fp_MUXtrgs, trgt_ftype, ctrg, BC_val, trg_prms, data_type);
         
     } else {
         printf("mk_MUX_trgts: error - unrecognized barcoded targets file type. aborting...\n");
     }
 
-    mk_barcoded_target_fastas(nm, ctrg, trg_prms); //generate individual barcoded target fasta files
     ctrg_cnt = trg_prms->t_cnt;                    //set ctrg_cnt, which tracks total ctrgs below
     
     printf("barcode count = %d\ncalc'd trg count = %d\n", trg_prms->t_cnt, clcd_ctrg_cnt);
@@ -124,7 +123,7 @@ int mk_SUB_trgts(compact_target * ctrg, opt_BC * BC_val, int * ctrg_cnt, compact
                         var[2][i] = 'G';
                         break;
                     default:
-                        printf("printSubs: error - unexpected character %c in barcode sequence. aborting...\n", src_ctrg->csq[i]);
+                        printf("printSubs: error - unexpected character %c (%llu) in barcode sequence. aborting...\n", src_ctrg->csq[i], (long long unsigned int)src_ctrg->csq[i]);
                         abort();
                         break;
                 };

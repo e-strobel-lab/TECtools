@@ -25,15 +25,15 @@
 
 #include "../variant_maker/vmt_suffix.h"
 
-#include "./map_reads/map_reads.h"
+#include "./map_reads/map_standard_TDSPLY_reads.h"
+#include "./map_reads/map_barcoded_TDSPLY_reads.h"
 
 extern int debug;            //flag to run debug mode
 extern int debug_S2B_hash;   //seq2bin_hash-specific debug flag
 
-int set_run_mode(char * mode_arg, int * run_mode);
+int set_run_mode(char * mode_arg, int * run_mode, testdata_vars * testdata);
 int set_min_qscore(char * min_Qscore, char * val2set);
-int check_options(int fq1_provided, int fq2_provided, int trgs_provided);
-int check_testdata_options(int fq1_provided, int fq2_provided, int trgs_provided, fastp_params * fastp_prms);
+int check_options(int run_mode, int fq1_provided, int fq2_provided, int trgs_provided, fastp_params * fastp_prms, int trgt_ftype);
 
 int main(int argc, char *argv[])
 {
@@ -52,7 +52,7 @@ int main(int argc, char *argv[])
     int min_cbase_qscore_set = 0;   //tracks if min constant base qscore was set
     
     TDSPLY_names nm = {{{0}}};                  //file and sample names
-    fastp_params fastp_prms = {"fastp", -1, 0}; //parameters for fastp processing
+    fastp_params fastp_prms = {"fastp", FASTP_MODE_INIT, 0}; //parameters for fastp processing
     
     char min_qscore[2] = {0};     //array of quality score thresholds
     min_qscore[Q_VARIABLE] = '5'; //initialize variable base qscore threshold to 20 (ascii: 5);
@@ -72,6 +72,8 @@ int main(int argc, char *argv[])
             {"read1",         required_argument,  0,  'i'},  //read 1 input
             {"read2",         required_argument,  0,  'I'},  //read 2 input
             {"targets",       required_argument,  0,  't'},  //targets file input
+            {"standard",      no_argument,        0,  's'},  //flag that data is standard (not barcoded)
+            {"barcoded",      no_argument,        0,  'b'},  //flag that data is barcoded
             {"out-name",      required_argument,  0,  'o'},  //output file name
             {"fastp-path",    required_argument,  0,  'p'},  //provide path to fastp executable
             {"qual-variable", required_argument,  0,  'v'},  //min quality for variable bases
@@ -82,7 +84,7 @@ int main(int argc, char *argv[])
             {0, 0, 0, 0}
         };
         
-        c = getopt_long(argc, argv, "m:i:I:t:o:p:v:c:dl:", long_options, &option_index);
+        c = getopt_long(argc, argv, "m:i:I:t:sbo:p:v:c:dl:", long_options, &option_index);
         
         if (c == -1) {
             break;
@@ -92,7 +94,7 @@ int main(int argc, char *argv[])
                 
             /* set run mode and, if necessary, fastp processing mode */
             case 'm':
-                set_run_mode(argv[optind-1], &run_mode);
+                set_run_mode(argv[optind-1], &run_mode, &testdata);
                 break;
                 
             /* get read 1 input filename */
@@ -125,6 +127,16 @@ int main(int argc, char *argv[])
                 }
                 
                 get_file(&(fp_trgs), argv[optind-1]);       //set file pointer to input target file
+                break;
+            
+            /* set standard flag */
+            case 's':
+                fastp_prms.mode = STD_TDSPLY;
+                break;
+                
+            /* set barcoded flag */
+            case 'b':
+                fastp_prms.mode = BRCD_TDSPLY;
                 break;
                 
             /* get output filename */
@@ -188,27 +200,26 @@ int main(int argc, char *argv[])
     printf("min qscore for variable bases: %2d (%c)\n", min_qscore[Q_VARIABLE]-'!', min_qscore[Q_VARIABLE]);
     printf("min qscore for constant bases: %2d (%c)\n", min_qscore[Q_CONSTANT]-'!', min_qscore[Q_CONSTANT]);
         
-    if (run_mode == MAP_SEQ_READS) {                                   //run MAP_SEQ_READS mode
-        check_options(fq1_provided, fq2_provided, trgs_provided);      //check that correct options were supplied
-        map_reads(&nm, fp_trgs, trgt_ftype, min_qscore, fastp_prms, &testdata, MAP_SEQ_READS); //map sequencing reads
+    check_options(run_mode, fq1_provided, fq2_provided, trgs_provided, &fastp_prms, trgt_ftype);
+    
+    //process and map reads
+    //procedure depends on file type:
+    //vmt files are the standard method and contain targets that are not barcoded
+    //fasta files contain barcoded targets
+    if (trgt_ftype == VMT_FILE) { //process and map seq reads to standard targets
+        prcs_standard_TDSPLY_reads(&nm, fp_trgs, trgt_ftype, min_qscore, fastp_prms, &testdata, run_mode);
         
-                
-    } else if (run_mode == MAP_TEST_DATA) {                               //run MAP_TEST_DATA mode
-        check_testdata_options(fq1_provided, fq2_provided, trgs_provided, &fastp_prms); //check options
-        testdata.run = 1;                                                 //turn testdata run flag on
-        map_reads(&nm, fp_trgs, trgt_ftype, min_qscore, fastp_prms, &testdata, MAP_TEST_DATA   ); //map test data reads to target
-        
-    } else {
-        printf("TECDisplay_mapper_main: error - unrecognized run mode. aborting...\n");
-        abort();
+    } else if (trgt_ftype == FASTA_FILE) { //map seq reads to barcoded targets
+        prcs_barcoded_TDSPLY_reads(&nm, fp_trgs, trgt_ftype, min_qscore, fastp_prms, &testdata, run_mode);
     }
 }
 
 /* set_run_mode: set run mode using mode argument string */
-int set_run_mode(char * mode_arg, int * run_mode)
+int set_run_mode(char * mode_arg, int * run_mode, testdata_vars * testdata)
 {
     if (!strcmp(mode_arg, "MAP_TEST_DATA")) {
         *run_mode = MAP_TEST_DATA;
+        testdata->run = 1;
         return 1;
     } else if (!strcmp(mode_arg, "MAP_SEQ_READS")) {
         *run_mode = MAP_SEQ_READS;
@@ -252,47 +263,58 @@ int set_min_qscore(char * min_qscore, char * val2set)
 }
 
 /* check_options: check that required inputs for sequencing read mapping were provided */
-int check_options(int fq1_provided, int fq2_provided, int trgs_provided)
+int check_options(int run_mode, int fq1_provided, int fq2_provided, int trgs_provided, fastp_params * fastp_prms, int trgt_ftype)
 {
-    //check that only one read1 fastq file was provided
-    if (fq1_provided != 1) {
-        printf("TECdisplay_mapper_main: error - incorrect number (%d) of read 1 fastq files provided\n", fq1_provided);
+    if (fastp_prms->mode == FASTP_MODE_INIT) {
+        printf("TECdisplay_mapper_main: error - library type was not set. please set to standard (non-barcoded) using -s option or barcoded using -b option. aborting...\n");
         abort();
     }
     
-    //check that only one read2 fastq file was provided
-    if (fq2_provided != 1) {
-        printf("TECdisplay_mapper_main: error - incorrect number (%d) of read 2 fastq files provided\n", fq2_provided);
+    if (fastp_prms->mode == STD_TDSPLY && trgt_ftype != VMT_FILE) {
+        printf("TECdisplay_mapper_main: error - targets for standard TECdisplay libraries must be supplied as a vmt file generated by variant_maker. aborting...\n");
+        abort();
+        
+    } else if (fastp_prms->mode == BRCD_TDSPLY && trgt_ftype != FASTA_FILE) {
+        printf("TECdisplay_mapper_main: error - targets for barcoded TECdisplay libraries must be supplied as a fasta file. aborting...\n");
         abort();
     }
     
-    //check that only one target files was provided
+    if (run_mode == MAP_SEQ_READS) {
+        
+        //check that only one read1 fastq file was provided
+        if (fq1_provided != 1) {
+            printf("TECdisplay_mapper_main: error - incorrect number (%d) of read 1 fastq files provided\n", fq1_provided);
+            abort();
+        }
+        
+        //check that only one read2 fastq file was provided
+        if (fq2_provided != 1) {
+            printf("TECdisplay_mapper_main: error - incorrect number (%d) of read 2 fastq files provided\n", fq2_provided);
+            abort();
+        }
+        
+    } else if (run_mode == MAP_TEST_DATA) {
+        
+        //check that no fastq files were provided
+        if (fq1_provided || fq2_provided) {
+            printf("TECdisplay_mapper_main: error - one or more fastq files were provided when running MAP_TEST_DATA mode. aborting...\n");
+            abort();
+        }
+        
+        //check that read processing limit was not set
+        if (fastp_prms->limit) {
+            printf("TECdisplay_mapper_main: error - read processing limit was set when running MAP_TEST_DATA mode. aborting...");
+            abort();
+        }
+        
+    } else {
+        printf("TECdisplay_mapper_main: unrecognized run mode. aborting...\n");
+        abort();
+    }
+    
+    //check that only one target file was provided
     if (trgs_provided != 1) {
         printf("TECdisplay_mapper_main: error - incorrect number (%d) of targets files provided\n", trgs_provided);
-        abort();
-    }
-
-    return 1;
-}
-
-/* check_testdata_options: check that required inputs for test data analysis were provided */
-int check_testdata_options(int fq1_provided, int fq2_provided, int trgs_provided, fastp_params * fastp_prms)
-{
-    //check that no fastq files were provided
-    if (fq1_provided || fq2_provided) {
-        printf("TECdisplay_mapper_main: error - one or more fastq files were provided when running MAP_TEST_DATA mode. aborting...\n");
-        abort();
-    }
-    
-    //check that only one target files was provided
-    if (trgs_provided != 1) {
-        printf("TECdisplay_mapper_main: error - incorrect number (%d) of targets files provided\n", trgs_provided);
-        abort();
-    }
-    
-    //check that read processing limit was not set
-    if (fastp_prms->limit) {
-        printf("TECdisplay_mapper_main: error - read processing limit was set when running MAP_TEST_DATA mode. aborting...");
         abort();
     }
 

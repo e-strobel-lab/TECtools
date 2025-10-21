@@ -27,7 +27,7 @@
 
 
 /* parse_fa_trgts: stores input barcodes as targets */
-void parse_fa_trgts(FILE * ifp, int trgt_ftype, void * trgts, void * trg_val, target_params * trg_prms)
+void parse_fa_trgts(FILE * ifp, int trgt_ftype, void * trgts, void * trg_val, target_params * trg_prms, int data_type)
 {
     uint64_t i = 0; //general purpose index
     
@@ -58,7 +58,7 @@ void parse_fa_trgts(FILE * ifp, int trgt_ftype, void * trgts, void * trg_val, ta
         
         set_barcoded_compact_target(&(((compact_target *)trgts)[trg_prms->t_cnt]),
                                     &(((opt_BC *)trg_val)[trg_prms->t_cnt]),
-                                    NULL, trgt_id, trgt_sq, trg_prms, trgt_ftype);
+                                    NULL, trgt_id, trgt_sq, trg_prms, trgt_ftype, data_type);
         
         trg_prms->t_cnt++; //increment target count
         L1 = L2 = 0;       //zero L1 and L2

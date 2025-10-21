@@ -82,7 +82,7 @@ void compare_testdata_barcode_id(compact_target * ctrg, char * rd_id, char * sq)
 
 
 /* print_MUX_testdata_analysis: report outcome of test data read mapping */
-void print_MUX_testdata_analysis(mapping_metrics * met, compact_target * ctrg)
+void print_MUX_testdata_analysis(mapping_metrics * met, compact_target * ctrg, int data_type)
 {
     extern struct testdata_MUX_vars testdata_MUX;
     
@@ -104,8 +104,16 @@ void print_MUX_testdata_analysis(mapping_metrics * met, compact_target * ctrg)
     sprintf(out_str, "***** TEST DATA ANALYSIS SUMMARY *****\n");
     printf2_scrn_n_fl(testdata_fp, out_str);
     
-    //report that test data reads contain TECprobe-MUX barcodes
-    sprintf(out_str, ">    mode - sequences contain TECprobe-MUX barcodes\n");
+    //report data type
+    if (data_type == TPROBE_MUX) {
+        sprintf(out_str, ">    mode - sequences contain TECprobe-MUX barcodes\n");
+    } else if (data_type == TDSPLY) {
+        sprintf(out_str, ">    mode - sequences contain TECdisplay barcodes\n");
+    } else {
+        printf("print_MUX_testdata_analysis: error - unrecognized data type. aborting...\n");
+        abort();
+    }
+    
     printf2_scrn_n_fl(testdata_fp, out_str);
     
     //report number of processed test data reads
@@ -127,8 +135,20 @@ void print_MUX_testdata_analysis(mapping_metrics * met, compact_target * ctrg)
     //report channel mapping
     double test_val = 0; //used to store calculated values
     
-    double expctd_chan[3] = {0.4, 0.4, 0.2};
-    char chan_nm[3][32] = {"untreated", "modified", "unmappable"};
+    double expctd_chan[3] = {0.4, 0.4, 0.2};                            //expected channel fractions
+    char (*chan_nm)[32] = NULL;                                         //pointer to channel names
+    char TPROBE_chans[3][32] = {"untreated", "modified", "unmappable"}; //TECprobe channel names
+    char TDSPLY_chans[3][32] = {"bound", "unbound", "unmappable"};      //TECdisplay channel names
+    
+    //set channel names to use
+    if (data_type == TPROBE_MUX) {
+        chan_nm = TPROBE_chans;
+    } else if (data_type == TDSPLY) {
+        chan_nm = TDSPLY_chans;
+    } else {
+        printf("print_MUX_testdata_analysis: error - unrecognized data type. aborting...\n");
+        abort();
+    }
     
     for (i = 0; i < TPROBE_CHANNEL_MAX; i++) {
         //calculate fraction of reads in channel i

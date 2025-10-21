@@ -39,6 +39,7 @@
 #include "../MLT/prcs_MLT_cotrans.h"
 
 #include "./map_barcoded_targets.h"
+#include "./get_brcd_str.h"
 #include "./testdataMUX_analysis.h"
 
 #include "prcs_MUX_cotrans.h"
@@ -123,9 +124,11 @@ int prcs_MUX_cotrans(TPROBE_names * nm, FILE * fp_MUXtrgs, int trgt_ftype, fastp
     }
     
     //generate barcode targets
-    ctrg_cnt = mk_MUX_trgts(nm, refs, ref_val, ctrg, BC_val, fp_MUXtrgs, trgt_ftype, &trg_prms, clcd_ctrg_cnt, &wt);
+    ctrg_cnt = mk_MUX_trgts(refs, ref_val, ctrg, BC_val, fp_MUXtrgs, trgt_ftype, &trg_prms, clcd_ctrg_cnt, &wt, TPROBE_MUX);
     met.srcTrgs = trg_prms.t_cnt; //record number of source barcodes
     met.targets = ctrg_cnt;       //record number of targets generated
+    
+    mk_barcoded_target_fastas(nm, ctrg, &trg_prms); //generate individual barcoded target fasta files
     
     /********* hash table initialization and construction **********/
     compact_h_node **htbl_MUX = NULL;                  //hash table root
@@ -146,7 +149,7 @@ int prcs_MUX_cotrans(TPROBE_names * nm, FILE * fp_MUXtrgs, int trgt_ftype, fastp
     }
     
     compact_h_node_bank *crrnt_hn_MUX_bank = &hn_MUX_bank;          //pointer for handling hash node bank
-    mk_htbl_MUX(htbl_MUX, crrnt_hn_MUX_bank, ctrg, ctrg_cnt, &met); //generate barcode target hash table
+    mk_htbl_MUX(htbl_MUX, crrnt_hn_MUX_bank, ctrg, ctrg_cnt, &trg_prms, &met); //generate barcode target hash table
     /****** end of hash table initialization and construction ******/
     
     /*************** testdata generation *****************/
@@ -176,7 +179,7 @@ int prcs_MUX_cotrans(TPROBE_names * nm, FILE * fp_MUXtrgs, int trgt_ftype, fastp
     
     print_splitting_metrics(nm, &met, fastp_prms); //print metrics
     if (testdata_MUX->run) {
-        print_MUX_testdata_analysis(&met, &ctrg[0]);
+        print_MUX_testdata_analysis(&met, &ctrg[0], TPROBE_MUX);
     }
     
     system("rm ./split/R*out.fq"); //remove fastp output files
@@ -423,42 +426,4 @@ void split_MUX_reads(FILE **ifp, compact_h_node **htbl_MUX, TPROBE_names * nm, c
     return;
 }
 
-/* get_brcd_str: get barcode string from UMI in read ID */
-void get_brcd_str(char * brcd_str, char * read1_ID)
-{
-    int i = 0; //general purpose index
-    int j = 0; //general purpose index
-    
-    //iterate to first space in read 1 name, which indicates end of channel barcode
-    for (i = 0; read1_ID[i] != ' ' && read1_ID[i]; i++) { ;}
-    
-    //check that read1_ID contained space and that expected UMI location is within array bounds
-    if (!read1_ID[i]) { //check that loop did not exit on null character
-        printf("prcs_chnl: error - unexpected read1 id line format. aborting...\n");
-        abort();
-    } else if (i <= ((MAX_BARCODE_LEN*2)+1)) { //check that negative index won't go outside of array bounds
-        printf("prcs_chnl: error - unexpected short read1 id line. aborting...\n");
-        abort();
-    }
-    
-    //set index to start of barcode string, which is 2 barcode lengths + 1 (to account for an '_') upstream of the space
-    i -= ((MAX_BARCODE_LEN*2)+1);
-    
-    if (read1_ID[i-1] != ':') { //if preceding character is not a colon, throw error and abort
-        printf("get_brcd_str: error - unexpected format for trimmed read 1/2 head sequences. aborting...\n");
-        abort();
-    }
-    
-    //store barcode string
-    for (j = 0; j < MAX_BARCODE_LEN && read1_ID[i] != '_'; i++, j++) {
-        brcd_str[j] = read1_ID[i];
-    }
-    brcd_str[j] = '\0';
-    
-    if (read1_ID[i] != '_' || j != MAX_BARCODE_LEN) { //check that barcode was copied as expected
-        printf("get_brcd_str: error - unexpected format for trimmed read 1/2 head sequences. aborting...\n");
-        abort();
-    }
-    
-    return;
-}
+
