@@ -125,7 +125,7 @@ void print_splitting_metrics(TPROBE_names * nm, mapping_metrics  * met, fastp_pa
         }
         
         //barcode mapping quality metrics
-        sprintf(out_str, "    of %d mapped reads,\n     %9d ends (%6.2f%%) mapped without substitutions or indels,\n     %9d ends (%6.2f%%) mapped without indels, and\n     %9d ends (%6.2f%%) match the expected sequence\n\n",
+        sprintf(out_str, "    of %d mapped reads,\n     %9d barcodes (%6.2f%%) mapped without substitutions or indels,\n     %9d barcodes (%6.2f%%) mapped without indels, and\n     %9d barcodes (%6.2f%%) match the expected sequence\n\n",
                 met->mapped,
                 met->nat_cnt, ((float)(met->nat_cnt)/(float)(met->mapped))*100,
                 met->nat_cnt+met->sub_cnt, ((float)(met->nat_cnt+met->sub_cnt)/(float)(met->mapped))*100,

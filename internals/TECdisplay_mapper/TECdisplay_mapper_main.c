@@ -197,8 +197,10 @@ int main(int argc, char *argv[])
     }
     /*********** end of option parsing ***********/
     
-    printf("min qscore for variable bases: %2d (%c)\n", min_qscore[Q_VARIABLE]-'!', min_qscore[Q_VARIABLE]);
-    printf("min qscore for constant bases: %2d (%c)\n", min_qscore[Q_CONSTANT]-'!', min_qscore[Q_CONSTANT]);
+    if (run_mode == STD_TDSPLY) {
+        printf("min qscore for variable bases: %2d (%c)\n", min_qscore[Q_VARIABLE]-'!', min_qscore[Q_VARIABLE]);
+        printf("min qscore for constant bases: %2d (%c)\n", min_qscore[Q_CONSTANT]-'!', min_qscore[Q_CONSTANT]);
+    }
         
     check_options(run_mode, fq1_provided, fq2_provided, trgs_provided, &fastp_prms, trgt_ftype);
     

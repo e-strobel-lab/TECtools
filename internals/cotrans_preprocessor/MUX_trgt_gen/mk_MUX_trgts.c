@@ -78,7 +78,6 @@ int mk_MUX_trgts(target * refs, opt_ref * ref_val, compact_target * ctrg, opt_BC
     
     //print the number of targets that were generated
     printf("total targets = %d\n", trg_prms->t_cnt + tot_SUB_trgts + tot_INS_trgts + tot_DEL_trgts);
-    printf("%d compact targets\n", ctrg_cnt);
     
     return ctrg_cnt; //return the number of compact targets that were generated
 }
