@@ -313,6 +313,7 @@ void map_standard_TDSPLY_reads(FILE *ifp, h_node **htbl, target *refs, target *t
     /* testdata variables */
     char id_line[MAX_LINE] = {0}; //array to store testdata id line (fastq line 1)
     char * td_trg_id = NULL;      //pointer to expected target id in test data id line
+    int td_ref_indx = -1;         //test data reference index
     int crnt_mut_cd = -1;         //current mutation code
     
     /* process reads
@@ -351,6 +352,7 @@ void map_standard_TDSPLY_reads(FILE *ifp, h_node **htbl, target *refs, target *t
         
         id_line[0] = '\0';    //initialize testdata id line to 0
         td_trg_id = NULL;     //initialize target id pointer to NULL
+        td_ref_indx = -1;     //initialize testdata reference index to -1
         crnt_mut_cd = -1;     //initialize current mutation code to -1
         
         /* copy fastq file lines to read array */
@@ -366,9 +368,9 @@ void map_standard_TDSPLY_reads(FILE *ifp, h_node **htbl, target *refs, target *t
         if (proceed) {
             met->reads_processed++; //track total number of reads processed
             
-            if (testdata->run) {                                                //if mapping test data...
-                strcpy(id_line, read[LINE1]);                                   //make copy of id line
-                parse_testdata_id(testdata, &td_trg_id, &crnt_mut_cd, id_line); //parse test data id line
+            if (testdata->run) {              //if mapping test data...
+                strcpy(id_line, read[LINE1]); //make copy of id line
+                td_ref_indx = parse_testdata_id(testdata, &td_trg_id, &crnt_mut_cd, id_line); //parse test data id line
             }
         
             /* reverse complement read and reverse qscore */
@@ -474,7 +476,7 @@ void map_standard_TDSPLY_reads(FILE *ifp, h_node **htbl, target *refs, target *t
                                     //that were generated from multiple closely related sequences in which a mutant
                                     //of one variant could map to a target of another variant
                                     
-                                    if (eval_testdata_mtch(testdata, td_trg_id, crnt_mut_cd, end5p, p_rdnd)) {
+                                    if (eval_testdata_mtch(testdata, td_ref_indx, td_trg_id, crnt_mut_cd, end5p, p_rdnd, refs)) {
                                         crrct_aberrant_testdata_mtch((*p_rdnd)->trg, crnt_trg_val, met,channel, chnl_mtch_typ, testdata);
                                     }
                                 }

@@ -22,10 +22,13 @@
 #include "../../seq_utils/mapping_metrics.h"
 
 /* parse_testdata_id: parse test data id line and store attributes */
-void parse_testdata_id(testdata_vars * testdata, char **td_trg_id, int * crnt_mut_cd, char * id_line);
+int parse_testdata_id(testdata_vars * testdata, char **td_trg_id, int * crnt_mut_cd, char * id_line);
 
 /* evaluate_testdata_mtch: check that testdata read mapped to expected target */
-int eval_testdata_mtch(testdata_vars * testdata, char * td_trg_id, int crnt_mut_cd, char * end5p, h_node **p_rdnd);
+int eval_testdata_mtch(testdata_vars * testdata, int td_ref_indx, char * td_trg_id, int crnt_mut_cd, char * end5p, h_node **p_rdnd, target * refs);
+
+/* print_testdata_idNsq_msg: prints id and sequence info for testdata error messges */
+void print_testdata_idNsq_msg(char * rd_id, char * rd_sq, char * trg_id, char * trg_sq);
 
 /* print_testdata_analysis: assess testdata analysis
  outcomes and print results to a file and to the screen */

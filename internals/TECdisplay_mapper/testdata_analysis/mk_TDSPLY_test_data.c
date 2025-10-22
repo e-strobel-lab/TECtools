@@ -25,6 +25,9 @@
 
 extern int debug;
 
+const char refeq[5] = {"REF="}; //string that indicates reference id
+const char vareq[5] = {"VAR="}; //string that indicates variant id
+
 /* mk_TDSPLY_test_data: coordinates test data generation */
 int mk_TDSPLY_test_data(TDSPLY_names * nm, target *refs, target *trgts, target_params *trg_prms)
 {
@@ -128,7 +131,7 @@ int mk_TDSPLY_test_data(TDSPLY_names * nm, target *refs, target *trgts, target_p
                     mk_rndmzd_TDSPLY_bc(chnl_bc, mk_chnl[i], mk_mtch[i]); //generate randomized channel barcode
                     
                     //make reads from native sequence
-                    print_TDSPLY_fq(out_rd1, out_rd2, &trgts[trg_indx].id[0], &trgts[trg_indx].sq[0], chnl_bc, NAT);
+                    print_TDSPLY_fq(out_rd1, out_rd2, ref_indx, &trgts[trg_indx].id[0], &trgts[trg_indx].sq[0], chnl_bc, NAT);
                 }
                 
                 //make mutant sequence reads
@@ -139,7 +142,7 @@ int mk_TDSPLY_test_data(TDSPLY_names * nm, target *refs, target *trgts, target_p
                     mut_cd = mutate_insrt(vb_map, mut_insrt);    //generate mutant target sequence
                     
                     //make reads from mutated sequence
-                    print_TDSPLY_fq(out_rd1, out_rd2, &trgts[trg_indx].id[0], &mut_insrt[0], chnl_bc, mut_cd);
+                    print_TDSPLY_fq(out_rd1, out_rd2, ref_indx, &trgts[trg_indx].id[0], &mut_insrt[0], chnl_bc, mut_cd);
                 }
             }
         }
@@ -243,7 +246,10 @@ void mk_rndmzd_TDSPLY_bc(char * bc, int chnl, int mtch)
 }
 
 /* print_TDSPLY_fq: construct read sequences and print to fastq file */
-void print_TDSPLY_fq(FILE * out_rd1, FILE * out_rd2, char * var_id, char * insrt2use, char * chnl_bc, int end_rnd_typ) {
+void print_TDSPLY_fq(FILE * out_rd1, FILE * out_rd2, int ref_indx, char * var_id, char * insrt2use, char * chnl_bc, int end_rnd_typ) {
+    
+    extern const char refeq[5]; //string that indicates reference id
+    extern const char vareq[5]; //string that indicates variant id
     
     static int std_cnt = 0; //number of read pairs generated
     
@@ -276,12 +282,13 @@ void print_TDSPLY_fq(FILE * out_rd1, FILE * out_rd2, char * var_id, char * insrt
     //print fastq line 1 (read id)
     //read id contains:
     //1. prefix 'testdata_TDsply' to indicate read is for use as TECdisplay test data
-    //2. id of the target used to generate the read
-    //3. end randomization type (NAT, SUB, INS, DEL)
-    //4. read id in hexadecimal
-    //5. generalized Illumina read suffix
-    fprintf(out_rd1, "@testdata_TDsply=%s_%s_0x%08x_R1 1:N:0:INDEX\n", var_id, end_rnd_ptr, std_cnt);
-    fprintf(out_rd2, "@testdata_TDsply=%s_%s_0x%08x_R2 2:N:0:INDEX\n", var_id, end_rnd_ptr, std_cnt);
+    //2. reference target index
+    //3. id of the target used to generate the read
+    //4. end randomization type (NAT, SUB, INS, DEL)
+    //5. read id in hexadecimal
+    //6. generalized Illumina read suffix
+    fprintf(out_rd1, "@testdata_TDsply_%s%d_%s%s_%s_0x%08x_R1 1:N:0:INDEX\n", refeq, ref_indx, vareq, var_id, end_rnd_ptr, std_cnt);
+    fprintf(out_rd2, "@testdata_TDsply_%s%d_%s%s_%s_0x%08x_R2 2:N:0:INDEX\n", refeq, ref_indx, vareq, var_id, end_rnd_ptr, std_cnt);
     
     //print fastq line 2 (read sequence)
     fprintf(out_rd1, "%s\n", rd1);

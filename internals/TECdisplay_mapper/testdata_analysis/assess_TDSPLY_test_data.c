@@ -20,44 +20,77 @@
 
 #include "assess_TDSPLY_test_data.h"
 
-/* parse_testdata_id: parse test data id line and store attributes*/
-void parse_testdata_id(testdata_vars * testdata, char **td_trg_id, int * crnt_mut_cd, char * id_line)
+/* parse_testdata_id: parse test data id line and store attributes */
+int parse_testdata_id(testdata_vars * testdata, char **td_trg_id, int * crnt_mut_cd, char * id_line)
 {
-    char * eq_loc = NULL;         //pointer to equals sign location in test data id line
-    char * td_mut_cd = NULL;      //pointer to mutation code in test data id line
+    extern const char refeq[5]; //string that indicates reference id
+    extern const char vareq[5]; //string that indicates variant id
     
-    //set start of target id
-    if ((eq_loc = strstr(id_line, "=")) == NULL) { //locate equals sign in test data read id
-        printf("map_expected_reads: error - unrecognized testdata read id format. aborting\n");
+    int i = 0; //general purpose index
+    
+    char * ref_loc = NULL;    //pointer to 'REF=' string in test data id line
+    char * ref_indx = NULL;   //pointer to reference index in test data id line
+    char * var_loc = NULL;    //pointer to 'VAR=' string in test data id line
+    char * td_mut_cd = NULL;  //pointer to mutation code in test data id line
+    
+    //find 'REF=' string
+    if ((ref_loc = strstr(id_line, refeq)) == NULL) { //locate refeq identifier in test data read id
+        printf("parse_testdata_id: error - unrecognized testdata read id format. aborting\n");
+        abort();
+    }
+    ref_indx = &ref_loc[strlen(refeq)]; //set start of ref index, ref index is tested below to confirm it is all digits
+    
+    
+    //find 'VAR=' string
+    if ((var_loc = strstr(id_line, vareq)) == NULL) { //locate vareq identifier in test data read id
+        printf("parse_testdata_id: error - unrecognized testdata read id format. aborting\n");
         abort();
     }
     
-    if (isdigit(eq_loc[1]) || eq_loc[1] == '-') {  //check that equals sign is followed by a digit or '-'
-        *td_trg_id = &eq_loc[1]; //set start of target id
+    //set start of variant id
+    if (isdigit(var_loc[strlen(vareq)]) || var_loc[strlen(vareq)] == '-') {
+        *td_trg_id = &var_loc[strlen(vareq)];
     } else {
-        printf("map_expected_reads: error - unrecognized testdata read id format. aborting\n");
+        printf("parse_testdata_id: error - unrecognized testdata read id format. aborting\n");
         abort();
     }
+    
+    //terminate ref index string
+    if (((long long unsigned int)ref_indx < (long long unsigned int)var_loc) && (var_loc[-1] == '_')) {
+        var_loc[-1] = '\0';
+    } else {
+        printf("parse_testdata_id: error - unrecognized testdata read id format. aborting\n");
+        abort();
+    }
+    
+    //check that ref index string is composed of digits
+    for (i = 0; ref_indx[i]; i++) {
+        if (!isdigit(ref_indx[i])) {
+            printf("parse_testdata_id: error - unrecognized testdata read id format. aborting\n");
+            abort();
+        }
+    }
+    
     
     //set mutation code
-    if ((td_mut_cd = strstr(id_line, "NAT")) != NULL) {        //test data read contains native sequence
+    if ((td_mut_cd = strstr(*td_trg_id, "NAT")) != NULL) {        //test data read contains native sequence
         testdata->nat_rds++;                                   //increment native test data read count
         *crnt_mut_cd = NAT;                                    //set current mutation code to native
         
-    } else if ((td_mut_cd = strstr(id_line, "SUB")) != NULL) { //test data read is a substitution mutant
+    } else if ((td_mut_cd = strstr(*td_trg_id, "SUB")) != NULL) { //test data read is a substitution mutant
         testdata->mut_rds++;                                   //increment mutant test data read count
         *crnt_mut_cd = SUB;                                    //set current mutation code to substitution
         
-    } else if ((td_mut_cd = strstr(id_line, "INS")) != NULL) { //test data read is an insertion mutant
+    } else if ((td_mut_cd = strstr(*td_trg_id, "INS")) != NULL) { //test data read is an insertion mutant
         testdata->mut_rds++;                                   //increment mutant test data read count
         *crnt_mut_cd = INS;                                    //set current mutation code to insertion
         
-    } else if ((td_mut_cd = strstr(id_line, "DEL")) != NULL) { //test data read is a deletion mutant
+    } else if ((td_mut_cd = strstr(*td_trg_id, "DEL")) != NULL) { //test data read is a deletion mutant
         testdata->mut_rds++;                                   //increment mutant test data read count
         *crnt_mut_cd = DEL;                                    //set current mutation code to deletion
         
     } else {  //unrecognized mutation code
-        printf("map_expected_reads: error - could not find mutation code in read id. aborting\n");
+        printf("parse_testdata_id: error - could not find mutation code in read id. aborting\n");
         abort();
     }
     
@@ -65,17 +98,22 @@ void parse_testdata_id(testdata_vars * testdata, char **td_trg_id, int * crnt_mu
     if (td_mut_cd[-1] == '_') { //mutation code should be preceded by a '_'
         td_mut_cd[-1] = '\0';   //terminate target id string
     } else {
-        printf("map_expected_reads: error - unrecognized testdata read id format. aborting\n");
+        printf("parse_testdata_id: error - unrecognized testdata read id format. aborting\n");
         abort();
     }
+
+    return atoi(ref_indx);
 }
 
 /* evaluate_testdata_mtch: check that testdata read mapped to expected target */
-int eval_testdata_mtch(testdata_vars * testdata, char * td_trg_id, int crnt_mut_cd, char * end5p, h_node **p_rdnd)
+int eval_testdata_mtch(testdata_vars * testdata, int td_ref_indx, char * td_trg_id, int crnt_mut_cd, char * end5p, h_node **p_rdnd, target * refs)
 {
     int i = 0;       //general purpose index
     int match = 1;   //match flag
     int ret_val = 0; //return value
+    
+    opt_mx_trg * trg_val = (opt_mx_trg *)(*p_rdnd)->trg->opt;
+    target * mapd_ref = trg_val->ref;
     
     if (crnt_mut_cd == NAT) {  //current read contains native sequence
         testdata->nat_mpd++;   //increment native mapped counter
@@ -89,10 +127,7 @@ int eval_testdata_mtch(testdata_vars * testdata, char * td_trg_id, int crnt_mut_
             
             //print error describing id mismatch
             printf("TESTDATA: ERROR - native sequence read mapped to incorrect target.\n");
-            printf("READ id:  %s\n", td_trg_id);
-            printf("TRGT id:  %s\n", (*p_rdnd)->trg->id);
-            printf("READ seq: %s\n", end5p);
-            printf("TRGT seq: %s\n\n", (*p_rdnd)->trg->sq);
+            print_testdata_idNsq_msg(td_trg_id, end5p, (*p_rdnd)->trg->id, (*p_rdnd)->trg->sq);
             
             ret_val = 0;
         }
@@ -135,36 +170,44 @@ int eval_testdata_mtch(testdata_vars * testdata, char * td_trg_id, int crnt_mut_
                 }
             }
             
-            printf("READ id:  %s\n", td_trg_id);
-            printf("TRGT id:  %s\n", (*p_rdnd)->trg->id);
-            printf("READ seq: %s\n", end5p);
-            printf("TRGT seq: %s\n\n", (*p_rdnd)->trg->sq);
+            print_testdata_idNsq_msg(td_trg_id, end5p, (*p_rdnd)->trg->id, (*p_rdnd)->trg->sq);
             
             if (ret_val != -1) {     //flag to perform correction was not set
                 testdata->mut_mpd++; //increment mutant mapped counter
                 ret_val = 0;         //set return to zero (no correction to be performed)
             }
             
-        } else {
+        } else if ((((long long unsigned int)(&refs[td_ref_indx])) != ((long long unsigned int)mapd_ref))) {
             printf("TESTDATA: ERROR - mutant (code:%d; sub=0/ins=1/del=2) sequence read mapped to non-source target.\n", crnt_mut_cd);
-            printf("          This can happen if two variant templates have highly similar sequences\n");
+            printf("          This happened because two variant templates have highly similar sequences\n");
+            printf("          and a testdata read that contains a mutation mapped to a non-source target\n");
             printf("          The read will not be counted toward the matches for the source target\n");
-            printf("READ id:  %s\n", td_trg_id);
-            printf("TRGT id:  %s\n", (*p_rdnd)->trg->id);
-            printf("READ seq: %s\n", end5p);
-            printf("TRGT seq: %s\n\n", (*p_rdnd)->trg->sq);
+            print_testdata_idNsq_msg(td_trg_id, end5p, (*p_rdnd)->trg->id, (*p_rdnd)->trg->sq);
             //mut_mpd is not incremented because non-source target matches are ignored
             
             ret_val = -1; //return -1 can be used to subtract matched read from target matches count
+            
+        } else {
+            printf("TESTDATA: ERROR - unrecognized error case. please contact estrobel@buffalo.edu so we can figure out the error.\n");
+            print_testdata_idNsq_msg(td_trg_id, end5p, (*p_rdnd)->trg->id, (*p_rdnd)->trg->sq);
         }
         
         
     } else {
-        printf("map_expected_reads: error - unrecognized test data mutation code. aborting...\n");
+        printf("parse_testdata_id: error - unrecognized test data mutation code. aborting...\n");
         abort();
     }
     
     return ret_val; //this isn't reachable
+}
+
+/* print_testdata_idNsq_msg: prints id and sequence info for testdata error messges */
+void print_testdata_idNsq_msg(char * rd_id, char * rd_sq, char * trg_id, char * trg_sq)
+{
+    printf("READ id:  %s\n", rd_id);    //print read id
+    printf("TRGT id:  %s\n", trg_id);   //print target id
+    printf("READ seq: %s\n", rd_sq);    //print read seq
+    printf("TRGT seq: %s\n\n", trg_sq); //print target seq
 }
 
 /* print_testdata_analysis: assess testdata analysis

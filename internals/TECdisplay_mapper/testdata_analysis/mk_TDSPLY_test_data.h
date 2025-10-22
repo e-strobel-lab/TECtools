@@ -30,7 +30,7 @@ int mk_TDSPLY_test_data(TDSPLY_names * nm, target *refs, target *trgts, target_p
 void mk_rndmzd_TDSPLY_bc(char * bc, int chnl, int mtch);
 
 /* print_TDSPLY_fq: construct read sequences and print to fastq file */
-void print_TDSPLY_fq(FILE * out_rd1, FILE * out_rd2, char * var_id, char * insrt2use, char * chnl_bc, int end_rnd_typ);
+void print_TDSPLY_fq(FILE * out_rd1, FILE * out_rd2, int ref_indx, char * var_id, char * insrt2use, char * chnl_bc, int end_rnd_typ);
 
 /* mutate_insrt: randomly mutate test data sequencing read insert */
 int mutate_insrt(char * vb_map, char * mut);
