@@ -20,6 +20,7 @@ int store_mtrx(FILE * ifp, cotrans_matrix * mtrx)
     int more_vals = 1; //flag that matrix line contains another value
     int prev_nt = 0;  //previous nucleotide value in column header
     int crrnt_nt = 0; //current  nucleotide value in column header
+    int error = 0;    //flag that format error was found
     
     int prev_len = 0;  //number of values in previous row of matrix
     int crrnt_len = 0; //expected number of values in currnt row of matrix
@@ -47,19 +48,42 @@ int store_mtrx(FILE * ifp, cotrans_matrix * mtrx)
             contain a value can be tracked.
              */
             for (k = 0, tmp_val[0] = '\0'; line[j] != ',' && line[j] != '\r' && line[j]; j++, k++) {
-                if (isdigit(line[j]) || //char must be a digit
-                    line[j] == '.'   || //or '.'
-                    line[j] == '-'   || //or '-'
-                    line[j] == 'e'   || //or 'e'
-                    line[j] == 'E') {   //or 'E'
-                    tmp_val[k] = line[j];
+                
+                error = 0; //reset error flag to false
+                
+                //check for errors
+                if (!line_cnt && !i) {
+                    ; //coordinate 0,0 can contain any character
+                    
+                } else if ((!line_cnt && i) || (line_cnt && !i)) {
+                    
+                    //column and row headers must be composed of digits
+                    if (!isdigit(line[j])) {
+                        printf("store_mtrx: column and row headers must be integers. aborting...\n");
+                        error = 1;
+                    }
                     
                 } else if (line_cnt && i) {
-                    //coordinate 0,0 in matrix can contain any character. all other cells
-                    //must only contain the valid characters listed above. throw error and
-                    //abort if invalid character is detected
-                    printf("store_mtrx: error - unexpected character %c (%d) in input matrix data line. aborting...\n", line[j], line[j]);
+                    
+                    //data values must be one composed of one of the following characters
+                    if (!isdigit(line[j]) && //char must be a digit
+                        line[j] != '.'    && //or '.'
+                        line[j] != '-'    && //or '-'
+                        line[j] != 'e'    && //or 'e'
+                        line[j] != 'E') {    //or 'E'
+                        printf("store_mtrx: invalid character '%c' detected in data value. aborting...\n", line[j]);
+                        error = 1;
+                    }
+                    
+                } else {
+                    printf("store_mtrx: should not be possible to get here.\n");
                     abort();
+                }
+                
+                if (error) {  //if error was detected above, abort
+                    abort();
+                } else {
+                    tmp_val[k] = line[j]; //otherwise, store value
                 }
             }
             tmp_val[k] = '\0'; //set terminating null char in tmp_val string
