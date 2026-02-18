@@ -155,9 +155,9 @@ int exclude_matches(FILE * ipt, constraints * cons, int cons_cnt, char * cons_nm
     
     //generate output file
     if (out_prefix[0]) {
-        sprintf(tmp_nm, "%s/%s_%s.txt", out_dir_nm, out_prefix, cons_nm);
+        sprintf(tmp_nm, "%s/%s_x%s.txt", out_dir_nm, out_prefix, cons_nm);
     } else {
-        sprintf(tmp_nm, "%s/%s.txt", out_dir_nm, cons_nm);
+        sprintf(tmp_nm, "%s/x%s.txt", out_dir_nm, cons_nm);
     }
     
     

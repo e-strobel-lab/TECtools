@@ -30,10 +30,24 @@
  the file. This process also validates each constraint before it is used by TECdisplay_navigator */
 void get_constraint_metadata(char * ipt_fn, constraint_metadata * cons_meta, char type, int layr_cnt)
 {
+    char tmp_sn[MAX_LINE+1] = {0}; //temporary storage for sample name
+    char * sn_ptr = NULL;          //pointer to sample name start
+    
     get_file(&(cons_meta->fp), ipt_fn); //set file pointer to constraints file
     if (strlen(ipt_fn) < MAX_NAME) {
-        strcpy(cons_meta->fn, ipt_fn);  //store file name
-        get_sample_name(ipt_fn, cons_meta->sn); //get sample name from constraints file name
+        strcpy(cons_meta->fn, ipt_fn);       //store file name
+        get_sample_name(ipt_fn, &tmp_sn[1]); //get sample name from constraints file name, store at index 1
+        if (type == 'c') {                   //if keeping matches,
+            sn_ptr = &tmp_sn[1];             //set pointer to index 1 of tmp_sn
+        } else if (type == 'x') {            //if excluding matches,
+            tmp_sn[0] = 'x';                 //set index 0 of tmp_sn to 'x' to indicate exclusion
+            sn_ptr = &tmp_sn[0];             //set pointer to index 0 of tmp_sn
+        } else {
+            printf("get_constraint_metadata: error - unrecognized constraint type. aborting...");
+            abort();
+        }
+        strcpy(cons_meta->sn, sn_ptr); //copy sample name to cons_meta structure
+        
     } else {
         printf("get_constraint_metadata: error - input file name exceeds the maximum length (%d chars). aborting...\n", MAX_NAME);
         abort();
