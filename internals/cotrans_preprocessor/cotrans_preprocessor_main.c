@@ -373,7 +373,7 @@ int main(int argc, char *argv[])
             
             check_make_fasta(fa_nm_provided, fa_sq_provided);
             
-            mk_fasta_file(fasta_nm, fasta_sq);
+            mk_fasta_file(fasta_nm, fasta_sq, NULL);
             
             break;
         /*************** end of fasta generation **************/

@@ -14,6 +14,6 @@ char pra1_sc1[41]        = "acctctggcggtgataatggttgcatggccttcgggccaa";
 char c3sc1[34]           = "attcggtgctcttctcttcggccttcgggccaa";
 char vra3[27]            = "gatcgtcggactgtagaactctgaac";
 char RLA29synch_3p11[34] = "aaacaccaccaAcatcaccatcatcctgacgcg"; //v2
-                         //"aaacaccaccaAcatcaccatcatcctgactag"; //v1, probably not going to use
+char RLA29synch_inFP[12] = "aaacaccacca"; //sequence in RNAP footprint when RNAP is at synch site
 
 char sc1[17] = "atggccttcgggccaa";

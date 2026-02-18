@@ -30,7 +30,10 @@ int mk_MLT_trgts(FILE * fp_fasta, int usr_min_len, int usr_end_len, int make_tes
     char fa_name[MAX_LINE] = {0};	//name from fasta file
     char seq[MAX_LINE] = {0};		//input sequence
     
-    parse_fasta(fp_fasta, &fa_name[0], &seq[0]); //parse fasta file
+    if (!parse_fasta(fp_fasta, &fa_name[0], &seq[0])) { //parse fasta file
+        printf("mk_MLT_target: error - input fasta file was empty. aborting...\n");
+        abort();
+    }
     
     //test that target sequence length is permissible
     if (strlen(seq) > END_MAX) {

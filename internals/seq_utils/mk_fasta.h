@@ -17,6 +17,6 @@
 
 #include "./isIUPACbase.h"
 
-int mk_fasta_file(char * nm, char * sq);
+int mk_fasta_file(char * nm, char * sq, char * path);
 
 #endif /* mk_fasta_h */

@@ -53,8 +53,7 @@ int parse_fasta(FILE * fp_fasta, char * name, char * seq)
             abort();
         }
     } else { //input fasta file was empty
-        printf("parse_fasta: error - input fasta file is empty. aborting...\n");
-        abort();
+        return 0;
     }
     
     
@@ -78,13 +77,6 @@ int parse_fasta(FILE * fp_fasta, char * name, char * seq)
         
     } else { //no second line in input fasta file
         printf("parse_fasta: error - failed to get second fasta file line. aborting...\n");
-        abort();
-    }
-    
-    
-    //check that the input fasta file ended after two lines
-    if (get_line(&line[0], fp_fasta)) {
-        printf("parse_fasta: error - input fasta file contained more than two lines. aborting...\n");
         abort();
     }
     

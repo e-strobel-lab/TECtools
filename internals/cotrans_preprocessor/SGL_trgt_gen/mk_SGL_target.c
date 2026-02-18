@@ -44,7 +44,11 @@ int mk_SGL_target(FILE * fp_fasta)
     int ipt_len = 0;               //length of input sequence
     char target[MAX_LINE] = {0};   //array to store target sequence
     
-    parse_fasta(fp_fasta, &fa_name[0], &seq[0]); //parse fasta file
+    if (!parse_fasta(fp_fasta, &fa_name[0], &seq[0])) { //parse fasta file
+        printf("mk_SGL_target: error - input fasta file was empty. aborting...\n");
+        abort();
+    }
+    
     ipt_len = strlen(seq); //get sequence length
     
     //copy target sequence to new array while converting all characters to uppercase
