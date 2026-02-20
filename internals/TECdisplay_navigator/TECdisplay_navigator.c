@@ -186,6 +186,7 @@ int main(int argc, char *argv[])
     char * cnstnt_indels = NULL;               //storage for constant indels string
     constraints cons[MAX_CONSTRAINTS] = {{0}}; //constraint parameters
     int cons_cnt = 0;                          //number of constraints in constraints file
+    char x_cons_nm[MAX_NAME+2] = {0};          //cons_nm with an 'x' in front to indicate exclusion
     
     parse_reference(fp_cons, &bmap, &wt, &cnstnt_indels, 1); //construct basemap from reference sequence
     cons_cnt = parse_constraints(fp_cons, &cons[0], &bmap, cnstnt_indels); //parse and set constraints
@@ -193,7 +194,8 @@ int main(int argc, char *argv[])
     if (!exclude) {
         filter_values(ipt, &cons[0], cons_cnt, &bmap, out_dir_nm, nonstandard, out_prefix); //filter values for matches to constraints
     } else {
-        exclude_matches(ipt, &cons[0], cons_cnt, cons_nm, &bmap, out_dir_nm, nonstandard, out_prefix); //exclude constraint matches
+        snprintf(x_cons_nm, MAX_NAME, "x%s", cons_nm);
+        exclude_matches(ipt, &cons[0], cons_cnt, x_cons_nm, &bmap, out_dir_nm, nonstandard, out_prefix); //exclude constraint matches
     }
     
     /* close merged values file */

@@ -155,9 +155,9 @@ int exclude_matches(FILE * ipt, constraints * cons, int cons_cnt, char * cons_nm
     
     //generate output file
     if (out_prefix[0]) {
-        sprintf(tmp_nm, "%s/%s_x%s.txt", out_dir_nm, out_prefix, cons_nm);
+        sprintf(tmp_nm, "%s/%s_%s.txt", out_dir_nm, out_prefix, cons_nm);
     } else {
-        sprintf(tmp_nm, "%s/x%s.txt", out_dir_nm, cons_nm);
+        sprintf(tmp_nm, "%s/%s.txt", out_dir_nm, cons_nm);
     }
     
     
@@ -208,6 +208,9 @@ void print_header_line(FILE * ofp, char * line, char * out_dir_nm, char * cons_h
     int std_hdr_mtchs = 0;                //number of matches to standard header string
     int line_end = 0;                     //flag that end of line was reached
     
+    char var_id_str[MAX_COL_NM+1] = {0};                                   //variant_id column header
+    snprintf(var_id_str, MAX_COL_NM, "variant_%s", TECdsply_clmn_hdrs[0]); //make variant_id column header
+    
     for (j = 0, k = 0, line_end = 0; !line_end; j++) {
         
         if (line[j] && line[j] != '\t') { //store tab-delimited column header
@@ -232,23 +235,27 @@ void print_header_line(FILE * ofp, char * line, char * out_dir_nm, char * cons_h
                             std_hdr_mtchs++;            //increment standard header matches
                             
                         } else {
-                            printf("exclude_matches: error - expected standard TECdisplay header to be part of a longer string. aborting...\n");
+                            printf("print_header_line: error - expected standard TECdisplay header to be part of a longer string. aborting...\n");
                             abort();
                         }
                     }
                 }
             }
             
-            //print header
-            if (std_hdr_mtchs == 0) {                                     //no standard header was found
-                fprintf(ofp, "%s_%s", tmp_hdr, cons_hdr);                 //print column header
-                
-            } else if (std_hdr_mtchs == 1) {                              //one standard header was found
-                fprintf(ofp, "%s_%s_%s", tmp_hdr, cons_hdr, std_hdr_ptr); //print column header
-                
-            } else { //error, more than one standard header was found
-                printf("exclude_matches: error - nonstandard header contains multiple different standard header strings. aborting...");
+            
+            if (std_hdr_mtchs > 1) { //error, more than one standard header was found
+                printf("print_header_line: error - nonstandard header contains multiple different standard header strings. aborting...");
                 abort();
+            }
+            
+            if (!strcmp(tmp_hdr, var_id_str)) { //header is variant_id
+                fprintf(ofp, "%s", tmp_hdr);    //print variant_id column header
+            } else {
+                if (std_hdr_mtchs == 0) {                                     //no standard header was found
+                    fprintf(ofp, "%s_%s", tmp_hdr, cons_hdr);                 //print column header
+                } else if (std_hdr_mtchs == 1) {                              //one standard header was found
+                    fprintf(ofp, "%s_%s_%s", tmp_hdr, cons_hdr, std_hdr_ptr); //print column header
+                }
             }
             
             //print tab separator or turn on line end flag
@@ -259,7 +266,7 @@ void print_header_line(FILE * ofp, char * line, char * out_dir_nm, char * cons_h
                 line_end = 1;          //turn on line end flag
                 
             } else {
-                printf("filter_values: error - this should be unreachable.\n");
+                printf("print_header_line: error - this should be unreachable.\n");
             }
             
             k = 0; //reset k to 0 for next column header
@@ -513,12 +520,15 @@ int get_sample_info(char * line, sample_values * smpl_vals, int * tot_vals)
     int field1 = 1;     //flag that current field is the first field of a sample and sample name should be stored
     int disordered = 0; //flag that field types for current sample are not in the expected order
     
+    char tmp_line[MAX_LINE+1] = {0}; //temporary line storage
+    strcpy(tmp_line, line);          //copy line to tmp_line
+    
     /* set start of sample value names string*/
-    for (i = 0; line[i] != '\t' && line[i] && i < MAX_LINE; i++) {;} //iterate to first tab
-    if (line[i] == '\t') {
-        line[i] = '\0';
-        p_id = &line[0];   //set pointer to column name of id column
-        p_nm = &line[i+1]; //set values pointer to the index after the first tab
+    for (i = 0; tmp_line[i] != '\t' && tmp_line[i] && i < MAX_LINE; i++) {;} //iterate to first tab
+    if (tmp_line[i] == '\t') {
+        tmp_line[i] = '\0';
+        p_id = &tmp_line[0];   //set pointer to column name of id column
+        p_nm = &tmp_line[i+1]; //set values pointer to the index after the first tab
     } else {
         printf("filter_values: unexpected format for header line in merged values file. aborting...\n");
         abort();
