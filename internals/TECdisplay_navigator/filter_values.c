@@ -206,6 +206,7 @@ void print_header_line(FILE * ofp, char * line, char * out_dir_nm, char * cons_h
     char * tmp_std_hdr = NULL;            //temp pointer to standard header string
     char * std_hdr_ptr = NULL;            //pointer to standard header string
     int std_hdr_mtchs = 0;                //number of matches to standard header string
+    int long_hdr = 0;                     //flag that header contains chars in addition to std string
     int line_end = 0;                     //flag that end of line was reached
     
     char var_id_str[MAX_COL_NM+1] = {0};                                   //variant_id column header
@@ -220,41 +221,51 @@ void print_header_line(FILE * ofp, char * line, char * out_dir_nm, char * cons_h
             tmp_hdr[k] = '\0'; //terminate tmp_hdr string
             
             //check for each standard header
-            for (l = 1, std_hdr_mtchs = 0; l < TDSPLY_HDR_CNT && std_hdr_mtchs <= 1; l++) {
+            for (l = 1, std_hdr_mtchs = 0, long_hdr = 0; l < TDSPLY_HDR_CNT && std_hdr_mtchs <= 1; l++) {
                 
                 //search tmp_hdr for the current standard header string
                 if ((tmp_std_hdr = strstr(tmp_hdr, TECdsply_clmn_hdrs[l])) != NULL) {
-                    
-                    //check that the standard header is preceded by a '_' and followed by a '\0'
-                    if (tmp_std_hdr[-1] == '_' && !tmp_std_hdr[strlen(TECdsply_clmn_hdrs[l])]) {
+                                        
+                    //check that the standard header is followed by a '\0' and
+                    //either is the full header or is preceded by an '_' char
+                    if (!tmp_std_hdr[strlen(TECdsply_clmn_hdrs[l])] &&
+                        ((strlen(tmp_hdr) == strlen(tmp_std_hdr)) ||
+                        ((strlen(tmp_hdr) >  strlen(tmp_std_hdr)) && tmp_std_hdr[-1] == '_'))) {
                         
-                        //check that the standard header is part of a longer string
-                        if (strlen(tmp_hdr) > (strlen(tmp_std_hdr)+1)) {
-                            tmp_std_hdr[-1] = '\0';     //change preceding underscore to terminating null
-                            std_hdr_ptr = tmp_std_hdr;  //set std_hdr_ptr to tmp_std_hdr
-                            std_hdr_mtchs++;            //increment standard header matches
-                            
-                        } else {
-                            printf("print_header_line: error - expected standard TECdisplay header to be part of a longer string. aborting...\n");
-                            abort();
+                        std_hdr_ptr = tmp_std_hdr; //set std_hdr_ptr to standard header string
+                        std_hdr_mtchs++;           //increment standard header matches
+                        
+                        //check whether the standard header is part of a longer string
+                        if (strlen(tmp_hdr) > (strlen(std_hdr_ptr))) {
+                            if (std_hdr_ptr[-1] == '_') {
+                                std_hdr_ptr[-1] = '\0'; //change preceding uscore to term null
+                                long_hdr = 1;
+                            } else {
+                                printf("print_header_line: unexpected format for header string. aborting...\n");
+                                abort();
+                            }
                         }
                     }
                 }
-            }
-            
-            
-            if (std_hdr_mtchs > 1) { //error, more than one standard header was found
-                printf("print_header_line: error - nonstandard header contains multiple different standard header strings. aborting...");
-                abort();
             }
             
             if (!strcmp(tmp_hdr, var_id_str)) { //header is variant_id
                 fprintf(ofp, "%s", tmp_hdr);    //print variant_id column header
             } else {
                 if (std_hdr_mtchs == 0) {                                     //no standard header was found
+                    printf("printing non\n");
                     fprintf(ofp, "%s_%s", tmp_hdr, cons_hdr);                 //print column header
                 } else if (std_hdr_mtchs == 1) {                              //one standard header was found
-                    fprintf(ofp, "%s_%s_%s", tmp_hdr, cons_hdr, std_hdr_ptr); //print column header
+                    if (long_hdr) {
+                        printf("printing long\n");
+                        fprintf(ofp, "%s_%s_%s", tmp_hdr, cons_hdr, std_hdr_ptr); //print column header
+                    } else {
+                        printf("printing standard\n");
+                        fprintf(ofp, "%s_%s", cons_hdr, std_hdr_ptr); //print column header
+                    }
+                } else {
+                    printf("print_header_line: error - column contains match to >1 standard header. aborting...\n");
+                    abort();
                 }
             }
             
