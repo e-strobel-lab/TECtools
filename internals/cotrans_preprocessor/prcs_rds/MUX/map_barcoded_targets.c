@@ -205,6 +205,7 @@ compact_target * map_brcd(char * brcd_str, char * rc_brcd_str, compact_h_node **
     int j = 0; //general purpose index
     
     compact_h_node ** p_rdnd = NULL; //pointer to hash table node pointer
+    compact_h_node * chnNULL = NULL; //null compact_h_node pointer
     compact_target * ref_trg = NULL; //pointer to reference compact target structure
     
     opt_BC * BC_val  = NULL; //pointer to current barcode optional target value structure
@@ -219,17 +220,21 @@ compact_target * map_brcd(char * brcd_str, char * rc_brcd_str, compact_h_node **
     uint64_t hash = 0; //hash value
     
     seq2bin_long(rc_brcd_str, &bsq, 1); //generate binary-encoded barcode sequence
-    hash = hash_brcd_trgt(&bsq);        //hash binary-encoded barcode sequence
     
     //TODO: for now, trace search is off. add as debug option later
-    p_rdnd = srch_ctrg_htbl(&bsq, hash, htbl_MUX, 0); //search hash table for match
+    if (!bsq.nn) {
+        hash = hash_brcd_trgt(&bsq);                      //hash binary-encoded barcode sequence
+        p_rdnd = srch_ctrg_htbl(&bsq, hash, htbl_MUX, 0); //search hash table for match
+    } else {
+        p_rdnd = &chnNULL; //point p_rdnd to null compact_h_node pointer
+    }
     
     if ((*p_rdnd) != NULL) {                              //if found barcode match
         met->hits++;                                      //increment number of hits
         if (!strcmp(rc_brcd_str, (*p_rdnd)->ctrg->csq)) { //sanity check that barcode sequences match
             met->matches++;                               //if match, increment number of barcode sequence matches
         } else {                                          //otherwise, throw error and abort
-            printf("map_brcd: error query string does not match has table entry. aborting...\n");
+            printf("map_brcd: error query string does not match hash table entry. aborting...\n%s\n%s\n", rc_brcd_str, (*p_rdnd)->ctrg->csq);
             abort();
         }
         

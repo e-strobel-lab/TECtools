@@ -88,20 +88,21 @@ int seq2bin_long(char * hash_seq, binary_seq * bin_seq, int array_max) {
     
     for (i = 0, block = 0; block < bin_seq->mx && hash_seq[i]; block++) {
         
-        //test if input sequence character is a non-native DNA base
-        if (hash_seq[i] != 'A' && hash_seq[i] != 'a' &&
-            hash_seq[i] != 'T' && hash_seq[i] != 't' &&
-            hash_seq[i] != 'G' && hash_seq[i] != 'g' &&
-            hash_seq[i] != 'C' && hash_seq[i] != 'c') {
-            bin_seq->nn = 1;
-        }
-        
         if (trace_hash) {                //if trace_hash is on...
             printf("block %d\n", block); //...print block index
         }
         
         
         for (ctob = 0, shft = mshft; hash_seq[i] && shft >= 0; i++, shft -= 2) {
+            
+            //test if input sequence character is a non-native DNA base
+            if (hash_seq[i] != 'A' && hash_seq[i] != 'a' &&
+                hash_seq[i] != 'T' && hash_seq[i] != 't' &&
+                hash_seq[i] != 'G' && hash_seq[i] != 'g' &&
+                hash_seq[i] != 'C' && hash_seq[i] != 'c') {
+                bin_seq->nn = 1;
+            }
+            
             ctob = (hash_seq[i] & 7) >> 1;  //lowest 3 bit mask + 1 bit rshift produces unique int for ATGC
             bin_seq->sq[block] |= ctob << shft; //leftshift to OR 2bit encoded nucleotide into place
             

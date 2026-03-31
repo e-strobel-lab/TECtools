@@ -81,12 +81,13 @@ int check_float_str(char * str, int action)
     
     int valid = 1;
     
-    if (!strcmp(str, "nan")) {
+    if (!strcmp(str, "nan") || !strcmp(str, "NAN") || !strcmp(str, "NaN")) {
         valid = 1;
     } else {
         for (i = 0; str[i] && valid; i++) {
             if (!isdigit(str[i]) &&
                 str[i] != '.'    &&
+                str[i] != '+'    &&
                 str[i] != '-'    &&
                 str[i] != 'e'    &&
                 str[i] != 'E') {
