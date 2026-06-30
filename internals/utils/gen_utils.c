@@ -10,6 +10,7 @@
 #include <math.h>
 #include <string.h>
 #include <ctype.h>
+#include <stdint.h>
 
 #include "gen_utils.h"
 
@@ -106,5 +107,38 @@ int check_float_str(char * str, int action)
     } else {
         printf("check_float_str: unexpected action code. aborting...\n");
         abort();
+    }
+}
+
+/* clear_trailing_spaces: replace trailing spaces within a string with null characters */
+int clear_trailing_spaces(char * line)
+{
+    int i = 0; //general purpose index
+    int j = 0; //general purpose index
+    
+    char * p_first = NULL;       //pointer to first char in string
+    char * p_last = NULL;        //pointer to last non-terminator char in string
+    
+    if (!line[strlen(line)] &&           //if the last char is a null char
+        isspace(line[strlen(line)-1])) { //and the second to last char is a space char
+                
+        p_first = &line[0];              //set pointer to first character in TECdisplay header string
+        p_last  = &line[strlen(line)-1]; //set pointer to last non-terminator char in TECdisplay header string
+        
+        //replace trailing space characters with null terminator
+        for (i = 0, j = 0; isspace(p_last[i]) && (uint64_t)(&p_last[i]) != (uint64_t)(p_first); i--, j++) {
+            p_last[i] = '\0';
+        }
+        
+        //if the loop terminated at the first character in the string, throw error and abort
+        if ((uint64_t)(p_last) == (uint64_t)(p_first)) {
+            printf("clear_trailing_spaces: error - unexpected format for TECdisplay data file line. aborting...\n");
+            abort();
+        }
+        
+        return j;
+        
+    } else {
+        return 0;
     }
 }

@@ -12,6 +12,7 @@
 
 #define NO_PAIR 0
 #define GU_PAIR 1
+#define AU_PAIR 2 //same value is returned for A/T and A/U pairs
 #define AT_PAIR 2
 #define GC_PAIR 3
 

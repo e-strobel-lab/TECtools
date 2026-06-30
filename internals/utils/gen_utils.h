@@ -13,6 +13,7 @@
 #include <math.h>
 #include <string.h>
 #include <ctype.h>
+#include <stdint.h>
 
 #define RETURN_OUTCOME 0
 #define ABORT_FAILURE 1
@@ -33,5 +34,8 @@ int check_int_str(char * str, int action);
 
 /* check_float_str: check that string is composed of valid float chars */
 int check_float_str(char * str, int action);
+
+/* clear_trailing_spaces: replace trailing spaces within a string with null characters */
+int clear_trailing_spaces(char * line);
 
 #endif /* gen_utils_h */

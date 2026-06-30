@@ -219,6 +219,8 @@ int validate_pair_line(char * id_p, char * id_s, char * prs, int wtsq_len)
     for (i = 0; prs[i] && i < (MAX_LINE-6); i++) { //MAX_LINE-6 due to lack of 5 char id + tab
         
         //check that pair constraint string char is valid
+        //NOTE: if other characters are ever permitted to denote pairs it will be necessary to update basemap and print_N_compressed_fa functions
+        //NOTE: could consider adding "is_pair_char" function to centralize tests for pair characters
         if (prs[i] != '.' &&       //char must be a '.'
             prs[i] != '-' &&       //or a '-'
             prs[i] != '(' &&       //or a '('

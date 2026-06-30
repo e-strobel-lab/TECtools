@@ -41,6 +41,7 @@
 #include "make_barcodes.h"
 #include "read_bcFile.h"
 #include "print_output.h"
+#include "print_N_compressed_fa.h"
 
 /* check_input: check that correct input files were supplied for
  variant generation and print input file information to file*/
@@ -93,6 +94,7 @@ int main(int argc, char *argv[])
     int make_fasta = 0;        //flag to make fasta file
     int lib_type = -1;         //flag to indicate library type
     int lib_type_set = 0;      //flag that library type was set
+    int print_Ncmp_fa = 0;     //flag to print n compression fasta
         
     char usr_resp[4] = {0};         //storage for user response
     char discard[MAX_LINE+1] = {0}; //array for flushing stdin
@@ -123,11 +125,12 @@ int main(int argc, char *argv[])
             {"brcds-per-vrnt",  required_argument,  0,  'c'},  //number of barcodes to apply to each variant
             {"custom-linker",   required_argument,  0,  'l'},  //use custom linker
             {"make_fasta",      no_argument,        0,  'f'},  //make fasta file
+            {"print_Ncmp_fa",   no_argument,        0,  'n'},  //print N compression fasta file
             {"debug",           no_argument,        0,  'd'},  //run debug mode
             {0, 0, 0, 0}
         };
         
-        c = getopt_long(argc, argv, "v:b:t:pa:i:c:l:fd", long_options, &option_index);
+        c = getopt_long(argc, argv, "v:b:t:pa:i:c:l:fnd", long_options, &option_index);
         
         if (c == -1) {
             break;
@@ -277,7 +280,11 @@ int main(int argc, char *argv[])
             case 'f':
                 make_fasta = 1;
                 break;
-                
+            
+            case 'n':
+                print_Ncmp_fa = 1;
+                break;
+            
             case 'd':
                 printf("turning debug mode on\n");
                 debug = 1;
@@ -377,6 +384,10 @@ int main(int argc, char *argv[])
     }
         
     print_output(&nm, &bmap[0], vTmpCnt, varCnt, out_dir, append_priming, append_barcode, fp_brcd, first_bc_2_use, bcs_per_var, lnkr, make_fasta, lib_type);
+    
+    if (print_Ncmp_fa) {
+        print_N_compressed_fa(&nm, &bmap[0], vTmpCnt, varCnt, out_dir, append_priming, append_barcode, lnkr, make_fasta, lib_type);
+    }
     
     if (append_barcode) {
         sprintf(out_msg, "\n%llu variants (%llu variants, %d barcode(s) per variant) were generated from %d variant template(s)\n", (long long unsigned int)((v_indx-vTmpCnt) * bcs_per_var), (long long unsigned int)(v_indx-vTmpCnt), bcs_per_var, vTmpCnt);
