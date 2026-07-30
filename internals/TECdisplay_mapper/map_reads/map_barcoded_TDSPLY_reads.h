@@ -42,7 +42,7 @@
 #include "../testdata_analysis/assess_TDSPLY_test_data.h"
 
 /* prcs_barcoded_TDSPLY_reads: coordinates targets parsing, fastp processing, read mapping, and output file generation */
-int prcs_barcoded_TDSPLY_reads(TDSPLY_names * nm, FILE * fp_trgs, int trgt_ftype, char * minQ, fastp_params fastp_prms, testdata_vars * testdata, int mode);
+int prcs_barcoded_TDSPLY_reads(TDSPLY_names * nm, int trgt_ftype, char * minQ, fastp_params fastp_prms, testdata_vars * testdata, int mode);
 
 /* map_barcoded_TDSPLY_reads: map reads to user-supplied fasta barcoded targets */
 void map_barcoded_TDSPLY_reads(FILE *ifp, compact_h_node **htbl, compact_target *ctrg, target_params * trg_prms, mapping_metrics * met, int mode);

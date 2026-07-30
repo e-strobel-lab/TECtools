@@ -53,15 +53,9 @@ void print_navigator_template(target *refs, TDSPLY_fasta * wt, target_params * t
         
         p_ref_val = (opt_ref *)refs[i].opt; //dereference refs[i].opt to simplify code below
         
-        fprintf(out_fp, "/seq\t%s\n", wt->sq);            //print wt sequence
-        fprintf(out_fp, "/vbs\t%s\n", p_ref_val->ipt_sq); //print variable base template
-        if (p_ref_val->cnstnts != NULL) {                 //print constant indels
-            fprintf(out_fp, "/constant_indels:%s\n", p_ref_val->cnstnts);
-        } else {
-            fprintf(out_fp, "/constant_indels:none\n");
-        }
+        print_nav_tmp_hdr(out_fp, p_ref_val, wt); //print header
         
-        fprintf(out_fp, "<FILL IN filter name>\n");       //print message to fill in filter name
+        fprintf(out_fp, "<FILL IN filter name>\n"); //print message to fill in filter name
         
         //read vbases string and print each variable base as a single line
         //in the navigator template file. each base line begins with "base"
@@ -108,6 +102,20 @@ void print_navigator_template(target *refs, TDSPLY_fasta * wt, target_params * t
             printf("print_navigator template: error - error occurred when closing the navigator template file. Aborting program...\n");
             abort();
         }
+    }
+    
+    return;
+}
+
+/* print_nav_tmp_hdr: print header lines for navigator template file */
+void print_nav_tmp_hdr(FILE * out_fp, opt_ref *p_ref_val, TDSPLY_fasta * wt)
+{
+    fprintf(out_fp, "/seq\t%s\n", wt->sq);            //print wt sequence
+    fprintf(out_fp, "/vbs\t%s\n", p_ref_val->ipt_sq); //print variable base template
+    if (p_ref_val->cnstnts != NULL) {                 //print constant indels
+        fprintf(out_fp, "/constant_indels:%s\n", p_ref_val->cnstnts);
+    } else {
+        fprintf(out_fp, "/constant_indels:none\n");
     }
     
     return;

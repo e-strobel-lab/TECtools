@@ -25,7 +25,7 @@
 int parse_testdata_id(testdata_vars * testdata, char **td_trg_id, int * crnt_mut_cd, char * id_line);
 
 /* evaluate_testdata_mtch: check that testdata read mapped to expected target */
-int eval_testdata_mtch(testdata_vars * testdata, int td_ref_indx, char * td_trg_id, int crnt_mut_cd, char * end5p, h_node **p_rdnd, target * refs);
+int eval_testdata_mtch(testdata_vars * testdata, int td_ref_indx, char * td_trg_id, int crnt_mut_cd, char * end5p, target * refs, opt_mx_trg * trg_val, char * trgt_id, char * trgt_sq);
 
 /* print_testdata_idNsq_msg: prints id and sequence info for testdata error messges */
 void print_testdata_idNsq_msg(char * rd_id, char * rd_sq, char * trg_id, char * trg_sq);

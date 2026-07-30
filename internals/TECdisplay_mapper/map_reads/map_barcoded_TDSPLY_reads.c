@@ -43,7 +43,7 @@
 extern int debug;
 
 /* prcs_barcoded_TDSPLY_reads: coordinates targets parsing, fastp processing, read mapping, and output file generation */
-int prcs_barcoded_TDSPLY_reads(TDSPLY_names * nm, FILE * fp_trgs, int trgt_ftype, char * minQ, fastp_params fastp_prms, testdata_vars * testdata, int mode)
+int prcs_barcoded_TDSPLY_reads(TDSPLY_names * nm, int trgt_ftype, char * minQ, fastp_params fastp_prms, testdata_vars * testdata, int mode)
 {
     //TODO: need system to ignore linker (if present) during mapping verification.
     //TODO: check how variant_maker handles upper and lower case letters when generating targets
@@ -52,6 +52,7 @@ int prcs_barcoded_TDSPLY_reads(TDSPLY_names * nm, FILE * fp_trgs, int trgt_ftype
     testdata_MUX.run = testdata->run;      //hand off run variable from testdata to testdata_MUX
     
     FILE *ifp = NULL;           //pointer for merged fastq file
+    FILE *fp_trgs = NULL;       //pointer for targets file
     mapping_metrics met = {0};  //read processing metrics storage
     
     init_chnl_mtrcs_mem(&met, TDSPLY_CHANNEL_MAX); //initialize channel tracking memory
@@ -84,6 +85,8 @@ int prcs_barcoded_TDSPLY_reads(TDSPLY_names * nm, FILE * fp_trgs, int trgt_ftype
         printf("map_reads: error - reference target value memory allocation failed\n");
         return 1;
     }
+    
+    get_file(&fp_trgs, nm->trgs); //open targets file
     
     //determine expected target count
     if (trgt_ftype == FASTA_FILE) {

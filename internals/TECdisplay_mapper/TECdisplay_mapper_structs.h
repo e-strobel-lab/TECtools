@@ -31,7 +31,7 @@ typedef struct opt_ref {
     char * ipt_sq;                 //input sequence (contains spacers) for printing to navigator template
     char * vbases;                 //variable base string for constructing navigator template
     char * cnstnts;                //constant insertions and deletions string
-    int vb_pos[SEQ2BIN_MAX_KEY+1]; //position (indices) of variable bases in the reference sequence
+    int * vb_pos;                  //position (indices) of variable bases in the reference sequence
     int vb_cnt;                    //number of variable bases in the reference sequence
     int tpr;                       //number of targets encoded in ref
 } opt_ref;
@@ -42,7 +42,7 @@ typedef struct opt_ref {
  in seq2bin_hash.h for target sequences */
 typedef struct opt_mx_trg {
     struct target * ref;            //pointer to reference sequence for the target
-    char vb_key[SEQ2BIN_MAX_KEY+1]; //hash key string composed of variable bases within the target
+    char * vb_key;                  //hash key string composed of variable bases within the target
     int bnd;                        //number of reads that mapped to the target with a BOUND barcode
     int unb;                        //nubmer of reads that mapped to the target with an UNBOUND barcode
 } opt_mx_trg;

@@ -24,7 +24,11 @@
 #include "../../../seq_utils/basemap.h"
 
 #include "./set_trgt.h"
+#include "./set_compact_target.h"
 #include "../../../cotrans_preprocessor/MUX_trgt_gen/set_barcoded_compact_target.h"
+
+#include "../../../filter_by_characteristics/filter_by_characteristics_defs.h"
+#include "../../../filter_by_characteristics/filter_by_characteristics_structs.h"
 
 #include "parse_vmt_trgts.h"
 
@@ -101,7 +105,7 @@ void parse_header_lines(FILE * ifp, target_params * trg_prms, TDSPLY_fasta * wt)
 
 /* parse_vmt_trgts: parse targets file to obtain target ids, sequences, attributes,
   and min/max transcript lengths */
-void parse_vmt_trgts(FILE * ifp, int trgt_ftype, target * refs, opt_ref * ref_val, void * trgts, void * trg_val, target_params * trg_prms, TDSPLY_fasta * wt, int data_type)
+void parse_vmt_trgts(FILE * ifp, int trgt_ftype, target * refs, opt_ref * ref_val, void * trgts, void * trg_val, target_params * trg_prms, TDSPLY_fasta * wt, int data_type, int trgt_type)
 {
     //TODO: double check that reversion from revcomp is all correct
     extern int debug;				           //flag to run debug mode
@@ -237,15 +241,25 @@ void parse_vmt_trgts(FILE * ifp, int trgt_ftype, target * refs, opt_ref * ref_va
             }
             
             //set target structure values for the current target
-            if (data_type == TDSPLY) {
+            if (data_type == TDSPLY && trgt_type == STD_TRGT_STRUCT) {
                 set_trgt(&(((target *)trgts)[trg_prms->t_cnt]),
                          &(((opt_mx_trg *)trg_val)[trg_prms->t_cnt]),
                          crnt_ref, trgt_id, trgt_sq);
                 if (debug) {print_target_debug(&(((target *)trgts)[trg_prms->t_cnt]), trg_prms);} //print debug messages
+                
+            } else if ((data_type == TDSPLY || data_type == SQ_ATT) && trgt_type == CMPCT_TRGT_STRUCT) {
+                set_compact_target(&(((compact_target *)trgts)[trg_prms->t_cnt]),
+                                   &(((opt_mx_trg *)trg_val)[trg_prms->t_cnt]),
+                                   crnt_ref, trgt_id, trgt_sq);
+                
             } else if (data_type == TPROBE_MUX) {
                 set_barcoded_compact_target(&(((compact_target *)trgts)[trg_prms->t_cnt]),
                                             &(((opt_BC *)trg_val)[trg_prms->t_cnt]),
                                             crnt_ref, trgt_id, trgt_sq, trg_prms, trgt_ftype, data_type);
+                
+            } else {
+                printf("parse_vmt_trgts: error - unexpected data_type/trgt_type combination. aborting...\n");
+                abort();
             }
             
             trg_prms->t_cnt++;                       //increment parsed target counter
@@ -267,7 +281,7 @@ void parse_vmt_trgts(FILE * ifp, int trgt_ftype, target * refs, opt_ref * ref_va
         abort();
     }
 
-    printf("the targets file contained %d sequences associated with %d reference targets\n", trg_prms->t_cnt, trg_prms->r_cnt);
+    printf("the targets file contained %d sequences associated with %d reference targets\n\n", trg_prms->t_cnt, trg_prms->r_cnt);
     
     return;
 }
@@ -345,6 +359,11 @@ int validate_trgt_seq(char * trgt_nm, char * trgt_sq, char * ref_sq)
 /* process_trgt_seq: convert target seq to upper case and remove non-base characters. */
 int process_trgt_seq(char * ipt, char * processed_seq)
 {
+    if (strlen(ipt) > MAXLEN) {
+        printf("process_trgt_seq: error - processed_seq array is not long enough to store processed input sequence. aborting...\n");
+        abort();
+    }
+    
     int i = 0; //general purpose index
     int j = 0; //general purpose index
         
@@ -364,14 +383,21 @@ void set_ref(target * refs, opt_ref * ref_val, char * ref_id, char * ref_sq, int
 {
     int i = 0; //general purpose index
     int j = 0; //general purpose index
+    
+    int tmp_vb_cnt = 0;             //number of variable bases
+    int tmp_vb_pos[MAXLEN+1] = {0}; //variable base positions
+    
     opt_ref * p_ref_val = NULL;	//pointer for dereferencing opt pointer in targets structure to opt_ref
     
     char processed_seq[MAXLEN+1] = {0}; //array to store seq w/o non-base chars
     
-    if (!process_trgt_seq(ref_sq, &processed_seq[0])) { //filter non-base chars from input seq
+    process_trgt_seq(ref_sq, &processed_seq[0]);
+    
+    //TODO: confirm code below can be removed
+    /* if (!process_trgt_seq(ref_sq, &processed_seq[0])) { //filter non-base chars from input seq
         printf("set_ref: error - non-base filtering failed. aborting...\n");
         abort();
-    }
+    }*/
     
     //allocate memory for target structure id and sequence values
     if ((refs->id = malloc((strlen(ref_id)+1) * sizeof(*(refs->id)))) == NULL) {
@@ -416,23 +442,31 @@ void set_ref(target * refs, opt_ref * ref_val, char * ref_id, char * ref_sq, int
         strcpy(p_ref_val->cnstnts, cnstnts);
     }
     
-    /* copy indices of variable bases in reference
-     sequence to the current ref_val struct */
-    for (i = 0; refs->sq[i] && i < MAX_LINE; i++) {
+    //count number of variable bases
+    for (i = 0, tmp_vb_cnt = 0; refs->sq[i] && i < MAX_LINE; i++) {
         if (!isDNAbase(refs->sq[i])) {       //non-native DNA base indicates variable position
-            if (!isIUPACbase(refs->sq[i])) { //variable base must be an IUPAC base
+            if (tmp_vb_cnt >= MAXLEN) {
+                printf("set_ref: error - number of variable bases exceeds maximum sequence length (%d bases). aborting...\n", MAXLEN);
+                abort();
+            } else if (!isIUPACbase(refs->sq[i])) { //variable base must be an IUPAC base
                 printf("set_ref: error - unrecognized base %c in reference target sequence. aborting\n", refs->sq[i]);
                 abort();
-            }
-    
-            //set the position of variable bases in the reference sequence
-            if (p_ref_val->vb_cnt < SEQ2BIN_MAX_KEY) {      //check that number of variable bases does not exceed max
-                p_ref_val->vb_pos[p_ref_val->vb_cnt++] = i; //set variable base position in reference target
-            } else { //if number of variable bases exceeds max, throw error and abort
-                printf("set_ref: number of variable bases (%d) exceeds allowed maximum (%d). aborting...\n", p_ref_val->vb_cnt, SEQ2BIN_MAX_KEY);
-                abort();
+            } else {
+                tmp_vb_pos[tmp_vb_cnt++] = i;
             }
         }
+    }
+    
+    //allocate variable base position memory
+    if ((p_ref_val->vb_pos = calloc(tmp_vb_cnt+1, sizeof(*p_ref_val->vb_pos))) == NULL) {
+        printf("set_ref: error - failed to allocate variable base position memory. aborting...\n");
+        abort();
+    }
+    
+    //set values in ref_val struct
+    p_ref_val->vb_cnt = tmp_vb_cnt;            //set variable base count
+    for (i = 0; i < p_ref_val->vb_cnt; i++) {  //set variable base positions
+        p_ref_val->vb_pos[i] = tmp_vb_pos[i];
     }
     
     return;

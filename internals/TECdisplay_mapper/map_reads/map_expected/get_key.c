@@ -23,15 +23,17 @@
 
 /* get_key: generate key string composed the nucleotides at variable
  base positions in the input read sequence */
-int get_key(char * key, char * end5p, char * qscore5p, char * minQv, target *refs, int key_type)
+int get_key(char * key, char * end5p, char * qscore5p, char * minQv, target *refs, int key_type, int trgt_type)
 {
     extern int debug;
     
     int i = 0;                                     //general purpose index
     int len = strlen(end5p);                       //length of the input read sequence
+    
     opt_ref * crnt_ref_val = (opt_ref *)refs->opt; //pointer to reference target optional values
     
-    if (crnt_ref_val->vb_cnt > SEQ2BIN_MAX_KEY) {  //check that the number of variable bases is allowable
+    //if MAX32CHAR_TARGET, check that the number of variable bases is allowable
+    if (trgt_type == MAX32CHAR_TARGET && crnt_ref_val->vb_cnt > SEQ2BIN_MAX_KEY) {
         printf("get_key: error - the number of variable bases specified by a reference sequence (%d) exceeds the maximum key length (%d). aborting...\n", crnt_ref_val->vb_cnt, SEQ2BIN_MAX_KEY);
     }
     
@@ -42,7 +44,7 @@ int get_key(char * key, char * end5p, char * qscore5p, char * minQv, target *ref
     //bases are of sufficient quality, and that the resulting key
     //contains the number of bases specified by the reference sequence
     
-    for (i = 0; i < crnt_ref_val->vb_cnt && i < SEQ2BIN_MAX_KEY; i++) {
+    for (i = 0; i < crnt_ref_val->vb_cnt; i++) {
  
         if (crnt_ref_val->vb_pos[i] < len) { // check that vb_pos index doesn't exceed string length
             

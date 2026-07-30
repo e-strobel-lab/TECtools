@@ -106,13 +106,12 @@ int parse_testdata_id(testdata_vars * testdata, char **td_trg_id, int * crnt_mut
 }
 
 /* evaluate_testdata_mtch: check that testdata read mapped to expected target */
-int eval_testdata_mtch(testdata_vars * testdata, int td_ref_indx, char * td_trg_id, int crnt_mut_cd, char * end5p, h_node **p_rdnd, target * refs)
+int eval_testdata_mtch(testdata_vars * testdata, int td_ref_indx, char * td_trg_id, int crnt_mut_cd, char * end5p, target * refs, opt_mx_trg * trg_val, char * trgt_id, char * trgt_sq)
 {
     int i = 0;       //general purpose index
     int match = 1;   //match flag
     int ret_val = 0; //return value
     
-    opt_mx_trg * trg_val = (opt_mx_trg *)(*p_rdnd)->trg->opt;
     target * mapd_ref = trg_val->ref;
     
     if (crnt_mut_cd == NAT) {  //current read contains native sequence
@@ -120,14 +119,14 @@ int eval_testdata_mtch(testdata_vars * testdata, int td_ref_indx, char * td_trg_
         
         //check that the id of the target used to map the read
         //matches that of the target used to generate the read
-        if (!strcmp(td_trg_id, (*p_rdnd)->trg->id)) {
+        if (!strcmp(td_trg_id, trgt_id)) {
             testdata->nat_exp++;  //id match, increment native expected target counter
         } else {
             testdata->nat_err++;  //mismatch, increment native error counter
             
             //print error describing id mismatch
             printf("TESTDATA: ERROR - native sequence read mapped to incorrect target.\n");
-            print_testdata_idNsq_msg(td_trg_id, end5p, (*p_rdnd)->trg->id, (*p_rdnd)->trg->sq);
+            print_testdata_idNsq_msg(td_trg_id, end5p, trgt_id, trgt_sq);
             
             ret_val = 0;
         }
@@ -138,7 +137,7 @@ int eval_testdata_mtch(testdata_vars * testdata, int td_ref_indx, char * td_trg_
         
         
         //print error describing mapped mutant read
-        if (!strcmp(td_trg_id, (*p_rdnd)->trg->id)) {
+        if (!strcmp(td_trg_id, trgt_id)) {
             printf("TESTDATA: ERROR - mutant (code:%d; sub=0/ins=1/del=2) sequence read mapped to source target.\n", crnt_mut_cd);
             
             //duplication of the terminal base by an insertion causes the insertion mutant to be mappable.
@@ -150,15 +149,15 @@ int eval_testdata_mtch(testdata_vars * testdata, int td_ref_indx, char * td_trg_
                 
                 //test whether the read matches the sequence of the target until
                 //the end of one of the two strings is reached.
-                for (i = 0, match = 1; end5p[i] && (*p_rdnd)->trg->sq[i] && match; i++) {
-                    if (end5p[i] != (*p_rdnd)->trg->sq[i]) { //if a mismatch is found
+                for (i = 0, match = 1; end5p[i] && trgt_sq[i] && match; i++) {
+                    if (end5p[i] != trgt_sq[i]) { //if a mismatch is found
                         match = 0;                           //set match to false
                     }
                 }
                 
                 if (match) {                                       //if the sequences match
-                    if (end5p[i] && !(*p_rdnd)->trg->sq[i]) {      //and the read is longer than the target
-                        if (end5p[i] == (*p_rdnd)->trg->sq[i-1]) { //and the 3' nt of the target was duped in the read
+                    if (end5p[i] && !trgt_sq[i]) {      //and the read is longer than the target
+                        if (end5p[i] == trgt_sq[i-1]) { //and the 3' nt of the target was duped in the read
                             
                             //print explanation of error and set return val to -1,
                             //which indicates that correction should be perfomed
@@ -170,7 +169,7 @@ int eval_testdata_mtch(testdata_vars * testdata, int td_ref_indx, char * td_trg_
                 }
             }
             
-            print_testdata_idNsq_msg(td_trg_id, end5p, (*p_rdnd)->trg->id, (*p_rdnd)->trg->sq);
+            print_testdata_idNsq_msg(td_trg_id, end5p, trgt_id, trgt_sq);
             
             if (ret_val != -1) {     //flag to perform correction was not set
                 testdata->mut_mpd++; //increment mutant mapped counter
@@ -182,14 +181,14 @@ int eval_testdata_mtch(testdata_vars * testdata, int td_ref_indx, char * td_trg_
             printf("          This happened because two variant templates have highly similar sequences\n");
             printf("          and a testdata read that contains a mutation mapped to a non-source target\n");
             printf("          The read will not be counted toward the matches for the source target\n");
-            print_testdata_idNsq_msg(td_trg_id, end5p, (*p_rdnd)->trg->id, (*p_rdnd)->trg->sq);
+            print_testdata_idNsq_msg(td_trg_id, end5p, trgt_id, trgt_sq);
             //mut_mpd is not incremented because non-source target matches are ignored
             
             ret_val = -1; //return -1 can be used to subtract matched read from target matches count
             
         } else {
             printf("TESTDATA: ERROR - unrecognized error case. please contact estrobel@buffalo.edu so we can figure out the error.\n");
-            print_testdata_idNsq_msg(td_trg_id, end5p, (*p_rdnd)->trg->id, (*p_rdnd)->trg->sq);
+            print_testdata_idNsq_msg(td_trg_id, end5p, trgt_id, trgt_sq);
         }
         
         

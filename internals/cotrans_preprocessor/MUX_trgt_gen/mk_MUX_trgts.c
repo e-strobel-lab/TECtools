@@ -44,7 +44,7 @@ int mk_MUX_trgts(target * refs, opt_ref * ref_val, compact_target * ctrg, opt_BC
     
     //parse barcoded targets file and store as compact targets
     if (trgt_ftype == VMT_FILE) {
-        parse_vmt_trgts(fp_MUXtrgs, trgt_ftype, refs, ref_val, ctrg, BC_val, trg_prms, wt, data_type);
+        parse_vmt_trgts(fp_MUXtrgs, trgt_ftype, refs, ref_val, ctrg, BC_val, trg_prms, wt, data_type, CMPCT_TRGT_STRUCT);
         
     } else if (trgt_ftype == FASTA_FILE) {
         parse_fa_trgts(fp_MUXtrgs, trgt_ftype, ctrg, BC_val, trg_prms, data_type);

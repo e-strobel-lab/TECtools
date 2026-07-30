@@ -38,7 +38,8 @@ typedef struct compact_target {
     uint32_t cnt;    //number of reads that map to target
     char * cid;      //character encoded id
     char * csq;      //character-encoded sequence
-    void * opt;      //pointer to optional application specific values
+    void * opt;      //pointer to optional application specific values related to mapping
+    void * utl;      //pointer to utility values unrelated to mapping
 } compact_target;
 
 /* compact_h_node: hash table node for compact targets */
@@ -57,6 +58,7 @@ typedef struct compact_h_node_bank {
 
 int seq2bin_long(char * hash_seq, binary_seq * bin_seq, int array_max);
 struct compact_h_node** srch_ctrg_htbl(binary_seq * bin_seq, uint64_t hash, compact_h_node **htbl, int trace_search);
+uint64_t hash_long_bsq(binary_seq * bsq);
 void print_bin_seq(char * ipt);
 void fprint_bin_seq(FILE * out_fp, char * ipt);
 void bin2seq(char * seq, binary_seq * bsq, int len);

@@ -58,6 +58,8 @@ int main(int argc, char *argv[])
     min_qscore[Q_VARIABLE] = '5'; //initialize variable base qscore threshold to 20 (ascii: 5);
     min_qscore[Q_CONSTANT] = '!'; //initialize constant base qscore threshold to  0 (ascii: !);
     
+    int use_ctrg = 0; //flag to force use of compact_target structs for read mapping
+    
     char * file_suffix = {0};        //pointer to file suffix
     int trgt_ftype = FILE_TYPE_INIT; //target file type
     
@@ -80,11 +82,11 @@ int main(int argc, char *argv[])
             {"qual-constant", required_argument,  0,  'c'},  //min quality for constant bases
             {"debug",         no_argument,        0,  'd'},  //turn on debug mode
             {"limit",         required_argument,  0,  'l'},  //set limit on the number of reads to process
-            
+            {"use-ctrg",      no_argument,        0,  'z'},  //force used of compact_target structs when mapping reads
             {0, 0, 0, 0}
         };
         
-        c = getopt_long(argc, argv, "m:i:I:t:sbo:p:v:c:dl:", long_options, &option_index);
+        c = getopt_long(argc, argv, "m:i:I:t:sbo:p:v:c:dl:z", long_options, &option_index);
         
         if (c == -1) {
             break;
@@ -125,8 +127,6 @@ int main(int argc, char *argv[])
                     printf("TECdisplay_mapper: error - unrecognized targets file type (.%s). aborting...\n", file_suffix);
                     abort();
                 }
-                
-                get_file(&(fp_trgs), argv[optind-1]);       //set file pointer to input target file
                 break;
             
             /* set standard flag */
@@ -181,7 +181,11 @@ int main(int argc, char *argv[])
             case 'l':
                 fastp_prms.limit = atoi(argv[optind-1]);
                 break;
-                
+             
+            /* force use of compact_targets during read mapping */
+            case 'z':
+                use_ctrg = 1;
+                break;
                 
             default: printf("error: unrecognized option. Aborting program...\n"); abort();
         }
@@ -209,10 +213,10 @@ int main(int argc, char *argv[])
     //vmt files are the standard method and contain targets that are not barcoded
     //fasta files contain barcoded targets
     if (trgt_ftype == VMT_FILE) { //process and map seq reads to standard targets
-        prcs_standard_TDSPLY_reads(&nm, fp_trgs, trgt_ftype, min_qscore, fastp_prms, &testdata, run_mode);
+        prcs_standard_TDSPLY_reads(&nm, trgt_ftype, min_qscore, fastp_prms, &testdata, run_mode, use_ctrg);
         
     } else if (trgt_ftype == FASTA_FILE) { //map seq reads to barcoded targets
-        prcs_barcoded_TDSPLY_reads(&nm, fp_trgs, trgt_ftype, min_qscore, fastp_prms, &testdata, run_mode);
+        prcs_barcoded_TDSPLY_reads(&nm, trgt_ftype, min_qscore, fastp_prms, &testdata, run_mode);
     }
 }
 

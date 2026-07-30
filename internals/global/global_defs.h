@@ -26,10 +26,12 @@
 #define FILE_TYPE_INIT 0    //file type initializer
 #define VMT_FILE 1          //targets file is a variant maker targets file
 #define FASTA_FILE 2        //targets file is a fasta file
+#define STO_FILE 3          //targets file is Stockholm format
 
 
 #define DATA_TYPE_INIT 0 //data type initialization value
 #define TDSPLY         1 //code for TECdisplay data
 #define TPROBE_MUX     2 //code for TECprobe-MUX data
+#define SQ_ATT         3 //code for sequence attributes data
 
 #endif /* global_defs_h */

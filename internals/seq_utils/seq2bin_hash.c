@@ -64,7 +64,7 @@ uint64_t seq2bin_hash(char *hash_seq) {
     if (trace_hash) { printf("stepwise 2-bit DNA sequence encoding:\n");}
     
     //perform hash. in each iteration of the for loop a DNA sequence character is
-    //converted to 2bit notation by masking the lowest 3 bits and rightshifting 1 bit.
+    //converted to 2bit notation by masking all but the lowest 3 bits and rightshifting 1 bit.
     //this conversion yields a unique value for each DNA base (ACGT) as shown below.
     //
     //          vv-bits used for hash

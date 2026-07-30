@@ -212,10 +212,13 @@ compact_target * map_brcd(char * brcd_str, char * rc_brcd_str, compact_h_node **
     opt_BC * ref_val = NULL; //pointer to reference barcode optional target value structure
     
     binary_seq bsq = {0}; //variable for storing binary-encoded barcode sequence
-    if ((bsq.sq = calloc(1, sizeof(*(bsq.sq)))) == NULL) {
+    
+    //TODO: bin_seq memory is allocated in seq2bin_long, don't need code below
+    //TODO: leaving in for now and will double check and delete later
+    /*if ((bsq.sq = calloc(1, sizeof(*(bsq.sq)))) == NULL) {
         printf("map_brcd: error - failed to allocate memory for binary-encoded barcode sequence. aborting\n");
         abort();
-    }
+    }*/
     
     uint64_t hash = 0; //hash value
     

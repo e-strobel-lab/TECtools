@@ -20,9 +20,13 @@
 #include "../../TECdisplay_mapper_structs.h"
 
 #include "../../../seq_utils/seq2bin_hash.h"
+#include "../../../seq_utils/seq2bin_long.h"
+
+#define MAX32CHAR_TARGET 0
+#define UNBOUNDED_TARGET 1
 
 /* get_key: generate key string composed the nucleotides at variable
  base positions in the input read sequence */
-int get_key(char * key, char * end5p, char * qscore5p, char * minQv, target *refs, int key_type);
+int get_key(char * key, char * end5p, char * qscore5p, char * minQv, target *refs, int key_type, int trgt_type);
 
 #endif /* get_key_h */

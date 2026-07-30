@@ -22,13 +22,13 @@
 
 /* target: structure containing values for hash table targets */
 typedef struct target {
-    char *key;  //pointer to key for generating hash, can point to sq, rc, or opt member
-    char * id;	//target identifier
-    char * sq;	//target sequence
-    char * rc;	//reverse complement of target sequence
-    int cnt;    //number of reads that map to target
-    int mul;    //flag that sequence is identical to a prior target
-    void * opt;	//pointer for adding additional data to target structure
+    char *key;     //pointer to key for generating hash, can point to sq, rc, or opt member
+    char * id;	   //target identifier
+    char * sq;	   //target sequence
+    char * rc;	   //reverse complement of target sequence
+    uint32_t cnt;  //number of reads that map to target
+    int mul;       //flag that sequence is identical to a prior target
+    void * opt;    //pointer for adding additional data to target structure
 } target;
 
 /*h_node: hash table node */

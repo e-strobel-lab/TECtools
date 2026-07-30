@@ -60,7 +60,7 @@ int seq2bin_long(char * hash_seq, binary_seq * bin_seq, int array_max) {
     if (trace_hash) { printf("stepwise 2-bit DNA sequence encoding:\n");}
     
     //perform hash. in each iteration of the for loop a DNA sequence character is
-    //converted to 2bit notation by masking the lowest 3 bits and rightshifting 1 bit.
+    //converted to 2bit notation by masking all but the lowest 3 bits and rightshifting 1 bit.
     //this conversion yields a unique value for each DNA base (ACGT) as shown below.
     //
     //          vv-bits used for hash
@@ -185,6 +185,21 @@ struct compact_h_node** srch_ctrg_htbl(binary_seq * bin_seq, uint64_t hash, comp
     }
     
     return p_nd; //no match, return address to last node that was checked
+}
+
+/* hash_long_bsq_trgt: generates hash key for binary encoded sequence */
+uint64_t hash_long_bsq(binary_seq * bsq)
+{
+    int i = 0; //general purpose index
+    
+    uint64_t mrg = 0; //merged binary seq
+        
+    //sequentially XOR all binary seqs together
+    for (i = 0; i < bsq->mx; i++) {
+        mrg ^= bsq->sq[i];
+    }
+    
+    return mrg % TABLE_SIZE; //return merged bin seq mod table_size
 }
 
 /* print_bin_seq: print 2-bit encoded sequence */

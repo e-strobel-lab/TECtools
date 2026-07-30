@@ -23,4 +23,7 @@
 /* print_navigator_template: make template files for TECdisplay_navigator */
 void print_navigator_template(target *refs, TDSPLY_fasta * wt, target_params * trg_prms);
 
+/* print_nav_tmp_hdr: print header lines for navigator template file */
+void print_nav_tmp_hdr(FILE * out_fp, opt_ref *p_ref_val, TDSPLY_fasta * wt);
+
 #endif /* print_navigator_template_h */
