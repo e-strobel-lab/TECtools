@@ -23,6 +23,7 @@ typedef struct sequence_attributes {
     char * sq1;
     descriptor * des;
     char * tecd;
+    double * td_vals;
     void ** att;
 } sequence_attributes;
 
@@ -31,9 +32,12 @@ typedef struct structProps {
     sequence_attributes * sq_att;
     void * att;
     int att_typ;
+    char * sq;
     char * db;
     char * db_an;
     double dG;
+    double z;                 //z-score for TECdisplay comparison value as part of distribution of related structProps
+    min_con_table mct;
     struct structProps * nxt;
 } structProps;
 
@@ -59,6 +63,7 @@ typedef struct distal_deltaG {
     sequence_attributes * sq_att;
     char * up;
     char * dn;
+    char * sq;
     int sp_cnt;
     structProps sp;
 } distal_deltaG;

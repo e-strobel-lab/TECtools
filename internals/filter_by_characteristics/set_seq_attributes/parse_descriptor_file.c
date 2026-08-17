@@ -98,9 +98,7 @@ int parse_descriptor_file(char * des_path, descriptor ** des, int * typ_cnt)
         printf("parse_descriptor_file: error - failed to close descriptor file. aborting...\n");
         abort();
     }
-    
-    abort();
-    
+        
     return i;
 }
 

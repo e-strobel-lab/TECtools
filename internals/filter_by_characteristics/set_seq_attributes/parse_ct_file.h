@@ -23,6 +23,9 @@
 
 #include "../../seq_utils/ispair.h"
 
+#define POINT_TO 0
+#define STORE_COPY 1
+
 /* con_table: storage for connectivity table values */
 typedef struct con_table {
     char * ttl;   //title
@@ -39,6 +42,24 @@ typedef struct con_table {
     struct con_table * prv; //pointer to previous con_table in doubly linked list
     struct con_table * nxt; //pointer to next con_table in doubly linked list
 } con_table;
+
+/* min_con_table: minimum connectivity table in which the indices to which the nucleotide at index i is paired */
+//NOTE: indexing starts at zero and upaired nucleotides are indicated by -1
+typedef struct min_con_table {
+    int len;
+    int * p2ix;
+    char * sq;
+    char * db;
+} min_con_table;
+
+/* mct_diffs: categorized differences between min_con_table structs */
+typedef struct mct_diffs {
+    int n_sub;
+    int p_sub;
+    int p_swp;
+    int p_tot;
+    int np_tot;
+} mct_diffs;
 
 /* parse_ct_file: manages CT file parsing */
 int parse_ct_file(con_table * ct, char * ct_path, char * nm);
@@ -61,7 +82,13 @@ void init_con_table_mem(con_table * ct);
 /* free_con_table_mem: free connectivity table memory */
 void free_con_table_mem(con_table * ct, int ct_cnt);
 
+/* set_min_con_table: set minimum connectivity table from full connectivity table */
+void set_min_con_table(min_con_table * mct, con_table * ct, char * sq, char * db, int mode);
+
 /* ct2dot: convert connectivity table to dot-bracket notation */
 void ct2dot(con_table * ct);
+
+/* dot2ct: convert dot-bracket notation to connectivity table */
+void dot2ct(con_table * ct, char * sq, char * db);
 
 #endif /* parse_ct_file_h */

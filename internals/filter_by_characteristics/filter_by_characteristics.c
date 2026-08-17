@@ -152,28 +152,28 @@ int main(int argc, char *argv[])
     check_input(msa_path_provided, des_path_provided, tecd_path_provided, path2RNAStructure_provided);
     
     //process input files
-    int seq_cnt = 0;             //number of sequences
-    int des_cnt = 0;             //number of descriptors
-    char * tecd_data_hdr = NULL; //TECdisplay data header string
+    int seq_cnt = 0;                   //number of sequences
+    int des_cnt = 0;                   //number of descriptors
+    char * tecd_data_hdr = NULL;       //TECdisplay data header string
+    char ** prsd_tecd_data_hdr = NULL; //parsed TECdisplay data header strings
     
     sequence_attributes * sq_att = {0};       //pointer for allocating sequence attributes structures
     seq_cnt = parse_seq_ipt(msa_path, msa_typ, &sq_att); //alloc sq_att mem and store input sequences
     
-    //abort();
-    
-    if (tecd_path_provided) {                                              //if TECdisplay data path was provided
-        store_TECdisplay_data(sq_att, &tecd_data_hdr, seq_cnt, tecd_path); //store TECdisplay data
-    }
-    
+    //parse comparison file
     comparison_values * cmp = NULL; //pointer for allocating comparison values
-    
     int cmp_cnt = 0; //number of comparison values in comparison file
     
-    //parse comparison file
     if (cmpv_path_provided) {
         cmp_cnt = parse_comparison_file(cmpv_path, &cmp);
     }
     
+    //parse TECdisplay data file
+    if (tecd_path_provided) {                                              //if TECdisplay data path was provided
+        store_TECdisplay_data(sq_att, &tecd_data_hdr, &prsd_tecd_data_hdr, seq_cnt, tecd_path, cmp); //store TECdisplay data
+    }
+    
+    //parse descriptor file
     descriptor * des = NULL;                       //pointer for allocating descriptor memory
     int typ_cnt[DSCRPTR_TYPES] = {0};              //variable for storing descriptor type counts
     des_cnt = parse_descriptor_file(des_path, &des, &typ_cnt[0]); //store descriptor information
@@ -200,8 +200,11 @@ int main(int argc, char *argv[])
     
     //TODO: make running function conditional
     //TODO: change second arg to be variable input through comparison file
-    cmpr_smlr_structs(sq_att, des, seq_cnt, des_cnt, "IH1_38");
-    cmpr_smlr_seqs(msa_path, msa_typ, sq_att, seq_cnt);
+    for (i = 0; i < cmp_cnt; i++) {
+        cmpr_smlr_structs(sq_att, des, seq_cnt, des_cnt, "IH1_38", &cmp[i]);
+    }
+    
+    //cmpr_smlr_seqs(msa_path, msa_typ, sq_att, seq_cnt);
     
     //print number of structures predicted for each input descriptor that involves structure predictions. the number of
     //predictions can exceed the number of input sequences if a PRX_DG or DST_DG descriptor specifies that all predicted structures

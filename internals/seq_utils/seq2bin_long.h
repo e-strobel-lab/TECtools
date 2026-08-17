@@ -33,7 +33,7 @@ typedef struct binary_seq {
 typedef struct compact_target {
     uint64_t bid;    //target identifier //TODO: consider renaming to 'tid' for consistency
     binary_seq bsq;  //2-bit encoded target sequence
-    uint8_t mul;     //flag that sequence is identical to a prior target
+    uint32_t mul;    //flag that sequence is identical to a prior target
     uint8_t bl;      //flag that target is blacklisted
     uint32_t cnt;    //number of reads that map to target
     char * cid;      //character encoded id

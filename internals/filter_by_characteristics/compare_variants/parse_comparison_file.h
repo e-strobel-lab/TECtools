@@ -26,6 +26,7 @@
 typedef struct comparison_values {
     char * nm;
     int typ;
+    int ix;
 } comparison_values;
 
 /* parse_comparison file: parse and store comparison details from input comparison values file */

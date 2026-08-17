@@ -71,17 +71,7 @@ void mk_dot_bracket_htbl(compact_h_node ** htbl, compact_h_node_bank * bank, com
     
     opt_db * p_db_val = NULL;
     
-    //print related structures
-    for(i = 0; i < ctrg_cnt; i++) {
-        if (!ctrg[i].bl) {
-            p_db_val = ctrg[i].opt;
-            printf("mul = %d, cnt = %d\n", ctrg[i].mul, ctrg[i].cnt);
-            for (j = 0; j < ctrg[i].mul; j++) {
-                printf("%03d: %s\n", j, p_db_val->sp[j]->db);
-            }
-            printf("\n\n");
-        }
-    }
+    return;
 }
 
 /* dot_bracket_to_bin_hash: convert DNA sequence to two bit notation */
@@ -250,6 +240,12 @@ void map_structProps_2_htbl(structProps ** sp_list, int sp_cnt, compact_h_node *
         if (*p_rdnd != NULL) {                                     //if a match was found
             p_db_val = (opt_db *)((*p_rdnd)->ctrg->opt);           //dereference opt as an opt_db_*
             p_db_val->sp[(*p_rdnd)->ctrg->cnt++] = sp_list[i];     //point the next structProps ptr to the current structProps
+            
+            //throw error if compact target count exceeds the redundant target
+            //count that was generated during hash table construction
+            if ((*p_rdnd)->ctrg->cnt > (*p_rdnd)->ctrg->mul) {
+                printf("map_structProps_2_htbl: error - cnt exceeded mul. aborting...\n");
+            }
             
         } else {
             printf("map_structProps_2_htbl: srch_ctrg_htbl returned null node. aborting...\n");

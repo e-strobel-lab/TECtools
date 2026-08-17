@@ -11,8 +11,10 @@
 
 char pra1[51]            = "ttatcaaaaagagtattgactcttttacctctggcggtgataatggttgc"; //PRA1 promoter
 char pra1_sc1[41]        = "acctctggcggtgataatggttgcatggccttcgggccaa";
+char pra1_m25_to_m50[27] = "ttatcaaaaagagtattgactctttt";
 char c3sc1[34]           = "attcggtgctcttctcttcggccttcgggccaa";
 char vra3[27]            = "gatcgtcggactgtagaactctgaac";
+char vra5[22]            = "ccttggcacccgagaattcca";
 char RLA29synch_3p11[34] = "aaacaccaccaAcatcaccatcatcctgacgcg"; //v2
 char RLA29synch_inFP[12] = "aaacaccacca"; //sequence in RNAP footprint when RNAP is at synch site
 

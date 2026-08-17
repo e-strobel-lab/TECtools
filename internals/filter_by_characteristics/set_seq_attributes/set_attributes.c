@@ -125,7 +125,7 @@ void set_prx_dG(proximal_deltaG * prx_dG, descriptor * des, sequence_attributes 
     prx_dG->sp_cnt = parse_ct_file(&ct, path2ct, fa_nm); //parse connectivity table and set sp_count for attribute
     des->tot_sp += prx_dG->sp_cnt;                       //increment total number of structProps for current descriptor
     
-    set_structProps(sq_att, prx_dG, PRX_DG, &prx_dG->sp, &ct, prx_dG->sp_cnt);  //set structProps values
+    set_structProps(sq_att, prx_dG, PRX_DG, prx_dG->sq, &prx_dG->sp, &ct, prx_dG->sp_cnt);  //set structProps values
     free_con_table_mem(&ct, prx_dG->sp_cnt);                                    //free allocated con_table memory
     
     snprintf(command, MAX_LINE, "rm %s* %s*", tmp_fasta_path,  ct_output_path); //make command for removing temp files
@@ -170,6 +170,13 @@ void set_dst_dG(distal_deltaG * dst_dG, descriptor * des, sequence_attributes * 
         abort();
     }
     
+    //allocate memory for storing concatenated seq used for structure prediction
+    if ((dst_dG->sq = malloc((strlen(cat_sq)+1) * sizeof(*dst_dG->sq))) == NULL) {
+        printf("set_dst_dG: error - failed to allocate memory for storing cat_sq. aborting...\n");
+        abort();
+    }
+    strcpy(dst_dG->sq, cat_sq); //store sequence used for structure prediction
+    
     //generate fasta file that will be used for RNA structure prediction
     char fa_nm[MAX_LINE+1] = {0};
     ret = snprintf(fa_nm, MAX_LINE, "%s_%s", sq_att->nm, des->nm);
@@ -188,7 +195,7 @@ void set_dst_dG(distal_deltaG * dst_dG, descriptor * des, sequence_attributes * 
     dst_dG->sp_cnt = parse_ct_file(&ct, path2ct, fa_nm); //parse connectivity table and set sp_count for attribute
     des->tot_sp += dst_dG->sp_cnt;                       //increment total number of structProps for current descriptor
     
-    set_structProps(sq_att, dst_dG, DST_DG, &dst_dG->sp, &ct, dst_dG->sp_cnt);  //set structProps values
+    set_structProps(sq_att, dst_dG, DST_DG, dst_dG->sq, &dst_dG->sp, &ct, dst_dG->sp_cnt);  //set structProps values
     free_con_table_mem(&ct, dst_dG->sp_cnt);                                    //free allocated con_table memory
     
     snprintf(command, MAX_LINE, "rm %s* %s*", tmp_fasta_path,  ct_output_path); //make command for removing temp files
@@ -217,16 +224,17 @@ void set_ss_len(subsequence_length * ss_len, descriptor * des, sequence_attribut
 }
 
 /* set_structProps: set structProps values */
-void set_structProps(sequence_attributes * sq_att, void * att, int att_typ, structProps * sp, con_table * ct, int ct_cnt)
+void set_structProps(sequence_attributes * sq_att, void * att, int att_typ, char * sq, structProps * sp, con_table * ct, int ct_cnt)
 {
     structProps * crnt_sp = sp; //pointer to current structProps structure
     con_table * crnt_ct = ct;   //pointer to current connectivity table
     
     int i = 0; //general purpose index
+    int j = 0; //general purpose index
     
-    for (i = 0; i < ct_cnt; i++) { //for every ct table that was generated
+    for (i = 0; i < ct_cnt; i++) { //for every connectivity table that was generated
         
-        if (i > 0) { //if not processing first ct tabel
+        if (i > 0) { //if not processing first connectivity table
             
             //allocate new structProps structure in linked list
             if ((crnt_sp->nxt = calloc(1, sizeof(*crnt_sp->nxt))) == NULL) {
@@ -240,7 +248,7 @@ void set_structProps(sequence_attributes * sq_att, void * att, int att_typ, stru
         crnt_sp->sq_att = sq_att;   //set pointer to parent sequence attributes structure
         crnt_sp->att = att;         //set pointer to parent attributes structure
         crnt_sp->att_typ = att_typ; //set attributes type
-        
+        crnt_sp->sq = sq;           //set sequence
         crnt_sp->dG = crnt_ct->dG;  //copy deltaG
             
         //allocate memory for and copy dot bracket string
@@ -256,6 +264,8 @@ void set_structProps(sequence_attributes * sq_att, void * att, int att_typ, stru
             abort();
         }
         strcpy(crnt_sp->db_an, crnt_ct->db_an);
+        
+        set_min_con_table(&crnt_sp->mct, crnt_ct, sq, crnt_sp->db_an, POINT_TO); //store con_table as min_con_table
     }
     
     return;

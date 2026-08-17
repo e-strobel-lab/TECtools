@@ -25,12 +25,12 @@
 /* parse_ct_file: manages CT file parsing */
 int parse_ct_file(con_table * ct, char * ct_path, char * nm)
 {
-    FILE * p_ct = NULL;           //file pointer for ct file
-    
     //PSEUDOKNOT TEST
     /*
     char test_ttl[5]  = "ex_ct";
     int test_len     = 20;
+    char test_bs[21] = {"GGCCAAUGCAGGCCAAGCAU"};
+                        //G,  G,  C,  C,  A,  A,  U,  G,  C,  A,  G,  G,  C,  C,  A,  A,  G,  C,  A,  U
     int test_n[20]   = {  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20};
     int test_nm1[20] = {  0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19};
     int test_np1[20] = {  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21};
@@ -39,8 +39,11 @@ int parse_ct_file(con_table * ct, char * ct_path, char * nm)
     
     
     con_table ex_ct = {0};
+    con_table out_ct = {0};
+    
     ex_ct.ttl = &test_ttl[0];
     ex_ct.len = test_len;
+    ex_ct.bs  = test_bs;
     ex_ct.n   = &test_n[0];
     ex_ct.nm1 = &test_nm1[0];
     ex_ct.np1 = &test_np1[0];
@@ -50,9 +53,12 @@ int parse_ct_file(con_table * ct, char * ct_path, char * nm)
     ct = &ex_ct;
     ct2dot(ct);
     printf("%s\n", ct->db);
+    dot2ct(&out_ct, ct->bs, ct->db);
     abort();
     */
     //END PSEUDOKNOT TEST
+    
+    FILE * p_ct = NULL;         //file pointer for ct file
     
     int i = 0;                  //general purpose index
     int proceed = 1;            //flag that indicates whether to process another connectivity table within the ct file
@@ -328,11 +334,60 @@ void free_con_table_mem(con_table * ct, int ct_cnt)
     return;
 }
 
+/* set_min_con_table: set minimum connectivity table from full connectivity table */
+void set_min_con_table(min_con_table * mct, con_table * ct, char * sq, char * db, int mode)
+{
+    int i = 0; //general purpose index
+    
+    //allocate memory for min_con_table p2ix member
+    if ((mct->p2ix = calloc(ct->len, sizeof(*mct->p2ix))) == NULL) {
+        printf("set_min_con_table: error - failed to allocate memory for min_con_table. aborting...\n");
+        abort();
+    }
+    
+    if (mode == POINT_TO) { //in POINT_TO mode,
+                
+        mct->sq = sq; //set pointer to sequence
+        mct->db = db; //set pointer to annotated dot-bracket
+        
+    } else if (mode == STORE_COPY) { //in STORE_COPY mode
+        
+        //allocate memory for sequence and store sequence
+        if ((mct->sq = malloc((strlen(sq)+1) * sizeof(*mct->sq))) == NULL) {
+            printf("set_min_con_table: error - failed to allocate memory for sequence. aborting...\n");
+            abort();
+        }
+        strcpy(mct->sq, sq);
+        
+        //allocate memory for dot-bracket string and store string
+        if ((mct->db = malloc((strlen(db)+1) * sizeof(*mct->db))) == NULL) {
+            printf("set_min_con_table: error - failed to allocate memory for dot-bracket string. aborting...\n");
+            abort();
+        }
+        strcpy(mct->db, db);
+        
+    } else {
+        printf("set_min_con_table: error - unrecognized mode. aborting...\n");
+        abort();
+    }
+    
+    //set min_con_table values
+    mct->len = ct->len;              //set structure length
+    for (i = 0; i < ct->len; i++) {  //for every array member
+        if (ct->n[i]-1 != i) {       //confirm that n[i]-1 = i, which ensures indices begin at zero
+            printf("set_min_con_table: error - connectivity table n-1 value does not begin at zero. aborting...\n");
+            abort();
+        }
+        
+        mct->p2ix[i] = ct->pr2[i]-1; //store index to which position i is paired
+    }
+    
+    return;
+}
+
 /* ct2dot: convert connectivity table to dot-bracket notation */
 void ct2dot(con_table * ct)
 {
-    //printf("in ct2dot\n");
-    
     int i = 0; //general purpose index
     
     //last_pr2 points to the last value of pr2. this is used to test whether
@@ -449,6 +504,199 @@ void ct2dot(con_table * ct)
             ; //dot-bracket character was already set, skip
         }
     }
+    
+    ct->db[i] = '\0';    //set terminating null
+    ct->db_an[i] = '\0'; //set terminating null
+    return;
+}
+
+/* dot2ct: convert dot-bracket notation to connectivity table */
+void dot2ct(con_table * ct, char * sq, char * db)
+{
+    if (strlen(sq) == strlen(db)) { //if the seq and dot-bracket string length match
+        ct->len = strlen(sq);       //set connectivity table length
+    } else {                        //otherwise throw error and abort
+        printf("dot2ct: error - input sequence length does not match dot-bracket string length. aborting...\n");
+        abort();
+    }
+    
+    int i = 0; //general puprose index
+    int j = 0; //general purpose index
+    int n = 0; //general purpose index
+    
+    init_con_table_mem(ct); //initialize connectivity table memory
+    strcpy(ct->bs, sq);     //store sequence in connectivity table
+    
+    //set simple connectivity table values
+    for (i = 0, n = 1; i <= ct->len; i++, n++) {
+        ct->n[i]   = n;   //base numbering (starting at 1)
+        ct->nm1[i] = n-1; //n-1 numbering (starting at 0)
+        ct->np1[i] = n+1; //n+1 numbering
+        ct->nat[i] = n;   //native numbering (seems RNAstructurekeeps this as n, so may as well do the same for now)
+    }
+    
+    //generate masked dot-bracket string in which the only characters are '.', '(', ')', and alphabetic characters
+    //this is necessary if an annotated dot-bracket structure is provided as the input
+    
+    char * db_msk = NULL; //pointer for allocating mem for masked dot-bracket string
+    
+    //allocate memory for masked dot-bracket string
+    if ((db_msk = malloc(ct->len+1 * sizeof(*db_msk))) == NULL) {
+        printf("dot2ct: error - failed to allocate memory for masked dot-bracket string. aborting...\n");
+        abort();
+    }
+    
+    //mask dot-bracket string
+    for (i = 0; db[i]; i++) {
+        if (db[i] == '.' || isalpha(db[i])) {
+            db_msk[i] = db[i];
+            
+        } else if (db[i] == '(' || db[i] == '[' || db[i] == '{') {
+            db_msk[i] = '(';
+            
+        } else if (db[i] == ')' || db[i] == ']' || db[i] == '}') {
+            db_msk[i] = ')';
+            
+        } else {
+            printf("dot2ct: error - invalid character %c detected in dot-bracket string\n", db_msk[i]);
+            abort();
+        }
+    }
+    db_msk[i] = '\0';
+    
+    
+    int * pr2_set = NULL; //array for tracking which pair 2 values have been set for each position
+    
+    //allocate pr2_set memory
+    if ((pr2_set = calloc(ct->len, sizeof(*pr2_set))) == NULL) {
+        printf("dot2ct: error - failed to allocate memory for pos_set array. aborting...\n");
+        abort();
+    }
+    
+    int nxt_cls_ix = 0;   //next closing parentheses index
+    int nxt_pk_ix = 0;    //next closing pseudoknot index
+    
+    //determine and set pairs for each position of the structure
+    //closing parenthesis positions are identified in a single pass as each associated open parenthesis is found
+    //closing pseudoknot positions are identified in multiple passes - when the first upstream pseudoknot pairing
+    //partner is identified, a search from the downstream end of the string is performed to find the corresponding
+    //closing pseudoknot position. after each iteration, a search is performed to find the next closing pseudoknot
+    //position. for correctly annotated structures, this ends when the search reaches the last upstream pseudoknot
+    //position without finding any additional closing pseudoknot characters, at which point the value of nxt_pk_ix
+    //is set to -1 to indicate that another search should be initiated if another upstream pseudoknot character is found
+    
+    for (i = 0, nxt_cls_ix = ct->len, nxt_pk_ix = -1; i < ct->len; i++) {
+        
+        if (!pr2_set[i]) { //check that the nt to which the current position is paired was not yet set
+            
+            if (db_msk[i] == '.') { //unpaired position
+                ct->pr2[i] = 0;     //set pr2 to 0 (unpaired)
+                pr2_set[i] = 1;     //set flag that pr2 was set
+                
+            } else if (db_msk[i] == '(') { //upstream paired position
+                
+                if (!nxt_cls_ix) { //if there is not another closing pair index, throw error and abort
+                    printf("dot2ct: error - incomplete pair detected. aborting...\n");
+                    abort();
+                    
+                } else if (!db_msk[nxt_cls_ix]) { //if at the end of the string (need to find first ')')
+                    
+                    while (db_msk[nxt_cls_ix] != ')' && nxt_cls_ix) { //find first ')'
+                        nxt_cls_ix--;
+                    }
+                    
+                    if (db_msk[nxt_cls_ix] != ')') { //if no ')' was found, throw error and abort
+                        printf("dot2ct: error - incomplete pair detected. aborting...\n");
+                        abort();
+                    }
+                }
+                
+                ct->pr2[i] = nxt_cls_ix+1; //set pr2 for current position
+                ct->pr2[nxt_cls_ix] = i+1; //set pr2 for position to which current position is paired
+                
+                pr2_set[i] = 1;            //set flag that pr2 was set for current position
+                pr2_set[nxt_cls_ix] = 1;   //set flag that pr2 was set for downstream pair position
+                
+                nxt_cls_ix--; //decrement past current downstream pair position
+                
+                while (db_msk[nxt_cls_ix] != ')' && nxt_cls_ix) { //iterate to next downstream pair position
+                    nxt_cls_ix--;
+                }
+                
+            } else if (isalpha(db_msk[i])) { //upstream pseudoknotted position
+                
+                if (isupper(db_msk[i])) { //throw error if uppercase PK indicator does not have a lowercase pair
+                    printf("dot2ct: error - nt designated pseudoknot does not have an associated pairing nucleotide. aborting...\n");
+                    abort();
+                }
+                
+                if (nxt_pk_ix == -1) { //if setting positions for new pseudoknot
+                    
+                    //find closing PK pair for current position
+                    nxt_pk_ix = ct->len; //initialize nxt_pk_ix to last index of string
+                    
+                    //iterate upstream until closing PK pair is found or until nxt_pk_ix == i
+                    //note: uppercase PK indicators cannot have a lower index
+                    //than the corresponding lowercase PK indicator
+                    while (db_msk[nxt_pk_ix] != toupper(db_msk[i]) && nxt_pk_ix > i) {
+                        nxt_pk_ix--;
+                    }
+                    
+                    if (nxt_pk_ix == i) { //if no closing PK pair was found, throw error and abort
+                        printf("dot2ct: error - nt designated pseudoknot does not have an associated pairing nucleotide. aborting...\n");
+                        abort();
+                    }
+                }
+                
+                ct->pr2[i] = nxt_pk_ix+1; //set pr2 for current position
+                ct->pr2[nxt_pk_ix] = i+1; //set pr2 for position to which current position is paired
+                
+                pr2_set[i] = 1;           //set flag that pr2 was set for current position
+                pr2_set[nxt_pk_ix] = 1;   //set flag that pr2 was set for downstream pair position
+                
+                nxt_pk_ix--; //decrement past current pk_ix
+                
+                //iterate to next closing pseudoknot position
+                while (db_msk[nxt_pk_ix] != toupper(db_msk[i]) && nxt_pk_ix > i) {
+                    
+                    //if a lowercase indicator for the current pseudoknot is found, throw error and abort
+                    //otherwise, decrement nxt_pk_ix
+                    if (db_msk[nxt_pk_ix] == db_msk[i]) {
+                        printf("dot2ct: error - nt designated pseudoknot does not have an associated pairing nucleotide. aborting...\n");
+                        abort();
+                    } else {
+                        nxt_pk_ix--;
+                    }
+                }
+                
+                if (nxt_pk_ix == i) { //if nxt_pk_ix == i, all pairs for current pseudoknot have been accounted for
+                    nxt_pk_ix = -1;   //reset nxt_pk_ix to -1
+                }
+                
+            } else {
+                
+                if (db_msk[i] == ')') { //')' without '(', throw error and abort
+                    printf("dot2ct: error - found ')' without associated '('\n");
+                    abort();
+                    
+                } else { //unexpected character - throw error and abort
+                    printf("dot2ct: error - unexpected character %c (ASCII %d) in dot-bracket string. aborting...\n", db_msk[i], db_msk[i]);
+                    abort();
+                }
+            }
+        }
+    }
+    
+    for (i = 0; i < ct->len; i++) {
+        if (!pr2_set[i]) {
+            printf("dot2ct: error - detected unset paired-to positions. aborting...\n");
+            abort();
+        }
+    }
+    
+    //free allocated memory
+    free(db_msk);
+    free(pr2_set);
     
     return;
 }

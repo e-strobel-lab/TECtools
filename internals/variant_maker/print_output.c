@@ -329,6 +329,10 @@ void print_barcoded_variant(FILE * out_fp, FILE * fasta_fp, fasta * var, int crr
     extern char * fwd2use;  //forward priming site to use
     extern char * rev2use;  //reverse priming site to use
     
+    int include_vra5 = 0;            //flag to include vra5 //TODO: make option?
+    extern char vra5[22];            //vra5 sequence
+    extern char pra1_m25_to_m50[27]; //upstream promoter sequence, needed when including vra5
+    
     int i = 0; //general purpose index
     
     static int bc_cnt = 0;              //barcode count
@@ -336,7 +340,10 @@ void print_barcoded_variant(FILE * out_fp, FILE * fasta_fp, fasta * var, int crr
     char crrnt_bc[MAX_LINE+1] = {0};    //current barcode
     static int bc_indx = 0;             //current barcode index
     
-    static int incld_lnkr = 1;          //flag to include linker
+    char scnd_bc[MAX_LINE+1] = {0};     //secondary barcode
+    static int scnd_bc_indx = 0;        //secondary barcode index
+    
+    static int incld_lnkr = 0;          //flag to include linker
     
     int trg_start_indx = 0;      //index at which target starts
     int brcd_end_indx = 0;       //index 1 char after barcode end
@@ -371,7 +378,7 @@ void print_barcoded_variant(FILE * out_fp, FILE * fasta_fp, fasta * var, int crr
         seq[0] = '\0'; //reset seq array
         
         if ((bc_indx = read_bcFile(fp_brcd, BC_LINE, crrnt_bc, MAX_LINE+1)) == -1) { //get barcode
-            printf("print_output: ERROR - too few barcodes. %llu barcodes are required to barcode each variant %d times. aborting...\n", (long long unsigned int)((v_indx-vTmpCnt)*bcs_per_var), bcs_per_var);
+            printf("print_output: ERROR - too few barcodes. %llu barcodes are required to barcode each variant %d time(s). aborting...\n", (long long unsigned int)((v_indx-vTmpCnt)*bcs_per_var), bcs_per_var);
             abort();
             
         } else {
@@ -386,6 +393,20 @@ void print_barcoded_variant(FILE * out_fp, FILE * fasta_fp, fasta * var, int crr
             }
 
             //assemble output sequence
+            
+            if (include_vra5) {     //if including vra5 sequence
+                strcat(seq, vra5);  //append vra5 sequence
+                
+                if ((scnd_bc_indx = read_bcFile(fp_brcd, BC_LINE, scnd_bc, MAX_LINE+1)) == -1) { //get barcode
+                    printf("print_output: ERROR - too few barcodes. %llu barcodes are required to barcode each variant %d time(s).\nNOTE: this error occurred when attempting to read a secondary barcode for inclusion downstream of the vra5 sequence.\n aborting...\n", (long long unsigned int)((v_indx-vTmpCnt)*bcs_per_var), bcs_per_var);
+                    abort();
+                } else {
+                    strcat(seq, scnd_bc); //append second barcode
+                }
+                
+                strcat(seq, pra1_m25_to_m50); //append upstream promoter segment
+            }
+            
             if (append_priming) {             //if appending priming sites
                 strcat(seq, fwd2use);         //append the forward priming site sequence
             }
@@ -407,7 +428,12 @@ void print_barcoded_variant(FILE * out_fp, FILE * fasta_fp, fasta * var, int crr
             
             //print output sequence to file(s)
             if (make_fasta) { //if make fasta option was provided, print full variant seq to fasta file
-                fprintf(fasta_fp, ">var%05d_bc%05d\n%s\n", crrnt_var /*vrnts[crrnt_var].nm*/, bc_indx, seq);
+                if (!include_vra5) {
+                    fprintf(fasta_fp, ">var%05d_bc%05d\n%s\n", crrnt_var /*vrnts[crrnt_var].nm*/, bc_indx, seq);
+                } else {
+                    fprintf(fasta_fp, ">var%05d_bc%05d_2bc%05d\n%s\n", crrnt_var /*vrnts[crrnt_var].nm*/, bc_indx, scnd_bc_indx, seq);
+                }
+                
             }
             
             seq[brcd_end_indx] = '\0'; //terminate string after barcode for printing to standard targets file

@@ -42,6 +42,6 @@ void set_dst_dG(distal_deltaG * dst_dG, descriptor * des, sequence_attributes * 
 void set_ss_len(subsequence_length * ss_len, descriptor * des, sequence_attributes * sq_att);
 
 /* set_structProps: set structProps values */
-void set_structProps(sequence_attributes * sq_att, void * att, int att_typ, structProps * sp, con_table * ct, int ct_cnt);
+void set_structProps(sequence_attributes * sq_att, void * att, int att_typ, char * sq, structProps * sp, con_table * ct, int ct_cnt);
 
 #endif /* set_attributes_h */
