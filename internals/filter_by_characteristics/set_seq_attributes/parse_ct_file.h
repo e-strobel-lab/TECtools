@@ -59,6 +59,8 @@ typedef struct mct_diffs {
     int p_swp;
     int p_tot;
     int np_tot;
+    char * cssq1;
+    char * cssq2;
 } mct_diffs;
 
 /* parse_ct_file: manages CT file parsing */

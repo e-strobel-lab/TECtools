@@ -131,15 +131,10 @@ double calculate_normalization_factor(double * reactivity_list, int len, int pct
 /* cmpfunc: simple float comparison function used to sort reactivity array. */
 int cmpfnc(const void * a, const void * b)
 {
-    if (*(double*)a - *(double*)b > 0) {
-        return 1;
-        
-    } else if (*(double*)a - *(double*)b < 0) {
-        return -1;
-        
-    } else {
-        return 0;
-    }
+    double d_a = *(double*)a;
+    double d_b = *(double*)b;
+    
+    return (d_a > d_b) - (d_a < d_b);
     
 }
 

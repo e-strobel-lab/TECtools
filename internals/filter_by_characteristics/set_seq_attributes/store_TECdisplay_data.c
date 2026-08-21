@@ -182,7 +182,7 @@ void find_cmp_index(char ** prsd_tecd_data_hdr, int fields, comparison_values * 
     
     //find index of comparison column
     for (i = 0, fnd_match = 0; i < fields  && !fnd_match; i++) { //for every field
-        if (!strcmp(prsd_tecd_data_hdr[i], cmp->nm)) {           //check if field name matches comparison column name
+        if (!strcmp(prsd_tecd_data_hdr[i], cmp->val)) {          //check if field name matches comparison value name
             cmp->ix = i;                                         //if so, set comparison index and fnd_match flag
             fnd_match = 1;
         }

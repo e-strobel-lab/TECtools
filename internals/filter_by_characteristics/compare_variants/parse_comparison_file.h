@@ -11,22 +11,26 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <string.h>
+#include <float.h>
 
 #include "../../global/global_defs.h"
 #include "../../global/global_structs.h"
 #include "../../utils/io_management.h"
+#include "../../utils/gen_utils.h"
 
 #define MAX_CMP_COL_NM  64
 #define MAX_COMPARISONS 8
 
-#define SIM 0
-#define DIF 1
+#define LIMIT_INIT FLT_MIN
 
 /* comparison_values: structure for storing values proved by the comparison input file*/
 typedef struct comparison_values {
-    char * nm;
-    int typ;
+    char * des;
+    char * val;
     int ix;
+    double minZ;
+    double maxdG;
 } comparison_values;
 
 /* parse_comparison file: parse and store comparison details from input comparison values file */

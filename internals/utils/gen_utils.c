@@ -101,7 +101,7 @@ int check_float_str(char * str, int action)
         return valid;
         
     } else if (action == ABORT_FAILURE && !valid) {
-        printf("check_float_str: float string '%s' contains the invalid character '%c'. aborting...\n", str, str[i]);
+        printf("check_float_str: float string '%s' contains the invalid character '%c'. aborting...\n", str, str[i-1]);
         abort();
         
     } else {

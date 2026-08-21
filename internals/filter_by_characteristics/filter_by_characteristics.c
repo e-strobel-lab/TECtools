@@ -198,10 +198,9 @@ int main(int argc, char *argv[])
     set_attributes(sq_att, des, seq_cnt, des_cnt, path2RNAStructure);           //set attributes for each input sequence
     print_annotated_data(sq_att, seq_cnt, des_cnt, tecd_data_hdr);              //print output file containing annotated data
     
-    //TODO: make running function conditional
-    //TODO: change second arg to be variable input through comparison file
+    //perform comparisons
     for (i = 0; i < cmp_cnt; i++) {
-        cmpr_smlr_structs(sq_att, des, seq_cnt, des_cnt, "IH1_38", &cmp[i]);
+        cmpr_smlr_structs(sq_att, des, seq_cnt, des_cnt, &cmp[i]);
     }
     
     //cmpr_smlr_seqs(msa_path, msa_typ, sq_att, seq_cnt);
