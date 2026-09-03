@@ -22,6 +22,7 @@
 #include "./get_msa_subseq.h"
 #include "./run_RNAStructure.h"
 #include "./parse_ct_file.h"
+#include "./find_downstream_struct.h"
 
 #include "set_attributes.h"
 
@@ -31,7 +32,7 @@ char ct_output_path[11] = "ct_output/";
 char lnkr[6] = "aaaaa";        //linker for joining distal subsequences during RNA structure prediction
 
 /* set_attributes: manages sequence attribute setting */
-void set_attributes(sequence_attributes * sq_att, descriptor * des, int seq_cnt, int des_cnt, char * path2RNAStructure)
+void set_attributes(sequence_attributes * sq_att, descriptor * des, int seq_cnt, int des_cnt, char * path2RNAStructure, int ext_limit)
 {
     //TODO: consider only generating if RNA structure will be called
     mk_out_dir(tmp_fasta_path); //make output directory for temporary fasta files
@@ -42,6 +43,13 @@ void set_attributes(sequence_attributes * sq_att, descriptor * des, int seq_cnt,
     
     //set attribute values for each input sequence
     for (i = 0; i < seq_cnt; i++) {
+        if ((i+1) % 1000 == 0) {
+            printf("x\n");
+        } else if ((i+1) % 100 == 0) {
+            printf(">");
+            fflush(stdout);
+        }
+        
         for (j = 0; j < des_cnt; j++) {
             switch (sq_att->des[j].typ) {
                 case NUC_ID:
@@ -49,7 +57,7 @@ void set_attributes(sequence_attributes * sq_att, descriptor * des, int seq_cnt,
                     break;
                     
                 case PRX_DG:
-                    set_prx_dG((proximal_deltaG *)(sq_att[i].att[j]), &sq_att[i].des[j], &sq_att[i], path2RNAStructure);
+                    set_prx_dG((proximal_deltaG *)(sq_att[i].att[j]), &sq_att[i].des[j], &sq_att[i], path2RNAStructure, ext_limit);
                     break;
                     
                 case DST_DG:
@@ -67,6 +75,7 @@ void set_attributes(sequence_attributes * sq_att, descriptor * des, int seq_cnt,
             }
         }
     }
+    return;
 }
 
 /* set_nuc_id: set nucleotide_identity structure values */
@@ -87,7 +96,7 @@ void set_nuc_id(nucleotide_identity * nuc_id, descriptor * des, sequence_attribu
 }
 
 /* set_prx_dG: set proximal_deltaG structure values */
-void set_prx_dG(proximal_deltaG * prx_dG, descriptor * des, sequence_attributes * sq_att, char * path2RNAStructure)
+void set_prx_dG(proximal_deltaG * prx_dG, descriptor * des, sequence_attributes * sq_att, char * path2RNAStructure, int ext_limit)
 {
     extern char path2fold[MAX_LINE+1];
     extern char tmp_fasta_path[11];
@@ -127,6 +136,27 @@ void set_prx_dG(proximal_deltaG * prx_dG, descriptor * des, sequence_attributes 
     
     set_structProps(sq_att, prx_dG, PRX_DG, prx_dG->sq, &prx_dG->sp, &ct, prx_dG->sp_cnt);  //set structProps values
     free_con_table_mem(&ct, prx_dG->sp_cnt);                                    //free allocated con_table memory
+    
+    //perform analysis of possible downstream structure by extending the sequence
+    //used for structure prediction and performing additional predictions
+    
+    int i = 0;                     //general purpose index
+    structProps * crrnt_sp = NULL; //pointer to structProps being sent to find_downstream_struct
+    
+    for (i = 0, crrnt_sp = &prx_dG->sp; i < prx_dG->sp_cnt; i++) { //for every structure prediction
+        
+        if (i) {                      //if not on first iteration
+            crrnt_sp = crrnt_sp->nxt; //set crrnt_sp to the next structure pointer in the linked list
+        }
+        
+        if (crrnt_sp != NULL) { //if crrnt_sp points to a structProps structure
+            //assess possible downstream structures
+            find_downstream_struct(crrnt_sp, des, sq_att, path2RNAStructure, fa_nm, path2ct, MAX_LINE, des->act.ptyp, ext_limit);
+        } else {
+            printf("set_prx_dG: error - expected %d structProps structures, found %d. aborting...\n", prx_dG->sp_cnt, i);
+            abort();
+        }
+    }
     
     snprintf(command, MAX_LINE, "rm %s* %s*", tmp_fasta_path,  ct_output_path); //make command for removing temp files
     system(command);                                                            //remove temp files
@@ -250,6 +280,7 @@ void set_structProps(sequence_attributes * sq_att, void * att, int att_typ, char
         crnt_sp->att_typ = att_typ; //set attributes type
         crnt_sp->sq = sq;           //set sequence
         crnt_sp->dG = crnt_ct->dG;  //copy deltaG
+        crnt_sp->mul = ct_cnt;      //set number of associated connectivity tables
             
         //allocate memory for and copy dot bracket string
         if ((crnt_sp->db = malloc((strlen(ct->db)+1) * sizeof(*(crnt_sp->db)))) == NULL) {

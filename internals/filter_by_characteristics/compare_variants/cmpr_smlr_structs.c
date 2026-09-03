@@ -34,7 +34,7 @@
 #include "cmpr_smlr_structs.h"
 
 /* cmpr_smlr_structs: perform a systematic comparison of variants with closely-related structures to identify variants that exhibit large effects on function */
-void cmpr_smlr_structs(sequence_attributes * sq_att, descriptor * des, int seq_cnt, int des_cnt, comparison_values * cmp)
+void cmpr_smlr_structs(sequence_attributes * sq_att, descriptor * des, int seq_cnt, int des_cnt, comparison_values * cmp, int ext_limit)
 {
     /*
      a hash_table for looking up variants that exhibit a particular secondary structure is generated as follows:
@@ -165,8 +165,8 @@ void cmpr_smlr_structs(sequence_attributes * sq_att, descriptor * des, int seq_c
     qsort(ctrg_srtd, wl, sizeof(*ctrg_srtd), ctrg_cmpfnc); //sort ctrg pointers by mapped structure count
     print_structure_inventory(ctrg_srtd, wl, cmp, dir_nm); //generate structure inventory output file
     
-    set_sp_z_scores(ctrg_srtd, wl, cmp);           //calculate z-scores
-    find_ntbl_var_prs(ctrg_srtd, wl, cmp, dir_nm); //find variant pairs that meet structural/functional critera
+    set_sp_z_scores(ctrg_srtd, wl, cmp);                      //calculate z-scores
+    find_ntbl_var_prs(ctrg_srtd, wl, cmp, dir_nm, ext_limit); //find variant pairs that meet structural/functional critera
     
     chdir(".."); //return to parent directory
     
@@ -381,7 +381,7 @@ void set_sp_z_scores(compact_target ** ctrg, int wl, comparison_values * cmp)
 }
 
 /* find_ntbl_var_prs: find variant pairs that exhibit closely related structures but substantial functional differences */
-void find_ntbl_var_prs(compact_target ** ctrg, int wl, comparison_values * cmp, char * dir_nm)
+void find_ntbl_var_prs(compact_target ** ctrg, int wl, comparison_values * cmp, char * dir_nm, int ext_limit)
 {
     int i = 0; //general purpose index
     int j = 0; //general purpose index
@@ -408,16 +408,20 @@ void find_ntbl_var_prs(compact_target ** ctrg, int wl, comparison_values * cmp, 
         max_dG_dif = cmp->maxdG;    //set max_dG_dif to user-specified value
     }
     
-    char sd_nm[MAX_LINE+1] = {0}; //structure subdirectory name
-    char ol_nm[MAX_LINE+1] = {0}; //one-line output file name
-    char tl_nm[MAX_LINE+1] = {0}; //two-line output file name
+    char sd_nm[MAX_LINE+1] = {0};     //structure subdirectory name
+    char tl_nm[MAX_LINE+1] = {0};     //two-line output file name
+    char ol_dif_nm[MAX_LINE+1] = {0}; //one-line difs output file name
+    char ol_sim_nm[MAX_LINE+1] = {0}; //one-line sims output file name
     
-    int sd_ret = 0; //structure subdirectory snprintf return value
-    int ol_ret = 0; //one-line output file snprintf return value
-    int tl_ret = 0; //two-line output file snprintf return value
+    int sd_ret = 0;     //structure subdirectory snprintf return value
+    int tl_ret = 0;     //two-line output file snprintf return value
+    int ol_dif_ret = 0; //one-line output file snprintf return value
+    int ol_sim_ret = 0; //one-line output file snprintf return value
     
-    FILE * ol_ofp = NULL; //output file pointer for one line difs file
-    FILE * tl_ofp = NULL; //output file pointer for two line difs file
+    FILE * tl_ofp = NULL;       //output file pointer for two-line difs/sims file
+    FILE * ol_dif_ofp = NULL;   //output file pointer for one-line difs file
+    FILE * ol_sim_ofp = NULL;   //output file pointer for one-line sims file
+    FILE ** crnt_ol_ofp = NULL; //pointer to current one-line output file being written to
     
     char dif_str[5] = {"difs"}; //string to append to difs output file names
     char sim_str[5] = {"sims"}; //string to append to sims output file names
@@ -425,6 +429,30 @@ void find_ntbl_var_prs(compact_target ** ctrg, int wl, comparison_values * cmp, 
     
     int fnd_bnd = 0;      //flag that max_dG_dif bound was found
     mct_diffs difs = {0}; //structure for tracking min_con_table differences
+    
+    //generate one-line output file name
+    ol_dif_ret = snprintf(ol_dif_nm, MAX_LINE, "%s_1L_difs.txt", dir_nm);
+    ol_sim_ret = snprintf(ol_sim_nm, MAX_LINE, "%s_1L_sims.txt", dir_nm);
+    
+    if (ol_dif_ret >= MAX_LINE || ol_dif_ret < 0 || ol_sim_ret >= MAX_LINE || ol_sim_ret < 0) {
+        printf("find_ntbl_var_prs: error - error when constructing output file name. aborting...\n");
+        abort();
+    }
+    
+    //generate one-line output files
+    if ((ol_dif_ofp = fopen(ol_dif_nm, "w")) == NULL) {
+        printf("find_ntbl_var_prs: error - failed to open output file. aborting...\n");
+        abort();
+    }
+    
+    if ((ol_sim_ofp = fopen(ol_sim_nm, "w")) == NULL) {
+        printf("find_ntbl_var_prs: error - failed to open output file. aborting...\n");
+        abort();
+    }
+    
+    //print headers for one-line dif/sims output files
+    print_ol_out_hdr(ol_dif_ofp);
+    print_ol_out_hdr(ol_sim_ofp);
     
     //generate an outpute directory and sims/difs output files for every structure class
     for (i = 0; i < wl; i++) { //for every target
@@ -446,8 +474,10 @@ void find_ntbl_var_prs(compact_target ** ctrg, int wl, comparison_values * cmp, 
             //set mode string for current iteration
             if (mode == DIF) {
                 p_md_str = dif_str;
+                crnt_ol_ofp = &ol_dif_ofp;
             } else if (mode == SIM) {
                 p_md_str = sim_str;
+                crnt_ol_ofp = &ol_sim_ofp;
             } else {
                 printf("find_ntbl_var_prs: error - unrecognized mode. aborting...\n");
                 abort();
@@ -515,7 +545,8 @@ void find_ntbl_var_prs(compact_target ** ctrg, int wl, comparison_values * cmp, 
                             cnt_dif_bps(&difs, &sp_srtd[j]->mct, &sp_srtd[j-k]->mct);
                             
                             //print data to output file
-                            print_tl_out_data(tl_ofp, cmp, sq_att1, sq_att2, sp_srtd[j], sp_srtd[j-k], &difs);
+                            print_tl_out_data(tl_ofp, cmp, sq_att1, sq_att2, sp_srtd[j], sp_srtd[j-k], &difs, ext_limit);
+                            print_ol_out_data(*crnt_ol_ofp, i, ctrg[i], cmp, sq_att1, sq_att2, sp_srtd[j], sp_srtd[j-k], &difs, ext_limit);
                                                         
                             free(difs.cssq1);
                             free(difs.cssq2);
@@ -533,6 +564,10 @@ void find_ntbl_var_prs(compact_target ** ctrg, int wl, comparison_values * cmp, 
         }
         chdir("..");
     }
+    
+    //close one-line output files
+    fclose(ol_dif_ofp);
+    fclose(ol_sim_ofp);
     
     return;
 }
@@ -667,17 +702,88 @@ void cnt_dif_bps(mct_diffs * difs, min_con_table * mct1, min_con_table * mct2)
 void print_tl_out_hdr(FILE * ofp, char * db)
 {
     fprintf(ofp, "SecStruct:\t%s\n", db);
-    fprintf(ofp, "id\tfull_seq\tprediction_seq\tdot-bracket_annnotated\tdG\tTECdisplay\tz-score\tdelta z-score\tnp_tot\tn_sub\tp_tot\tp_sub\tp_swp\n");
+    fprintf(ofp, "id\tfull_seq\tprediction_seq\tdot-bracket_annnotated\tdG\text_dG\tnt_ext_unchanged\tcomparison_value\tz-score\tdelta_comparison_value\tabs_delta_comparison_value\tdelta_z-score\tabs_delta_z-score\ttot_nt_and_pair_difs\tnt_substitutions\ttot_pair_difs\tpair_substitutions\tpair_swaps\n");
     //^consider changing n/p nomenclature
     
     return;
 }
 
-/* print_tl_out_data: print data lines for two-line output file */
-void print_tl_out_data(FILE * ofp, comparison_values * cmp, sequence_attributes * sq_att1, sequence_attributes * sq_att2, structProps * sp1, structProps * sp2, mct_diffs * difs)
+/* print_tl_out_data: print data line for two-line output file */
+void print_tl_out_data(FILE * ofp, comparison_values * cmp, sequence_attributes * sq_att1, sequence_attributes * sq_att2, structProps * sp1, structProps * sp2, mct_diffs * difs, int ext_limit)
 {
-    fprintf(ofp, "%s\t%s\t%s\t%s\t%f\t%f\t%f\t%f\t%d\t%d\t%d\t%d\t%d\n", sq_att1->nm, sq_att1->sq1, difs->cssq1, sp1->db_an, sp1->dG, sq_att1->td_vals[cmp->ix], sp1->z, fabs(sp1->z - sp2->z), difs->np_tot, difs->n_sub, difs->p_tot, difs->p_sub, difs->p_swp);
-    fprintf(ofp, "%s\t%s\t%s\t%s\t%f\t%f\t%f\n-----\n", sq_att2->nm, sq_att2->sq1, difs->cssq2, sp2->db_an, sp2->dG, sq_att2->td_vals[cmp->ix], sp2->z);
+    fprintf(ofp, "%s\t%s\t%s\t%s\t%f\t%f\t%lu\t%f\t%f\t%f\t%f\t%f\t%f\t%d\t%d\t%d\t%d\t%d\n",
+            sq_att1->nm,
+            sq_att1->sq1,
+            difs->cssq1,
+            sp1->db_an,
+            sp1->dG,
+            sp1->ext_dG,
+            (sp1->ds == NULL) ? ext_limit : strlen(sp1->ds[0]->db) - strlen(sp1->db),
+            sq_att1->td_vals[cmp->ix],
+            sp1->z,
+            sq_att1->td_vals[cmp->ix] - sq_att2->td_vals[cmp->ix],
+            fabs(sq_att1->td_vals[cmp->ix] - sq_att2->td_vals[cmp->ix]),
+            sp1->z - sp2->z,
+            fabs(sp1->z - sp2->z),
+            difs->np_tot,
+            difs->n_sub,
+            difs->p_tot,
+            difs->p_sub,
+            difs->p_swp);
+    
+    fprintf(ofp, "%s\t%s\t%s\t%s\t%f\t%f\t%lu\t%f\t%f\n-----\n",
+            sq_att2->nm,
+            sq_att2->sq1,
+            difs->cssq2,
+            sp2->db_an,
+            sp2->dG,
+            sp2->ext_dG,
+            (sp2->ds == NULL) ? ext_limit : strlen(sp2->ds[0]->db) - strlen(sp2->db),
+            sq_att2->td_vals[cmp->ix],
+            sp2->z);
+    
+    return;
+}
+
+/* print_ol_out_hdr: print header line for one-line output file */
+void print_ol_out_hdr(FILE * ofp)
+{
+    fprintf(ofp, "id\tparent_sequence\tsequence_1\tannotated_dot_bracket_1\tstructure_1_deltaG\tstructure_1_ext_deltaG\tstructure_1_nt_ext_unchanged\tstructure_1_cmp_val\tstructure_1_z-score\tsequence_2\tannotated_dot_bracket_2\tstructure2_deltaG\tstructure_2_ext_deltaG\tstructure_2_nt_ext_unchanged\tstructure_2_cmp_val\tstructure_2_z-score\tdelta_comparison_value\tabs_delta_comparison_value\tdelta_z-score\tabs_delta_z-score\tdelta_delta_G\ttot_nt_and_pair_difs\tnt_substitutions\ttot_pair_difs\tpair_substitutions\tpair_swaps\n");
+    
+    return;
+}
+
+
+/* print_ol_out_data: print data line for one-line output file */
+void print_ol_out_data(FILE * ofp, int s_id, compact_target * ctrg, comparison_values * cmp, sequence_attributes * sq_att1, sequence_attributes * sq_att2, structProps * sp1, structProps * sp2, mct_diffs * difs, int ext_limit)
+{
+    fprintf(ofp, "%d\t%s\t%s\t%s\t%f\t%f\t%lu\t%f\t%f\t%s\t%s\t%f\t%f\t%lu\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%d\t%d\t%d\t%d\t%d\n",
+            s_id,
+            ctrg->csq,
+            difs->cssq1,
+            sp1->db_an,
+            sp1->dG,
+            sp1->ext_dG,
+            (sp1->ds == NULL) ? ext_limit : strlen(sp1->ds[0]->db) - strlen(sp1->db),
+            sq_att1->td_vals[cmp->ix],
+            sp1->z,
+            difs->cssq2,
+            sp2->db_an,
+            sp2->dG,
+            sp2->ext_dG,
+            (sp2->ds == NULL) ? ext_limit : strlen(sp2->ds[0]->db) - strlen(sp2->db),
+            sq_att2->td_vals[cmp->ix],
+            sp2->z,
+            sq_att1->td_vals[cmp->ix] - sq_att2->td_vals[cmp->ix],
+            fabs(sq_att1->td_vals[cmp->ix] - sq_att2->td_vals[cmp->ix]),
+            sp1->z - sp2->z,
+            fabs(sp1->z - sp2->z),
+            sp1->dG - sp2->dG,
+            difs->np_tot,
+            difs->n_sub,
+            difs->p_tot,
+            difs->p_sub,
+            difs->p_swp);
     
     return;
 }

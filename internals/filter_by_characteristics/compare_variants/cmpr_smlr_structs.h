@@ -43,7 +43,7 @@
 
 
 /* cmpr_smlr_structs: perform a systematic comparison of variants with closely-related structures to identify variants that exhibit large effects on function */
-void cmpr_smlr_structs(sequence_attributes * sq_att, descriptor * des, int seq_cnt, int des_cnt, comparison_values * cmp);
+void cmpr_smlr_structs(sequence_attributes * sq_att, descriptor * des, int seq_cnt, int des_cnt, comparison_values * cmp, int ext_limit);
 
 /* set_db_compact_target: generate compact_targets from structProps structures and associate the structProps struct with the compact_target */
 void set_db_compact_target(compact_target * ctrg, opt_db * db_val, structProps ** sp_list, int ctrg_cnt, sequence_attributes * sq_att, int seq_cnt, int des_ix, int des_typ);
@@ -58,7 +58,7 @@ void print_structure_inventory(compact_target ** ctrg, int wl, comparison_values
 void set_sp_z_scores(compact_target ** ctrg, int wl, comparison_values * cmp);
 
 /* find_ntbl_var_prs: find variant pairs that exhibit closely related structures but substantial functional differences */
-void find_ntbl_var_prs(compact_target ** ctrg, int wl, comparison_values * cmp, char * dir_nm);
+void find_ntbl_var_prs(compact_target ** ctrg, int wl, comparison_values * cmp, char * dir_nm, int ext_limit);
 
 /* sp_cmpfunc: simple float comparison function used to sort structProps array. */
 int sp_cmpfnc(const void * a, const void * b);
@@ -70,7 +70,13 @@ void cnt_dif_bps(mct_diffs * difs, min_con_table * mct1, min_con_table * mct2);
 /* print_tl_out_hdr: print header line for two-line output file */
 void print_tl_out_hdr(FILE * ofp, char * db);
 
-/* print_tl_out_data: print data lines for two-line output file */
-void print_tl_out_data(FILE * ofp, comparison_values * cmp, sequence_attributes * sq_att1, sequence_attributes * sq_att2, structProps * sp1, structProps * sp2, mct_diffs * difs);
+/* print_tl_out_data: print data line for two-line output file */
+void print_tl_out_data(FILE * ofp, comparison_values * cmp, sequence_attributes * sq_att1, sequence_attributes * sq_att2, structProps * sp1, structProps * sp2, mct_diffs * difs, int ext_limit);
+
+/* print_ol_out_hdr: print header line for one-line output file */
+void print_ol_out_hdr(FILE * ofp);
+
+/* print_ol_out_data: print data line for one-line output file */
+void print_ol_out_data(FILE * ofp, int s_id, compact_target * ctrg, comparison_values * cmp, sequence_attributes * sq_att1, sequence_attributes * sq_att2, structProps * sp1, structProps * sp2, mct_diffs * difs, int ext_limit);
 
 #endif /* cmpr_smlr_structs_h */

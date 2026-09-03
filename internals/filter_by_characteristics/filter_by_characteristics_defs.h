@@ -13,4 +13,7 @@
 #include "../global/global_defs.h"
 #include "../global/global_structs.h"
 
+#define DFLT_EXT_LIMIT 5
+#define MAX_EXT_LIMIT  10
+
 #endif /* filter_by_characteristics_defs_h */

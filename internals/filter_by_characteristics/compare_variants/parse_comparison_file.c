@@ -51,8 +51,11 @@ int parse_comparison_file(char * cmp_path, comparison_values ** cmp)
         printf("parse_comparison_file: error - failed to allocate memory for comparison values. aborting...");
         abort();
     }
-    (*cmp)->minZ  = LIMIT_INIT; //initialize minZ to min float value
-    (*cmp)->maxdG = LIMIT_INIT; //initialize maxdG to min float value
+        
+    for (i = 0; i < cmp_cnt; i++) {
+        (*cmp)[i].minZ  = LIMIT_INIT; //initialize minZ to min float value
+        (*cmp)[i].maxdG = LIMIT_INIT; //initialize maxdG to min float value
+    }
     
     //open comparison values file for parsing
     if ((cfp = fopen(cmp_path, "r")) == NULL) {
@@ -96,11 +99,11 @@ int parse_comparison_file(char * cmp_path, comparison_values ** cmp)
             while (!fnd_end) { //until the end of the string is found
                 
                 if (!memcmp(p_oth, min_z_dif_str, strlen(min_z_dif_str))) { //test if value is min_z_dif
-                    lmt2set = &(*cmp)->minZ;                                //set minZ as limit to set
+                    lmt2set = &(*cmp)[i].minZ;                              //set minZ as limit to set
                     p_lmt = &p_oth[strlen(min_z_dif_str)];                  //point p_lmt to value
                     
                 } else if (!memcmp(p_oth, max_dG_dif_str, strlen(max_dG_dif_str))) { //test if value is max_dG_dif
-                    lmt2set = &(*cmp)->maxdG;                                        //set maxdG as limit to set
+                    lmt2set = &(*cmp)[i].maxdG;                                      //set maxdG as limit to set
                     p_lmt = &p_oth[strlen(max_dG_dif_str)];                          //pointe p_lmt to value
                     
                 } else {

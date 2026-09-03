@@ -27,13 +27,13 @@
 #include "./parse_ct_file.h"
 
 /* set_attributes: manages sequence attribute setting */
-void set_attributes(sequence_attributes * sq_att, descriptor * des, int seq_cnt, int des_cnt, char * path2RNAstructure);
+void set_attributes(sequence_attributes * sq_att, descriptor * des, int seq_cnt, int des_cnt, char * path2RNAstructure, int ext_limit);
 
 /* set_nuc_id: set nucleotide_identity structure values */
 void set_nuc_id(nucleotide_identity * nuc_id, descriptor * des, sequence_attributes * sq_att);
 
 /* set_prx_dG: set proximal_deltaG structure values */
-void set_prx_dG(proximal_deltaG * prx_dG, descriptor * des, sequence_attributes * sq_att, char * path2RNAstructure);
+void set_prx_dG(proximal_deltaG * prx_dG, descriptor * des, sequence_attributes * sq_att, char * path2RNAstructure, int ext_limit);
 
 /* set_dst_dG: set distal_deltaG structure values */
 void set_dst_dG(distal_deltaG * dst_dG, descriptor * des, sequence_attributes * sq_att, char * path2RNAstructure);

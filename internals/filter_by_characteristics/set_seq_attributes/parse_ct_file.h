@@ -41,6 +41,7 @@ typedef struct con_table {
     double dG;    //deltaG
     struct con_table * prv; //pointer to previous con_table in doubly linked list
     struct con_table * nxt; //pointer to next con_table in doubly linked list
+    int root;
 } con_table;
 
 /* min_con_table: minimum connectivity table in which the indices to which the nucleotide at index i is paired */

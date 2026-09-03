@@ -70,14 +70,18 @@ int parse_ct_file(con_table * ct, char * ct_path, char * nm)
     
     for (i = 0, proceed = 1; proceed == 1; i++) { //until all connectivity tables have been processed
         
-        //after the first connectivity table is stored, subsequent connectivity tables
-        //from the same ct file are stored as a linked list. memory is allocated for the
-        //next connectivity table regardless of whether the ct file contains another
-        //connectivity table and then freed if it does not
-        if (i >= 1) {
+        if (i == 0) {          //processing first connectivity table
+            crnt_ct->root = 1; //set root flag to true
+            
+        } else if (i >= 1) {
+            
+            //after the first connectivity table is stored, subsequent connectivity tables
+            //from the same ct file are stored as a linked list. memory is allocated for the
+            //next connectivity table regardless of whether the ct file contains another
+            //connectivity table and then freed if it does not
             
             //allocate memory for next connectivity table
-            if ((crnt_ct->nxt = malloc(1 * sizeof(*(crnt_ct->nxt)))) == NULL) {
+            if ((crnt_ct->nxt = calloc(1, sizeof(*(crnt_ct->nxt)))) == NULL) {
                 printf("parse_ct_file: failed to allocate connectivity table memory. aborting...\n");
                 abort();
             }
@@ -85,6 +89,11 @@ int parse_ct_file(con_table * ct, char * ct_path, char * nm)
             prev_ct = crnt_ct;      //point prev_ct to the last con_table structure that was processed
             crnt_ct = crnt_ct->nxt; //point crnt_ct to the newly allocated con_table structure
             crnt_ct->prv = prev_ct; //establish doubly linked list
+            crnt_ct->root = 0;      //set root flag to false (should be initialized to zero, but keeping this)
+        
+        } else {
+            printf("parse_ct_file: error - should not be possible to reach this. aborting...\n");
+            abort();
         }
         
         proceed = parse_ct_line1(crnt_ct, p_ct, nm); //parse ct file line 1. the return value indicates whether
@@ -160,7 +169,7 @@ int parse_ct_line1(con_table * ct, FILE * p_ct, char * nm)
     
     //parse sequence title
     if (!strcmp(p_val, nm)) { //if sequence title matches fasta name, store sequence title
-        if ((ct->ttl = malloc((strlen(p_val)+1) * sizeof(*ct->ttl))) == NULL) {
+        if ((ct->ttl = calloc((strlen(p_val)+1), sizeof(*ct->ttl))) == NULL) {
             printf("parse_ct_file: error - failed to allocate memory for ct file title. aborting...\n");
             abort();
         }
@@ -272,12 +281,12 @@ void parse_char_substring(char * line, int * i, char * field_nm)
 void init_con_table_mem(con_table * ct)
 {
     //allocate memory for con_table members
-    ct->n   = malloc(ct->len * sizeof(*ct->n));
-    ct->nm1 = malloc(ct->len * sizeof(*ct->nm1));
-    ct->np1 = malloc(ct->len * sizeof(*ct->np1));
-    ct->pr2 = malloc(ct->len * sizeof(*ct->pr2));
-    ct->nat = malloc(ct->len * sizeof(*ct->nat));
-    ct->bs  = malloc(ct->len+1 * sizeof(*ct->bs));
+    ct->n   = calloc(ct->len, sizeof(*ct->n));
+    ct->nm1 = calloc(ct->len, sizeof(*ct->nm1));
+    ct->np1 = calloc(ct->len, sizeof(*ct->np1));
+    ct->pr2 = calloc(ct->len, sizeof(*ct->pr2));
+    ct->nat = calloc(ct->len, sizeof(*ct->nat));
+    ct->bs  = calloc(ct->len+1, sizeof(*ct->bs));
     
     //if memory allocation for any member failed, throw error and abort
     if (ct->n   == NULL ||
@@ -326,7 +335,9 @@ void free_con_table_mem(con_table * ct, int ct_cnt)
     } else if (ct_cnt > 1) {            //if there was more than one connectivity table in the ct file
         while (crnt_ct->prv != NULL) {  //until the root con_table struct is reached
             crnt_ct = crnt_ct->prv;     //set crnt_ct to point to the previous con_table in the linked list
-            free(crnt_ct->nxt);         //free the next con_table in the linked list
+            if (!crnt_ct->nxt->root) {  //if the con_table pointed to by nxt is not the root (i.e. nxt was allocated)
+                free(crnt_ct->nxt);     //free the next con_table in the linked list
+            }                           //NOTE: this accommodates mem freeing of reordered con_table linked lists
             crnt_ct->nxt = NULL;        //set the pointer to the next con_table to NULL
         }
     }
@@ -353,14 +364,14 @@ void set_min_con_table(min_con_table * mct, con_table * ct, char * sq, char * db
     } else if (mode == STORE_COPY) { //in STORE_COPY mode
         
         //allocate memory for sequence and store sequence
-        if ((mct->sq = malloc((strlen(sq)+1) * sizeof(*mct->sq))) == NULL) {
+        if ((mct->sq = calloc((strlen(sq)+1), sizeof(*mct->sq))) == NULL) {
             printf("set_min_con_table: error - failed to allocate memory for sequence. aborting...\n");
             abort();
         }
         strcpy(mct->sq, sq);
         
         //allocate memory for dot-bracket string and store string
-        if ((mct->db = malloc((strlen(db)+1) * sizeof(*mct->db))) == NULL) {
+        if ((mct->db = calloc((strlen(db)+1), sizeof(*mct->db))) == NULL) {
             printf("set_min_con_table: error - failed to allocate memory for dot-bracket string. aborting...\n");
             abort();
         }
@@ -541,7 +552,7 @@ void dot2ct(con_table * ct, char * sq, char * db)
     char * db_msk = NULL; //pointer for allocating mem for masked dot-bracket string
     
     //allocate memory for masked dot-bracket string
-    if ((db_msk = malloc(ct->len+1 * sizeof(*db_msk))) == NULL) {
+    if ((db_msk = calloc(ct->len+1, sizeof(*db_msk))) == NULL) {
         printf("dot2ct: error - failed to allocate memory for masked dot-bracket string. aborting...\n");
         abort();
     }

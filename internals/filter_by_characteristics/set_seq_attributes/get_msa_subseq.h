@@ -22,6 +22,7 @@
 #define BOUND2_LENGTH 1
 
 /* get_msa_subseq: get subsequence from multiple sequence alignment line */
+//NOTE: input sequence indexing must match the true numbering of the sequence (index 0 should have a placeholder char)
 int get_msa_subseq(char ** seq, char * msa, int b1, int b2, int mode);
 
 #endif /* get_msa_subseq_h */

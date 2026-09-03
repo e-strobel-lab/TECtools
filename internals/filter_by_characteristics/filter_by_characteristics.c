@@ -66,6 +66,8 @@ int main(int argc, char *argv[])
     
     int msa_typ = FILE_TYPE_INIT; //multiple sequence alignment file type
     
+    int ext_limit = DFLT_EXT_LIMIT; //number of extensions to perform when finding downstream structures
+    
     int i = 0; //general purpose index
     int j = 0; //general purpose index
     
@@ -81,10 +83,11 @@ int main(int argc, char *argv[])
             {"comparison",        required_argument,  0,  'C'}, //comparison file
             {"descriptor",        required_argument,  0,  'd'}, //descriptor file
             {"RNAstructure-path", required_argument,  0,  'R'}, //RNAstructure fold path
+            {"extension-limit",   required_argument,  0,  'X'}, //extension limit for downstream structures
             {0, 0, 0, 0}
         };
         
-        c = getopt_long(argc, argv, "i:D:C:d:R:", long_options, &option_index);
+        c = getopt_long(argc, argv, "i:D:C:d:R:X:", long_options, &option_index);
         
         if (c == -1) {
             break;
@@ -142,6 +145,16 @@ int main(int argc, char *argv[])
                 strcpy(path2RNAStructure, argv[optind-1]); //store path to RNAStructure directory
                 path2RNAStructure_provided++;              //increment path2RNAStructure_provided flag (a check that only one path
                 break;                                     //was provided is performed in the 'check_input' function below)
+            
+            case 'X':
+                for (i = 0; argv[optind-1][i]; i++) {  //check that argument is composed of digits
+                    if (!isdigit(argv[optind-1][i])) {
+                        printf("filter_by_characteristics: error - extension limit must be composed of digits.\n");
+                        abort();
+                    }
+                }
+                ext_limit = atoi(argv[optind-1]); //set extension limit
+                break;
                 
             default: printf("error: unrecognized option. Aborting program...\n"); abort();
         }
@@ -194,13 +207,13 @@ int main(int argc, char *argv[])
     //set sequence attributes
     descriptor_bank des_bnk = {0}; //descriptor structure bank
     
-    init_seq_attributes(&sq_att, des, &des_bnk, seq_cnt, des_cnt, &typ_cnt[0]); //initialize seq_attributes struct
-    set_attributes(sq_att, des, seq_cnt, des_cnt, path2RNAStructure);           //set attributes for each input sequence
-    print_annotated_data(sq_att, seq_cnt, des_cnt, tecd_data_hdr);              //print output file containing annotated data
+    init_seq_attributes(&sq_att, des, &des_bnk, seq_cnt, des_cnt, &typ_cnt[0]);  //initialize seq_attributes struct
+    set_attributes(sq_att, des, seq_cnt, des_cnt, path2RNAStructure, ext_limit); //set attributes for each input seq
+    print_annotated_data(sq_att, seq_cnt, des_cnt, tecd_data_hdr);               //print output file containing annotated data
     
     //perform comparisons
     for (i = 0; i < cmp_cnt; i++) {
-        cmpr_smlr_structs(sq_att, des, seq_cnt, des_cnt, &cmp[i]);
+        cmpr_smlr_structs(sq_att, des, seq_cnt, des_cnt, &cmp[i], ext_limit);
     }
     
     //cmpr_smlr_seqs(msa_path, msa_typ, sq_att, seq_cnt);

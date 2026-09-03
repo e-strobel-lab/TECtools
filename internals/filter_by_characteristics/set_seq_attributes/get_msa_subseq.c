@@ -18,6 +18,7 @@
 #include "get_msa_subseq.h"
 
 /* get_msa_subseq: get subsequence from multiple sequence alignment line */
+//NOTE: input sequence indexing must match the true numbering of the sequence (index 0 should have a placeholder char)
 int get_msa_subseq(char ** seq, char * msa, int b1, int b2, int mode)
 {
     //NOTE: for nucleotide identity descriptors, bound 1 is the index at

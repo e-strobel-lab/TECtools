@@ -36,8 +36,11 @@ typedef struct structProps {
     char * db;
     char * db_an;
     double dG;
+    double ext_dG;            //deltaG if structure is extended with unpaired nts
     double z;                 //z-score for TECdisplay comparison value as part of distribution of related structProps
+    int mul;                  //number of predictions made
     min_con_table mct;
+    struct structProps ** ds; //downstream structure predictions
     struct structProps * nxt;
 } structProps;
 
