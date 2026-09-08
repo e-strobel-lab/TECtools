@@ -23,6 +23,9 @@
 
 /* get_msa_subseq: get subsequence from multiple sequence alignment line */
 //NOTE: input sequence indexing must match the true numbering of the sequence (index 0 should have a placeholder char)
-int get_msa_subseq(char ** seq, char * msa, int b1, int b2, int mode);
+int get_msa_subseq(char ** seq, char * msa, int b1, int b2, int mode, char * pre, char * nxt, int set_pre, int set_nxt);
+
+/* ret_upper_rna_nt: return uppercase RNA nucleotide base of input char */
+char ret_upper_rna_nt(char c);
 
 #endif /* get_msa_subseq_h */

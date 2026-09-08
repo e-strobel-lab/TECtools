@@ -42,6 +42,9 @@ void set_dst_dG(distal_deltaG * dst_dG, descriptor * des, sequence_attributes * 
 void set_ss_len(subsequence_length * ss_len, descriptor * des, sequence_attributes * sq_att);
 
 /* set_structProps: set structProps values */
-void set_structProps(sequence_attributes * sq_att, void * att, int att_typ, char * sq, structProps * sp, con_table * ct, int ct_cnt);
+void set_structProps(sequence_attributes * sq_att, char pre, char nxt, void * att, int att_typ, char * sq, structProps * sp, con_table * ct, int ct_cnt, descriptor * des, char * path2RNAStructure);
+
+/* set_ext_dG: extend sequence used for structure prediction by one unpaired nt on either side and perform prediction to assess whether a lower deltaG is predicted */
+void set_ext_dG(structProps * sp, char pre, char nxt, sequence_attributes * sq_att, descriptor * des, char * path2RNAstructure);
 
 #endif /* set_attributes_h */

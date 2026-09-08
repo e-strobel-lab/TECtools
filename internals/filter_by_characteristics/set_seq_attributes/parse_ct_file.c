@@ -109,6 +109,11 @@ int parse_ct_file(con_table * ct, char * ct_path, char * nm)
         }
     }
     
+    if (fclose(p_ct) == EOF) {
+        printf("parse_ct_file: error - failed to close ct file. aborting...\n");
+        abort();
+    }
+    
     return i-1; //return number of ct tables parsed from ct file
 }
 

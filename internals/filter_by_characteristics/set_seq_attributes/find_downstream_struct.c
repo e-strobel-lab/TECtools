@@ -27,6 +27,7 @@
 #include "find_downstream_struct.h"
 
 //NOTE: need control on whether this is run - don't need to run extra predictions if assessing full sequence, prob not necessary with reactivity constraints either
+//NOTE: currently only works for proximal deltaG predictions
 /* find_downstream_struct: perform iterative structure predictions to identify structures downstream of an initial structure */
 int find_downstream_struct(structProps * sp, descriptor * des, sequence_attributes * sq_att, char * path2RNAStructure, char * nm, char * path2ct, int ct_path_maxlen, int ptyp, int ext_limit)
 {
@@ -50,9 +51,7 @@ int find_downstream_struct(structProps * sp, descriptor * des, sequence_attribut
     int j = 0; //general purpose index
     int x = 1; //extension length of current prediction
     int c = 0; //index/count of kept connectivity tables
-    
-    double last_dG = 0.0; //storage for last predicted structure's delta G
-    
+        
     con_table * ds_ct = NULL;        //pointer for allocating connectivity table structures
     con_table ** ds_ct2keep = NULL;  //ptr to ptr for cts that will be kept. handles multiple prediction cases
     con_table * crnt_ds_ct = NULL;   //current downstream connectivity table
@@ -79,10 +78,13 @@ int find_downstream_struct(structProps * sp, descriptor * des, sequence_attribut
     
     int len = 0; //string length
     
-    int xtndd_orig = 0; //flag that original structure was extended\
+    int xtndd_orig = 0; //flag that original structure was extended
+    
+    char pre_nt[MAX_EXT_LIMIT+1] = {0}; //array for storing preceeding nucleotide characters
+    char nxt_nt[MAX_EXT_LIMIT+1] = {0}; //array for storing next nucleotide characters
     
     //get longest sequene to be used for prediction
-    get_msa_subseq(&tmp, sq_att->sq0, des->wndw[0].b1, des->wndw[0].b2 + ext_limit, BOUND2_INDEX);
+    get_msa_subseq(&tmp, sq_att->sq0, des->wndw[0].b1, des->wndw[0].b2 + ext_limit, BOUND2_INDEX, NULL, NULL, 0, 0);
     strcpy(full, tmp);                     //store fully extended prediction sequence
     
     if (verbose) {
@@ -103,8 +105,9 @@ int find_downstream_struct(structProps * sp, descriptor * des, sequence_attribut
             abort();
         }
         
-        get_msa_subseq(&tmp, sq_att->sq0, des->wndw[0].b1, des->wndw[0].b2 + x, BOUND2_INDEX); //get extended subseq
-        mk_fasta_file(tmp_nm, tmp, tmp_fasta_path); //generate fasta file for extended subsequence
+        //get extended subseq and generate fasta file
+        get_msa_subseq(&tmp, sq_att->sq0, des->wndw[0].b1, des->wndw[0].b2 + x, BOUND2_INDEX, &pre_nt[c], &nxt_nt[c], 1, 1);
+        mk_fasta_file(tmp_nm, tmp, tmp_fasta_path);
         
         //perform structure prediction using RNAStructure Fold algorithm
         run_RNAStructure_Fold(path2RNAStructure, tmp_nm, tmp_fasta_path, ct_output_path, fa_sffx, path2ct, MAX_LINE, des->act.ptyp);
@@ -176,13 +179,6 @@ int find_downstream_struct(structProps * sp, descriptor * des, sequence_attribut
 
             //current prediction extends the previous prediction by one unpaired nucleotide
             
-            if (!c) {                  //have not yet found a new structure
-                xtndd_orig = 1;        //set flag that original structure was extended by at least one nt
-                last_dG = crnt_ds_ct->dG; //store last deltaG value
-            } else {
-                last_dG = 0;
-            }
-            
             len = strlen(prev_db);                  //set the length of the previous prediction
             prev_db[len]   = '.';                   //add a '.' char to the previous prediction
             prev_db[len+1] = '\0';                  //terminate the previous prediction string
@@ -193,21 +189,11 @@ int find_downstream_struct(structProps * sp, descriptor * des, sequence_attribut
             
             ds_ct2keep[c] = crnt_ds_ct;
             
-            if (!c && xtndd_orig) {   //if the original structure was extended prior to prediction of a new structure
-                sp->ext_dG = last_dG; //store extended structure deltaG value
-            }
-            
             strcpy(prev_db, crnt_ds_ct->db); //store current dot-bracket structure for comparison to next prediction
             c++;                             //increment connectivity table index
         }
         
         free(tmp); //free temporary sequence storage
-    }
-    
-    //in cases where the original structure persisted through all extensions until ext_limit was reached,
-    //store last deltaG value
-    if (!c && xtndd_orig) {
-        sp->ext_dG = last_dG;
     }
     
     if (c) {
@@ -228,7 +214,7 @@ int find_downstream_struct(structProps * sp, descriptor * des, sequence_attribut
                 printf("find_downstream_struct: error - failed to allocate extended structProps memory. aborting...\n");
                 abort();
             }
-            set_structProps(sq_att, NULL, TYPE_INIT, ds_ct2keep[i]->bs, sp->ds[i], ds_ct2keep[i], 1);  //set structProps values
+            set_structProps(sq_att, pre_nt[c], nxt_nt[c], NULL, TYPE_INIT, ds_ct2keep[i]->bs, sp->ds[i], ds_ct2keep[i], 1, des, path2RNAStructure);  //set structProps values
             if (verbose) {
                 printf("%5.1f\t%s\n", ds_ct2keep[i]->dG, ds_ct2keep[i]->db);
             }

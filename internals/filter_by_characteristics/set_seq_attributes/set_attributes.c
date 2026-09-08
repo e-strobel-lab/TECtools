@@ -89,7 +89,7 @@ void set_nuc_id(nucleotide_identity * nuc_id, descriptor * des, sequence_attribu
     nuc_id->sq_att = sq_att; //set pointer to associated sequence attributes structure
     
     //store multiple sequence alignment subsequence in nucleotide_identity structure
-    get_msa_subseq(&nuc_id->sq, sq_att->sq0, des->wndw[0].b1, des->wndw[0].b2, BOUND2_LENGTH);
+    get_msa_subseq(&nuc_id->sq, sq_att->sq0, des->wndw[0].b1, des->wndw[0].b2, BOUND2_LENGTH, NULL, NULL, 0, 0);
     //printf("%s\n", nuc_id->sq);
     
     return;
@@ -113,7 +113,9 @@ void set_prx_dG(proximal_deltaG * prx_dG, descriptor * des, sequence_attributes 
     prx_dG->sq_att = sq_att; //set pointer to associated sequence attributes structure
         
     //store multiple sequence alignment subsequence in proximal deltaG structure
-    get_msa_subseq(&prx_dG->sq, sq_att->sq0, des->wndw[0].b1, des->wndw[0].b2, BOUND2_INDEX);
+    char pre_nt = '\0';
+    char nxt_nt = '\0';
+    get_msa_subseq(&prx_dG->sq, sq_att->sq0, des->wndw[0].b1, des->wndw[0].b2, BOUND2_INDEX, &pre_nt, &nxt_nt, 1, 1);
         
     //generate fasta file that will be used for RNA structure prediction
     char fa_nm[MAX_LINE+1] = {0}; //array to store fasta name
@@ -134,7 +136,7 @@ void set_prx_dG(proximal_deltaG * prx_dG, descriptor * des, sequence_attributes 
     prx_dG->sp_cnt = parse_ct_file(&ct, path2ct, fa_nm); //parse connectivity table and set sp_count for attribute
     des->tot_sp += prx_dG->sp_cnt;                       //increment total number of structProps for current descriptor
     
-    set_structProps(sq_att, prx_dG, PRX_DG, prx_dG->sq, &prx_dG->sp, &ct, prx_dG->sp_cnt);  //set structProps values
+    set_structProps(sq_att, pre_nt, nxt_nt, prx_dG, PRX_DG, prx_dG->sq, &prx_dG->sp, &ct, prx_dG->sp_cnt, des, path2RNAStructure);  //set structProps values
     free_con_table_mem(&ct, prx_dG->sp_cnt);                                    //free allocated con_table memory
     
     //perform analysis of possible downstream structure by extending the sequence
@@ -185,8 +187,10 @@ void set_dst_dG(distal_deltaG * dst_dG, descriptor * des, sequence_attributes * 
     dst_dG->sq_att = sq_att; //set pointer to associated sequence attributes structure
     
     //store multiple sequence alignment subsequences in distal deltaG structure
-    get_msa_subseq(&dst_dG->up, sq_att->sq0, des->wndw[0].b1, des->wndw[0].b2, BOUND2_INDEX);
-    get_msa_subseq(&dst_dG->dn, sq_att->sq0, des->wndw[1].b1, des->wndw[1].b2, BOUND2_INDEX);
+    char pre_nt = '\0';
+    char nxt_nt = '\0';
+    get_msa_subseq(&dst_dG->up, sq_att->sq0, des->wndw[0].b1, des->wndw[0].b2, BOUND2_INDEX, &pre_nt, NULL, 1, 0);
+    get_msa_subseq(&dst_dG->dn, sq_att->sq0, des->wndw[1].b1, des->wndw[1].b2, BOUND2_INDEX, NULL, &nxt_nt, 0, 1);
     
     //printf("%s\n", dst_dG->up);
     //printf("%s\n", dst_dG->dn);
@@ -225,7 +229,7 @@ void set_dst_dG(distal_deltaG * dst_dG, descriptor * des, sequence_attributes * 
     dst_dG->sp_cnt = parse_ct_file(&ct, path2ct, fa_nm); //parse connectivity table and set sp_count for attribute
     des->tot_sp += dst_dG->sp_cnt;                       //increment total number of structProps for current descriptor
     
-    set_structProps(sq_att, dst_dG, DST_DG, dst_dG->sq, &dst_dG->sp, &ct, dst_dG->sp_cnt);  //set structProps values
+    set_structProps(sq_att, pre_nt, nxt_nt, dst_dG, DST_DG, dst_dG->sq, &dst_dG->sp, &ct, dst_dG->sp_cnt, des, path2RNAStructure);  //set structProps values
     free_con_table_mem(&ct, dst_dG->sp_cnt);                                    //free allocated con_table memory
     
     snprintf(command, MAX_LINE, "rm %s* %s*", tmp_fasta_path,  ct_output_path); //make command for removing temp files
@@ -245,7 +249,7 @@ void set_ss_len(subsequence_length * ss_len, descriptor * des, sequence_attribut
     ss_len->sq_att = sq_att; //set pointer to associated sequence attributes structure
     
     //store multiple sequence alignment subsequence and subsequence length in subsequence length structure
-    get_msa_subseq(&ss_len->sq, sq_att->sq0, des->wndw[0].b1, des->wndw[0].b2, BOUND2_INDEX);
+    get_msa_subseq(&ss_len->sq, sq_att->sq0, des->wndw[0].b1, des->wndw[0].b2, BOUND2_INDEX, NULL, NULL, 0, 0);
     ss_len->len = strlen(ss_len->sq);
     
     //printf("%s\n", ss_len->sq);
@@ -254,7 +258,7 @@ void set_ss_len(subsequence_length * ss_len, descriptor * des, sequence_attribut
 }
 
 /* set_structProps: set structProps values */
-void set_structProps(sequence_attributes * sq_att, void * att, int att_typ, char * sq, structProps * sp, con_table * ct, int ct_cnt)
+void set_structProps(sequence_attributes * sq_att, char pre, char nxt, void * att, int att_typ, char * sq, structProps * sp, con_table * ct, int ct_cnt, descriptor * des, char * path2RNAStructure)
 {
     structProps * crnt_sp = sp; //pointer to current structProps structure
     con_table * crnt_ct = ct;   //pointer to current connectivity table
@@ -296,8 +300,94 @@ void set_structProps(sequence_attributes * sq_att, void * att, int att_typ, char
         }
         strcpy(crnt_sp->db_an, crnt_ct->db_an);
         
+        set_ext_dG(crnt_sp, pre, nxt, sq_att, des, path2RNAStructure);
+        
         set_min_con_table(&crnt_sp->mct, crnt_ct, sq, crnt_sp->db_an, POINT_TO); //store con_table as min_con_table
     }
     
+    return;
+}
+
+/* set_ext_dG: extend sequence used for structure prediction by one unpaired nt on either side and perform prediction to assess whether a lower deltaG is predicted */
+void set_ext_dG(structProps * sp, char pre, char nxt, sequence_attributes * sq_att, descriptor * des, char * path2RNAStructure)
+{
+    extern char path2fold[MAX_LINE+1];
+    extern char tmp_fasta_path[11];
+    extern char ct_output_path[11];
+    extern char fa_sffx[4];
+    
+    int i = 0; //general purpose index
+    
+    char tmp[MAX_LINE+1] = {0}; //extended sequence storage
+    char tmp_nm[8] = "ext_tmp"; //temporary fasta name
+    int ret = 0;                //return value of snprintf
+    
+    con_table ct = {0};         //connectivity table data storage
+    con_table * crnt_ct = NULL; //pointer to current con_table structure
+    int ct_cnt;                 //connectivity table count
+    
+    char path2ct[MAX_LINE+1];   //path to connectivity table file
+    
+    char * p_dbss = NULL;       //pointer to dot-bracket substring
+    int fnd_substr = 0;         //flag that substring was found
+    
+    if (sp->db[strlen(sp->db)-1] == '.') { //if the last position of the dot-bracket structure is unpaired,
+        sp->ext_dG = sp->dG;               //skip extended structure prediction and set ext_dG to dG
+        
+    } else if (sp->db[strlen(sp->db)-1] == ')') { //if the last position of the dot-bracket structure is paired
+        
+        //perform prediction of extended structure
+        
+        //generate extended sequence string
+        if (pre) { //if there is a preceding nucleotide, include in extended structure string
+            ret = snprintf(tmp, MAX_LINE, "%c%s%c", tolower(pre), sp->sq, tolower(nxt));
+        } else {   //otherwise, only include next nucleotide
+            ret = snprintf(tmp, MAX_LINE, "%s%c", sp->sq, tolower(nxt));
+        }
+        if (ret >= MAX_LINE || ret < 0) {
+            printf("set_ext_dG: error - failed to extended prediction sequence. aborting...\n");
+            abort();
+        }
+        
+        //generate fasta file for extended sequence
+        mk_fasta_file(tmp_nm, tmp, tmp_fasta_path);
+            
+        //run structure prediction using RNAstructure Fold algorithm
+        run_RNAStructure_Fold(path2RNAStructure, tmp_nm, tmp_fasta_path, ct_output_path, fa_sffx, path2ct, MAX_LINE, des->act.ptyp);
+        
+        //parse connectivity table and set ct_cnt
+        ct_cnt = parse_ct_file(&ct, path2ct, tmp_nm);
+        
+        //test whether source structure is a substructure of the extended structure
+        for (i = 0, crnt_ct = &ct, fnd_substr = 0; i < ct_cnt && !fnd_substr; i++) {
+            
+            if (i) {                    //if not on first iteration
+                crnt_ct = crnt_ct->nxt; //point crnt_ct to next con_table struct
+                if (crnt_ct == NULL) {
+                    printf("set_ext_dG: error - unexpectedly few connectivity tables. aborting...\n");
+                    abort();
+                }
+            }
+            
+            //if the source structure is a substructure of the extended structure
+            //(i.e. the extended structure is identical to the source structure
+            //except that it is extended by one '.' char), set the ext_dG member
+            //of sp to the deltaG stored in the current connectivity table and
+            //set flag that a substructure was found to end the loop above
+            if ((p_dbss = strstr(crnt_ct->db, sp->db)) != NULL) {
+                if ((uint64_t)(p_dbss) == (uint64_t)(crnt_ct->db) && crnt_ct->db[strlen(sp->db)] == '.') {
+                    sp->ext_dG = crnt_ct->dG;
+                    fnd_substr = 1;
+                }
+            }
+        }
+    } else { //last character in dot-bracket structure must be '.' or '('
+        printf("set_ext_dG: error - unexpected character %c (ASCII %d) at end of dot-bracket structure. aborting...\n", sp->db[strlen(sp->db)-1], sp->db[strlen(sp->db)-1]);
+        abort();
+        
+    }
+    
+    //printf("%f\t%f\n", sp->dG, sp->ext_dG);
+
     return;
 }

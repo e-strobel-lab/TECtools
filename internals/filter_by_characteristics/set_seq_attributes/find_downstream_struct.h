@@ -27,6 +27,8 @@
 #include "./parse_ct_file.h"
 #include "./set_attributes.h"
 
+//NOTE: need control on whether this is run - don't need to run extra predictions if assessing full sequence, prob not necessary with reactivity constraints either
+//NOTE: currently only works for proximal deltaG predictions
 /* find_downstream_struct: perform iterative structure predictions to identify structures downstream of an initial structure */
 int find_downstream_struct(structProps * sp, descriptor * des, sequence_attributes * sq_att, char * path2RNAStructure, char * nm, char * path2ct, int ct_path_maxlen, int ptyp, int ext_limit);
 
