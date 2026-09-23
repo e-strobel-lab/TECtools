@@ -64,8 +64,8 @@ void mk_htbl_MUX(compact_h_node ** htbl_MUX, compact_h_node_bank * bank, compact
         
         if ((*p_rdnd) == NULL) {                    //no existing hash table node for target sequence
             (*p_rdnd) = &bank->chn[bank->count++];  //assign node from hash node bank
-            if (bank->count == BLOCK_SIZE) {        //check that bank was not filled
-                extend_ch_bank(bank);               //extend bank if needed
+            if (bank->count >= BLOCK_SIZE) {        //check that bank was not filled
+                extend_ch_bank(&bank);              //extend bank if needed
             }
             (*p_rdnd)->ctrg = &(ctrg[i]);           //set node to point to current target
             new_node++;                             //increment new_node counter

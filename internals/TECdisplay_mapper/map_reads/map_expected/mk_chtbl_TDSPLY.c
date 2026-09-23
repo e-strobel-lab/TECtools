@@ -88,8 +88,8 @@ int mk_chtbl_TDSPLY(compact_h_node **chtbl, compact_h_node_bank *chn_bank, compa
             (*p_refnd) = &chn_bank->chn[chn_bank->count++]; //assign node from hash node bank
             (*p_refnd)->ctrg = &(ctrg[i]);                  //set node to point to current target
             
-            if (chn_bank->count == BLOCK_SIZE) {            //check whether bank was filled
-                extend_ch_bank(chn_bank);                    //if filled, extend bank
+            if (chn_bank->count >= BLOCK_SIZE) {            //check whether bank was filled
+                extend_ch_bank(&chn_bank);                  //if filled, extend bank
             }
             
             new_node++;                                 //increment new_node counter

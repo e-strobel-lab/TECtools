@@ -150,8 +150,8 @@ void mk_htbl_3pEnd(h_node **htbl, h_node_bank *bank, target *trgts, int count)
         p_rdnd = srch_htbl(trgts[i].key, htbl);		//search hash table for duplicate entries
         if ((*p_rdnd) == NULL) {					//no existing hash table node for target sequence
             (*p_rdnd) = &bank->hn[bank->count++];	//assign node from hash node bank
-            if (bank->count == BLOCK_SIZE) {		//check that bank was not filled
-                extend_h_bank(bank);				//extend bank if needed //TODO: currently not used
+            if (bank->count >= BLOCK_SIZE) {		//check that bank was not filled
+                extend_h_bank(&bank);				//extend bank if needed //TODO: currently not used
             }
             (*p_rdnd)->trg = &(trgts[i]);			//set node to point to current target
             new_node++;								//increment new_node counter

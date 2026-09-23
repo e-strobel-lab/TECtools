@@ -302,14 +302,14 @@ void copy_binary_seq(binary_seq * bsq1, binary_seq * bsq2)
 }
 
 /* extend_ch_bank: used to increase the size of the compact target hash table node bank. */
-void extend_ch_bank(compact_h_node_bank *crrnt_chn_bank)
+void extend_ch_bank(compact_h_node_bank **crrnt_chn_bank)
 {
-    if ((crrnt_chn_bank->nxt = calloc(1, sizeof(*(crrnt_chn_bank->nxt)))) == NULL) {
+    if (((*crrnt_chn_bank)->nxt = calloc(1, sizeof(*((*crrnt_chn_bank)->nxt)))) == NULL) {
         printf("extend_ch_bank: error - hash table node bank memory allocation failed\n");
         abort();
     }
-    crrnt_chn_bank = crrnt_chn_bank->nxt;
-    if ((crrnt_chn_bank->chn = calloc(BLOCK_SIZE, sizeof(*(crrnt_chn_bank->chn)))) == NULL) {
+    (*crrnt_chn_bank) = (*crrnt_chn_bank)->nxt;
+    if (((*crrnt_chn_bank)->chn = calloc(BLOCK_SIZE, sizeof(*((*crrnt_chn_bank)->chn)))) == NULL) {
         printf("extend_ch_bank: error - hash table node memory allocation failed\n");
         abort();
     }

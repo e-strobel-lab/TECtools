@@ -119,14 +119,14 @@ uint64_t seq2bin_hash(char *hash_seq) {
 
 
 /* extend_h_bank: used to increase the size of the has table node bank. Not currently used. */
-void extend_h_bank(h_node_bank *crrnt_hn_bank)
+void extend_h_bank(h_node_bank **crrnt_hn_bank)
 {
-    if ((crrnt_hn_bank->nxt = calloc(1, sizeof(*(crrnt_hn_bank->nxt)))) == NULL) {
+    if (((*crrnt_hn_bank)->nxt = calloc(1, sizeof(*((*crrnt_hn_bank)->nxt)))) == NULL) {
         printf("srch_h_tbl: error - hash table node bank memory allocation failed\n");
         abort();
     }
-    crrnt_hn_bank = crrnt_hn_bank->nxt;
-    if ((crrnt_hn_bank->hn = calloc(BLOCK_SIZE, sizeof(*(crrnt_hn_bank->hn)))) == NULL) {
+    (*crrnt_hn_bank) = (*crrnt_hn_bank)->nxt;
+    if (((*crrnt_hn_bank)->hn = calloc(BLOCK_SIZE, sizeof(*((*crrnt_hn_bank)->hn)))) == NULL) {
         printf("srch_h_tbl: error - hash table node memory allocation failed\n");
         abort();
     }

@@ -81,8 +81,8 @@ int mk_htbl_TDSPLY(h_node **htbl, h_node_bank *bank, target *trgts, target *refs
             (*p_refnd) = &bank->hn[bank->count++];      //assign node from hash node bank
             (*p_refnd)->trg = &(trgts[i]);              //set node to point to current target
             
-            if (bank->count == BLOCK_SIZE) {            //check whether bank was filled
-                extend_h_bank(bank);                    //if filled, extend bank
+            if (bank->count >= BLOCK_SIZE) {            //check whether bank was filled
+                extend_h_bank(&bank);                   //if filled, extend bank
             }
             
             new_node++;                                 //increment new_node counter

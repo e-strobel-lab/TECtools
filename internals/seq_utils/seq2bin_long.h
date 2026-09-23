@@ -63,6 +63,6 @@ void print_bin_seq(char * ipt);
 void fprint_bin_seq(FILE * out_fp, char * ipt);
 void bin2seq(char * seq, binary_seq * bsq, int len);
 void copy_binary_seq(binary_seq * bsq1, binary_seq * bsq2);
-void extend_ch_bank(compact_h_node_bank *crrnt_chn_bank);
+void extend_ch_bank(compact_h_node_bank **crrnt_chn_bank);
 
 #endif /* seq2bin_long_h */

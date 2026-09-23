@@ -53,7 +53,7 @@ struct h_node** srch_htbl(char *query, h_node **htbl);
 uint64_t seq2bin_hash(char *hash_seq);
 
 /* extend_h_bank: increase hash table node bank size */
-void extend_h_bank(h_node_bank *crrnt_hn_bank);
+void extend_h_bank(h_node_bank **crrnt_hn_bank);
 
 /* printbin: print binary representation of uint64_t value */
 void printbin(uint64_t x);
