@@ -165,12 +165,13 @@ int prcs_MUX_cotrans(TPROBE_names * nm, FILE * fp_MUXtrgs, int trgt_ftype, fastp
     
     
     /************* process and split sequencing reads **************/
-    mk_out_dir("split"); //make directory for output files
+    char fp_out_dir[6] = {"split"};
+    mk_out_dir(fp_out_dir); //make directory for output files
     
     if (testdata_MUX->run && run_bypass_fastp) {
-        bypass_fastp(nm->file[READ1], nm->file[READ2], &ifp[0]);
+        bypass_fastp(nm->file[READ1], nm->file[READ2], &ifp[0], fp_out_dir);
     } else {
-        call_fastp_TPROBE(nm->file[READ1], nm->file[READ2], &ifp[0], fastp_prms); //fastp pre-processing
+        call_fastp_TPROBE(nm->file[READ1], nm->file[READ2], &ifp[0], fastp_prms, fp_out_dir); //fastp pre-processing
     }
     
     //split input fastq by channel and barcode
@@ -242,7 +243,7 @@ void split_MUX_reads(FILE **ifp, compact_h_node **htbl_MUX, TPROBE_names * nm, c
     }
     
     //general variables
-    int got_line[READ_MAX] = {1};   //flag to indicate success of the get_line function
+    int got_line[READ_MAX] = {0};   //flag to indicate success of the get_line function
     int proceed = 1;                //flag to indicate that read processing should proceed
     
     //read variables
@@ -330,9 +331,9 @@ void split_MUX_reads(FILE **ifp, compact_h_node **htbl_MUX, TPROBE_names * nm, c
             }
             met->chan_count[channel]++; //increment count for observed channel
             
-            get_brcd_str(brcd_str, &read1[LINE1][0]);                                     //get barcode from read1 id
-            reverse_complement(rc_brcd_str, brcd_str, REVCOMP);                           //revcomp barcode string
-            crnt_ref_trg = map_brcd(brcd_str, rc_brcd_str, htbl_MUX, &crnt_mpd_trg, met); //map barcode using hash table
+            get_brcd_str(brcd_str, NULL, 1, 0, &read1[LINE1][0]);               //get barcode from read1 id
+            reverse_complement(rc_brcd_str, brcd_str, REVCOMP);                 //revcomp barcode string
+            crnt_ref_trg = map_brcd(rc_brcd_str, htbl_MUX, &crnt_mpd_trg, met); //map barcode using hash table
             
             if (crnt_ref_trg != NULL) { //if barcode mapped
                 

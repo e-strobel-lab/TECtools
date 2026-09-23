@@ -34,6 +34,7 @@
 #include "./SGL_trgt_gen/mk_SGL_target.h"
 #include "./prcs_rds/MLT/prcs_MLT_cotrans.h"
 #include "./prcs_rds/MUX/prcs_MUX_cotrans.h"
+#include "./prcs_rds/DNAQC/prcs_rds_DNA_qc.h"
 #include "./prcs_rds/MLT/testdata3pEnd_analysis.h"
 #include "./prcs_rds/MUX/testdataMUX_analysis.h"
 #include "./run_script_gen/UNV/mk_run_script.h"
@@ -41,8 +42,9 @@
 
 extern int debug;			//flag to run debug mode
 extern int debug_S2B_hash;	//seq2bin_hash-specific debug flag
-extern struct testdata_3pEnd_vars testdata_3pEnd; //3pend test data analysis variables
-extern struct testdata_MUX_vars testdata_MUX;     //MUX test data analysis variables
+extern struct testdata_3pEnd_vars testdata_3pEnd;   //3pend test data analysis variables
+extern struct testdata_MUX_vars testdata_MUX;       //MUX test data analysis variables
+extern struct testdata_DNA_qc_vars testdata_DNA_qc; //DNA qc test data analysis variables
 
 /* set_run_mode: set run mode using mode argument string */
 int set_run_mode(char * mode_arg, int * run_mode, fastp_params * fastp_prms);
@@ -322,6 +324,9 @@ int main(int argc, char *argv[])
                 } else if (fastp_prms.mode == MULTIPLEX) {
                     testdata_MUX.run = 1;
                     
+                } else if (fastp_prms.mode == DNA_PREP_QC_LIB) {
+                    testdata_DNA_qc.run = 1;
+                    
                 } else {
                     //TODO: is there a way to assess test data for TECprobe-SL? not sure if I've tried this
                     printf("cotrans_preprocessor: error - testdata analysis is not implemented for current run mode. aborting...\n");
@@ -430,8 +435,8 @@ int main(int argc, char *argv[])
             }
             
             //check that run_bypass_fastp is not being used in incompatible modes
-            if (run_bypass_fastp && !testdata_MUX.run) {
-                printf("cotrans_preprocessor_main: error - fastp can only be bypassed when processing TECprobe-MUX test data. aborting...\n");
+            if (run_bypass_fastp && (!testdata_MUX.run && !testdata_DNA_qc.run)) {
+                printf("cotrans_preprocessor_main: error - fastp can only be bypassed when processing TECprobe-MUX or DNA QC test data. aborting...\n");
                 abort();
             }
             
@@ -460,6 +465,9 @@ int main(int argc, char *argv[])
                 
                 //start sequencing read processing
                 prcs_MUX_cotrans(&nm, fp_MUXtrgs, trgt_ftype, fastp_prms, &testdata_MUX, run_bypass_fastp);
+            
+            } else if (fastp_prms.mode == DNA_PREP_QC_LIB) { //DNA prep QC read processing
+                prcs_rds_DNA_qc(&nm, fp_MUXtrgs, trgt_ftype, fastp_prms, &testdata_DNA_qc, run_bypass_fastp);
             }
             
             break;
@@ -521,6 +529,10 @@ int set_run_mode(char * mode_arg, int * run_mode, fastp_params * fastp_prms)
     } else if (!strcmp(mode_arg, "PROCESS_MULTIPLEX")) {
         *run_mode = PRCS_READS;
         fastp_prms->mode = MULTIPLEX;
+        return 1;
+    } else if (!strcmp(mode_arg, "DNA_PREP_QC_LIB")) {
+        *run_mode = PRCS_READS;
+        fastp_prms->mode = DNA_PREP_QC_LIB;
         return 1;
     } else if (!strcmp(mode_arg, "MAKE_RUN_SCRIPT")) {
         *run_mode = MK_RUN_SCRIPT;

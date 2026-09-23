@@ -336,10 +336,10 @@ void map_barcoded_TDSPLY_reads(FILE *ifp, compact_h_node **htbl, compact_target 
         if (proceed) {
             met->reads_processed++; //track total number of reads processed
             
-            get_brcd_str(brcd_str, &read[LINE1][0]);            //get barcode from read1 id
-            reverse_complement(rc_brcd_str, brcd_str, REVCOMP); //revcomp barcode string
-                        
-            crnt_ref_trg = map_brcd(brcd_str, rc_brcd_str, htbl, &crnt_mpd_trg, met); //map barcode using hash table
+            get_brcd_str(brcd_str, NULL, 1, 0, &read[LINE1][0]); //get barcode from read1 id
+            reverse_complement(rc_brcd_str, brcd_str, REVCOMP);  //revcomp barcode string
+            
+            crnt_ref_trg = map_brcd(rc_brcd_str, htbl, &crnt_mpd_trg, met); //map barcode using hash table
             
             if (crnt_ref_trg != NULL) { //if barcode mapped
                 

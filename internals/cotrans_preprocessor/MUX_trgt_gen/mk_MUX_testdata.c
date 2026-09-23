@@ -14,6 +14,7 @@
 #include "../../global/global_structs.h"
 
 #include "../../utils/io_management.h"
+#include "../../seq_utils/revcomp.h"
 #include "../../variant_maker/constant_seqs.h"
 
 #include "../cotrans_preprocessor_defs.h"
@@ -122,7 +123,7 @@ int print_MUX_fq(FILE * out_rd1, FILE * out_rd2, char * chnl_bc, compact_target 
     opt_BC * p_opt_BC_crnt = (opt_BC *)ctrg->opt;               //set current target optional barcode values pointer
     opt_BC * p_opt_BC_ref  = (opt_BC *)p_opt_BC_crnt->ref->opt; //set reference target optional barcode values pointer
     
-    bin2seq(brcd, &ctrg->bsq, MAX_LINE+1); //convert binary-encoded barcode sequence to character string
+    bin2seq(brcd, &ctrg->bsq, MAX_LINE); //convert binary-encoded barcode sequence to character string
     
     //generate test data read 2, which contains:
     //1. channel barcode
@@ -130,7 +131,7 @@ int print_MUX_fq(FILE * out_rd1, FILE * out_rd2, char * chnl_bc, compact_target 
     //3. target sequence of the reference target from which the current barcode was derived
     //4. RLA29synch_3p11 linker
     //5. current barcode
-    ret = snprintf(rd2, MAX_LINE+1, "%s%s%s%s%s", chnl_bc, sc1, p_opt_BC_ref->tsq, RLA29synch_3p11, brcd);
+    ret = snprintf(rd2, MAX_LINE, "%s%s%s%s%s", chnl_bc, sc1, p_opt_BC_ref->tsq, RLA29synch_3p11, brcd);
     if (ret >= MAX_LINE || ret < 0) {
         printf("print_MUX_fq: error - error when constructing test data read. aborting...\n");
         abort();

@@ -17,6 +17,6 @@
 #include "../../../variant_maker/make_barcodes.h"
 
 /* get_brcd_str: get barcode string from UMI in read ID */
-void get_brcd_str(char * brcd_str, char * read1_ID);
+void get_brcd_str(char * brcd_rd1, char * brcd_rd2, int get_rd1_bc, int get_rd2_bc, char * read1_ID);
 
 #endif /* get_brcd_str_h */

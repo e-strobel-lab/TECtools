@@ -197,7 +197,7 @@ int check_brcd_diff(compact_target * old, compact_target * new)
     }
 }
 /* map_brcd: map barcode to target using hash table */
-compact_target * map_brcd(char * brcd_str, char * rc_brcd_str, compact_h_node **htbl_MUX, compact_target ** mpd_trg, mapping_metrics * met)
+compact_target * map_brcd(char * brcd_str, compact_h_node **htbl_MUX, compact_target ** mpd_trg, mapping_metrics * met)
 {
     extern struct testdata_MUX_vars testdata_MUX; //structure containing test data read analysis variables
     
@@ -222,7 +222,7 @@ compact_target * map_brcd(char * brcd_str, char * rc_brcd_str, compact_h_node **
     
     uint64_t hash = 0; //hash value
     
-    seq2bin_long(rc_brcd_str, &bsq, 1); //generate binary-encoded barcode sequence
+    seq2bin_long(brcd_str, &bsq, 1); //generate binary-encoded barcode sequence
     
     //TODO: for now, trace search is off. add as debug option later
     if (!bsq.nn) {
@@ -234,10 +234,10 @@ compact_target * map_brcd(char * brcd_str, char * rc_brcd_str, compact_h_node **
     
     if ((*p_rdnd) != NULL) {                              //if found barcode match
         met->hits++;                                      //increment number of hits
-        if (!strcmp(rc_brcd_str, (*p_rdnd)->ctrg->csq)) { //sanity check that barcode sequences match
+        if (!strcmp(brcd_str, (*p_rdnd)->ctrg->csq)) {    //sanity check that barcode sequences match
             met->matches++;                               //if match, increment number of barcode sequence matches
         } else {                                          //otherwise, throw error and abort
-            printf("map_brcd: error query string does not match hash table entry. aborting...\n%s\n%s\n", rc_brcd_str, (*p_rdnd)->ctrg->csq);
+            printf("map_brcd: error query string does not match hash table entry. aborting...\n%s\n%s\n", brcd_str, (*p_rdnd)->ctrg->csq);
             abort();
         }
         

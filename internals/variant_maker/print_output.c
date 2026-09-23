@@ -20,6 +20,7 @@
 #include "./variant_maker_structs.h"
 #include "./vmt_suffix.h"
 #include "./make_barcodes.h"
+#include "./bc_ind.h"
 
 #include "print_output.h"
 
@@ -333,6 +334,9 @@ void print_barcoded_variant(FILE * out_fp, FILE * fasta_fp, fasta * var, int crr
     extern char vra5[22];            //vra5 sequence
     extern char pra1_m25_to_m50[27]; //upstream promoter sequence, needed when including vra5
     
+    extern char bc1_ind[3];
+    extern char bc2_ind[4];
+    
     int i = 0; //general purpose index
     
     static int bc_cnt = 0;              //barcode count
@@ -429,9 +433,9 @@ void print_barcoded_variant(FILE * out_fp, FILE * fasta_fp, fasta * var, int crr
             //print output sequence to file(s)
             if (make_fasta) { //if make fasta option was provided, print full variant seq to fasta file
                 if (!include_vra5) {
-                    fprintf(fasta_fp, ">var%05d_bc%05d\n%s\n", crrnt_var /*vrnts[crrnt_var].nm*/, bc_indx, seq);
+                    fprintf(fasta_fp, ">var%05d_%s%05d\n%s\n", crrnt_var /*vrnts[crrnt_var].nm*/, bc1_ind, bc_indx, seq);
                 } else {
-                    fprintf(fasta_fp, ">var%05d_bc%05d_2bc%05d\n%s\n", crrnt_var /*vrnts[crrnt_var].nm*/, bc_indx, scnd_bc_indx, seq);
+                    fprintf(fasta_fp, ">var%05d_%s%05d_%s%05d\n%s\n", crrnt_var /*vrnts[crrnt_var].nm*/, bc1_ind, bc_indx, bc2_ind, scnd_bc_indx, seq);
                 }
                 
             }

@@ -37,7 +37,7 @@ uint64_t hash_brcd_trgt(binary_seq * bsq);
 int check_brcd_diff(compact_target * old, compact_target * new);
 
 /* map_brcd: map barcode to target using hash table */
-compact_target * map_brcd(char * brcd_str, char * rc_brcd_str, compact_h_node **htbl_MUX, compact_target ** mpd_trg, mapping_metrics * met);
+compact_target * map_brcd(char * brcd_str, compact_h_node **htbl_MUX, compact_target ** mpd_trg, mapping_metrics * met);
 
 /* get_target_type: determine target type using mutcode */
 char * get_target_type(uint64_t mutcode, int * type_val);

@@ -5,7 +5,10 @@
 //  Created by Eric Strobel on 7/18/25.
 //
 
+#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <errno.h>
 
 #include "../../../global/global_defs.h"
 #include "../../../global/global_structs.h"
@@ -20,7 +23,7 @@
 #include "bypass_fastp.h"
 
 /* bypass_fastp: bypass fastp and perform simple read processing during testdata analysis. useful for systems in which fastp is not easily installed. */
-void bypass_fastp(char * fq1, char * fq2, FILE ** ifp)
+void bypass_fastp(char * fq1, char * fq2, FILE ** ifp, char * fp_out_dir)
 {
     printf("bypassing fastp\n");
     
@@ -38,13 +41,29 @@ void bypass_fastp(char * fq1, char * fq2, FILE ** ifp)
         abort();
     }
     
+    char fqout1_nm[MAX_LINE+1] = {0}; //output fastq name 1
+    char fqout2_nm[MAX_LINE+1] = {0}; //output fastq name 2
+    
+    int ret1 = 0; //snprintf return value
+    int ret2 = 0; //snprintf return value
+    
+    //generate output fastq file names
+    ret1 = snprintf(fqout1_nm, MAX_LINE, "./%s/R1out.fq", fp_out_dir);
+    ret2 = snprintf(fqout2_nm, MAX_LINE, "./%s/R2out.fq", fp_out_dir);
+    
+    //test snprintf success
+    if (ret1 >= MAX_LINE || ret1 < 0 || ret2 >= MAX_LINE || ret2 < 0) {
+        printf("bypass_fastp: error - error when generating output file names. aborting...\n");
+        abort();
+    }
+    
     //open processed fastq output files
-    if ((fqout[READ1] = fopen("./split/R1out.fq", "w")) == NULL) {
+    if ((fqout[READ1] = fopen(fqout1_nm, "w")) == NULL) {
         printf("bypass_fastp: error - could not open input read one file. Aborting program...\n");
         abort();
     }
     
-    if ((fqout[READ2] = fopen("./split/R2out.fq", "w")) == NULL) {
+    if ((fqout[READ2] = fopen(fqout2_nm, "w")) == NULL) {
         printf("bypass_fastp: error - could not open input read two file. Aborting program...\n");
         abort();
     }
@@ -52,7 +71,6 @@ void bypass_fastp(char * fq1, char * fq2, FILE ** ifp)
     int i = 0; //general purpose index
     int j = 0; //general purpose index
     int k = 0; //general purpose index
-    
     
     char * pRtrm[READ_MAX] = {NULL}; //pointer to UMI-trimmed read sequences
     char * pQtrm[READ_MAX] = {NULL}; //pointer to UMI-trimmed read quality scores
@@ -151,13 +169,13 @@ void bypass_fastp(char * fq1, char * fq2, FILE ** ifp)
     }
     
     //open newly generated fastq files as input files for demultiplexing
-    if ((ifp[READ1] = fopen("./split/R1out.fq", "r")) == NULL) {
-        printf("bypass_fastp: error - could not open fastp_bypass_R1.fq as read one file. Aborting program...\n");
+    if ((ifp[READ1] = fopen(fqout1_nm, "r")) == NULL) {
+        printf("bypass_fastp: error - could not open %s as read one file. Aborting program...\n", fqout1_nm);
         abort();
     }
     
-    if ((ifp[READ2] = fopen("./split/R2out.fq", "r")) == NULL) {
-        printf("bypass_fastp: error - could not open fastp_bypass_R2.fq as read two file.  Aborting program...\n");
+    if ((ifp[READ2] = fopen(fqout2_nm, "r")) == NULL) {
+        printf("bypass_fastp: error - could not open %s as read two file.  Aborting program...\n", fqout2_nm);
         abort();
     }
 }

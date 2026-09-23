@@ -19,6 +19,6 @@
 #include "../../cotrans_preprocessor_structs.h"
 
 /* call_fastp_TPROBE: performs a system call to initiate fastp preprocessing, opens resulting files*/
-int call_fastp_TPROBE(char * fq1, char * fq2, FILE ** ifp, fastp_params prms);
+int call_fastp_TPROBE(char * fq1, char * fq2, FILE ** ifp, fastp_params prms, char * fp_out_dir);
 
 #endif /* call_fastp_TPROBE_h */

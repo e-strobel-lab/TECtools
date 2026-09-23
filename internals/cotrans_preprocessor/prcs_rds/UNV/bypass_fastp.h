@@ -22,6 +22,6 @@
 #include "../../../utils/io_management.h"
 
 /* bypass_fastp: bypass fastp and perform simple read processing during testdata analysis. useful for systems in which fastp is not easily installed. */
-void bypass_fastp(char * fq1, char * fq2, FILE ** ifp);
+void bypass_fastp(char * fq1, char * fq2, FILE ** ifp, char * fp_out_dir);
 
 #endif /* bypass_fastp_h */

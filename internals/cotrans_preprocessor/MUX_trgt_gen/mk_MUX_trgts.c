@@ -27,6 +27,8 @@
 #include "./parse_fa_trgts.h"
 #include "./mk_barcoded_target_fastas.h"
 
+#include "../DNAQC_trgt_gen/link_trgts.h"
+
 #include "mk_MUX_trgts.h"
 
 //global variables
@@ -71,9 +73,9 @@ int mk_MUX_trgts(target * refs, opt_ref * ref_val, compact_target * ctrg, opt_BC
         mutCode = 1; //set mutCode to 1 (input barcodes have mutCode 0)
         
         //generate sub and indel targets for the current barcode
-        tot_SUB_trgts += mk_SUB_trgts(ctrg, BC_val, &ctrg_cnt, &ctrg[i], trg_prms->BClen, &mutCode);
-        tot_INS_trgts += mk_INS_trgts(ctrg, BC_val, &ctrg_cnt, &ctrg[i], trg_prms->BClen, &mutCode);
-        tot_DEL_trgts += mk_DEL_trgts(ctrg, BC_val, &ctrg_cnt, &ctrg[i], trg_prms->BClen, &mutCode, toupper(RLA29synch_3p11[strlen(RLA29synch_3p11)-1]));
+        tot_SUB_trgts += mk_SUB_trgts(ctrg, BC_val, &ctrg_cnt, &ctrg[i], trg_prms->BClen, &mutCode, 0);
+        tot_INS_trgts += mk_INS_trgts(ctrg, BC_val, &ctrg_cnt, &ctrg[i], trg_prms->BClen, &mutCode, 0);
+        tot_DEL_trgts += mk_DEL_trgts(ctrg, BC_val, &ctrg_cnt, &ctrg[i], trg_prms->BClen, &mutCode, toupper(RLA29synch_3p11[strlen(RLA29synch_3p11)-1]), 0);
     }
     
     //print the number of targets that were generated
@@ -83,7 +85,7 @@ int mk_MUX_trgts(target * refs, opt_ref * ref_val, compact_target * ctrg, opt_BC
 }
 
 /* mk_SUB_trgts: generates single substitution targets for input barcode */
-int mk_SUB_trgts(compact_target * ctrg, opt_BC * BC_val, int * ctrg_cnt, compact_target * src_ctrg, int brcd_len, uint64_t * mutCode)
+int mk_SUB_trgts(compact_target * ctrg, opt_BC * BC_val, int * ctrg_cnt, compact_target * src_ctrg, int brcd_len, uint64_t * mutCode, int link)
 {
     int sub_trgts_made = 0; //number of substitution targets that were made
     
@@ -91,6 +93,8 @@ int mk_SUB_trgts(compact_target * ctrg, opt_BC * BC_val, int * ctrg_cnt, compact
     int i = 0;       //general purpose index
     
     char var[3][MAX_LINE+1] = {{0}};    //array for constructing substitution targets
+    
+    opt_BC * src_BC_val = (opt_BC *)(src_ctrg->opt);
     
     if (*mutCode != MIN_SUB_CODE) {
         printf("mk_SUB_trgts: error - incorrect minimum substitution code (%llu). expected %d. aborting...\n", (long long unsigned int)(*mutCode), MIN_SUB_CODE);
@@ -158,6 +162,11 @@ int mk_SUB_trgts(compact_target * ctrg, opt_BC * BC_val, int * ctrg_cnt, compact
             }
             strcpy(ctrg[*ctrg_cnt].csq, var[i]); //store character-encoded barcode
             
+            if (link) {
+                link_trgts(src_ctrg, &ctrg[*ctrg_cnt], LINK_MUTS);
+                BC_val[*ctrg_cnt].num = src_BC_val->num;
+            }
+            
             (*ctrg_cnt)++; //increment compact target count
         }
         sub_trgts_made += 3; //increment number of substitution targets by three
@@ -172,7 +181,7 @@ int mk_SUB_trgts(compact_target * ctrg, opt_BC * BC_val, int * ctrg_cnt, compact
 }
 
 /* mk_INS_trgts: generate single insertion targets for input barcode */
-int mk_INS_trgts(compact_target * ctrg, opt_BC * BC_val, int * ctrg_cnt, compact_target * src_ctrg, int brcd_len, uint64_t * mutCode)
+int mk_INS_trgts(compact_target * ctrg, opt_BC * BC_val, int * ctrg_cnt, compact_target * src_ctrg, int brcd_len, uint64_t * mutCode, int link)
 {
     int ins_trgts_made = 0;  //number of insertion targets that were made
     
@@ -181,6 +190,8 @@ int mk_INS_trgts(compact_target * ctrg, opt_BC * BC_val, int * ctrg_cnt, compact
     int j = 0;       //general purpose index
     
     char var[4][MAX_LINE+1] = {{0}}; //array for constructing insertion targets
+    
+    opt_BC * src_BC_val = (opt_BC *)(src_ctrg->opt);
     
     if (*mutCode != MIN_INS_CODE) {
         printf("mk_INS_trgts: error - incorrect minimum insertion code (%llu). expected %d. aborting...\n", (long long unsigned int)(*mutCode), MIN_INS_CODE);
@@ -232,6 +243,11 @@ int mk_INS_trgts(compact_target * ctrg, opt_BC * BC_val, int * ctrg_cnt, compact
             }
             strcpy(ctrg[*ctrg_cnt].csq, var[i]); //store character-encoded barcode
             
+            if (link) {
+                link_trgts(src_ctrg, &ctrg[*ctrg_cnt], LINK_MUTS);
+                BC_val[*ctrg_cnt].num = src_BC_val->num;
+            }
+            
             (*ctrg_cnt)++; //increment compact target count
         }
         ins_trgts_made += 4; //incrmement number of insertion targets by four
@@ -246,7 +262,7 @@ int mk_INS_trgts(compact_target * ctrg, opt_BC * BC_val, int * ctrg_cnt, compact
 }
 
 /* mk_DEL_trgts: generate single deletion targets for input barcode */
-int mk_DEL_trgts(compact_target * ctrg, opt_BC * BC_val, int * ctrg_cnt, compact_target * src_ctrg, int brcd_len, uint64_t * mutCode, char upstrm_nt)
+int mk_DEL_trgts(compact_target * ctrg, opt_BC * BC_val, int * ctrg_cnt, compact_target * src_ctrg, int brcd_len, uint64_t * mutCode, char upstrm_nt, int link)
 {
     int del_trgts_made = 0;  //number of deletion targets made
     
@@ -255,6 +271,8 @@ int mk_DEL_trgts(compact_target * ctrg, opt_BC * BC_val, int * ctrg_cnt, compact
     int j = 0;       //general purpose index
     
     char var[MAX_LINE+1]; //array for constructing deletion targets
+    
+    opt_BC * src_BC_val = (opt_BC *)(src_ctrg->opt);
     
     if (*mutCode != MIN_DEL_CODE) {
         printf("mk_DEL_trgts: error - incorrect minimum deletion code (%llu). expected %d. aborting...\n", (long long unsigned int)(*mutCode), MIN_DEL_CODE);
@@ -294,6 +312,11 @@ int mk_DEL_trgts(compact_target * ctrg, opt_BC * BC_val, int * ctrg_cnt, compact
             abort();
         }
         strcpy(ctrg[*ctrg_cnt].csq, var); //store character-encoded barcode
+        
+        if (link) {
+            link_trgts(src_ctrg, &ctrg[*ctrg_cnt], LINK_MUTS);
+            BC_val[*ctrg_cnt].num = src_BC_val->num;
+        }
         
         (*ctrg_cnt)++;     //increment compact target count
         del_trgts_made++;  //increment number of deletion targets made by one

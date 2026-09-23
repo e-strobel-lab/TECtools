@@ -96,8 +96,10 @@ int prcs_MLT_cotrans(TPROBE_names * nm, FILE * fp_3pEnd, fastp_params fastp_prms
     
     
     /************* process and split sequencing reads **************/
-    mk_out_dir("split");					//make directory for output files
-    call_fastp_TPROBE(nm->file[READ1], nm->file[READ2], &ifp[0], fastp_prms);	//fastp pre-processing
+    char fp_out_dir[6] = {"split"};
+    mk_out_dir(fp_out_dir); //make directory for output files
+    
+    call_fastp_TPROBE(nm->file[READ1], nm->file[READ2], &ifp[0], fastp_prms, fp_out_dir);	//fastp pre-processing
     
     //split input fastq by channel and 3' end
     split_reads_3pEnd(&ifp[0], htbl_3end, nm, &met, trg_prms, fastp_prms.mode);
@@ -402,7 +404,7 @@ int split_reads_3pEnd(FILE **ifp, h_node **htbl, TPROBE_names * nm, mapping_metr
     }
     
     //general variables
-    int got_line[READ_MAX] = {1};	//flag to indicate success of the get_line function
+    int got_line[READ_MAX] = {0};	//flag to indicate success of the get_line function
     int proceed = 1;				//flag to indicate that read processing should proceed
     
     //read variables

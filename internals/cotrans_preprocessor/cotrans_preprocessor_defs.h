@@ -37,6 +37,7 @@
 #define MULTI 0				//multi-length cotranscriptional mode
 #define SINGLE 1			//single length mode
 #define MULTIPLEX 2         //multiplex mode
+#define DNA_PREP_QC_LIB 3   //analyze DNA prep QC library
 
 /* target parsing definitions */
 #define CNSTNT_STRT_NAT 7   //offset from last target id string to reach start of standardized target id (NAT)
@@ -66,6 +67,10 @@
 
 /* barcode mapping definitions */
 #define MAX_BRCD_CNT 20000  //maximum number of TECprobe-MUX barcodes
+
+/* DNA QC definitions */
+#define CONCORDANT 0  //index for counting concordant reads
+#define DISCORDANT 1  //index for counting discordant reads
 
 /* split output definitions */
 #define FILES_PER_LEN 4		//number of files generated per transcript length

@@ -56,12 +56,14 @@ typedef struct target3p_params {
 /* opt_BC: structure for storing barcode target-specific variables */
 typedef struct opt_BC {
     compact_target * ref; //pointer to reference target, for native targets this points to self
+    compact_target * lnk; //pointer to another target to which this is linked, used for paired barcodes
     FILE * ofp[TPROBE_CHANNEL_MAX][READ_MAX]; //output file pointer (only used for native targets)
     uint64_t mpd; //number of reads that mapped to native+mutant targets (used for native targets)
     uint64_t cnt; //number of reads that mapped to the current target
     char * tsq;   //template sequence
     int typ;      //target type (NAT, SUB, INS, DEL)
-    int chnl[TDSPLY_CHANNEL_MAX]; //number of reads that map to each channel
+    int chnl[TPROBE_CHANNEL_MAX]; //number of reads that map to each channel
+    int num;
 } opt_BC;
 
 
@@ -73,5 +75,14 @@ typedef struct TPROBE_names {
     char trgts_prfx[MAX_LINE+1];     //barcode filename prefix
     int len;                         //length of single length target
 } TPROBE_names;
+
+/* association: structure for tracking concordant/discordant read count for individual barcodes. when testdata is generated, the number of expected concordant/discordant reads both when the barcode was the source for generating a barcode pair and when it was randomly selected as a discordant barcode are also tracked */
+typedef struct association {
+    int cncrdnt;
+    int dscrdnt;
+    int src_cncrdnt;
+    int src_dscrdnt;
+    int rnd_dscrdnt;
+} association;
 
 #endif /* cotrans_preprocessor_structs_h */
