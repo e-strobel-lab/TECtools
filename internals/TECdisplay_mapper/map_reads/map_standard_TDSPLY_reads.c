@@ -162,7 +162,7 @@ int prcs_standard_TDSPLY_reads(TDSPLY_names * nm, int trgt_ftype, char * minQ, f
         }
         
         //store targets as compact targets and close targets file
-        parse_vmt_trgts(fp_trgs, trgt_ftype, refs, ref_val,  ctrg, trg_val, &trg_prms, &wt, TDSPLY, CMPCT_TRGT_STRUCT);
+        parse_vmt_trgts(fp_trgs, trgt_ftype, refs, ref_val,  ctrg, trg_val, &trg_prms, &wt, TDSPLY_STD, CMPCT_TRGT_STRUCT);
         fclose(fp_trgs); //close targets file
         
         //allocate TABLE_SIZE hash table node pointers
@@ -184,7 +184,7 @@ int prcs_standard_TDSPLY_reads(TDSPLY_names * nm, int trgt_ftype, char * minQ, f
         printf("\nprocessing data using standard targets...\n\n");
         
         //store targets as standard targets and close targets file
-        parse_vmt_trgts(fp_trgs, trgt_ftype, refs, ref_val, trgts, trg_val, &trg_prms, &wt, TDSPLY, STD_TRGT_STRUCT);
+        parse_vmt_trgts(fp_trgs, trgt_ftype, refs, ref_val, trgts, trg_val, &trg_prms, &wt, TDSPLY_STD, STD_TRGT_STRUCT);
         fclose(fp_trgs); //close targets file
         
         //allocate TABLE_SIZE hash table node pointers

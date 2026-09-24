@@ -33,9 +33,9 @@ int call_fastp_TDSPLY(TDSPLY_names * nm, fastp_params prms)
     const char * umi = NULL; //pointer to umi command to use
     
     //set umi command
-    if (prms.mode == STD_TDSPLY) {
+    if (prms.mode == TDSPLY_STD) {
         umi = umi_STD;
-    } else if (prms.mode == BRCD_TDSPLY) {
+    } else if (prms.mode == TDSPLY_BRCD) {
         umi = umi_BRCD;
     } else {
         printf("call_fastp_TDSPLY: error - unrecognized processing mode. aborting...\n");

@@ -50,7 +50,7 @@ void parse_trgts_4_td_gen(TDSPLY_names * nm, int trgt_ftype, target ** td_refs, 
     }
     
     //store targets as standard targets and close targets file
-    parse_vmt_trgts(fp_trgs, trgt_ftype, *td_refs, *td_ref_val, *td_trgts, *td_trg_val, td_trg_prms, td_wt, TDSPLY, STD_TRGT_STRUCT);
+    parse_vmt_trgts(fp_trgs, trgt_ftype, *td_refs, *td_ref_val, *td_trgts, *td_trg_val, td_trg_prms, td_wt, TDSPLY_STD, STD_TRGT_STRUCT);
     fclose(fp_trgs); //close targets file
     
     return;

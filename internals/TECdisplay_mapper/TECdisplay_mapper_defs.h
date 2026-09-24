@@ -17,12 +17,13 @@
 #include "../cotrans_preprocessor/cotrans_preprocessor_defs.h"
 
 /* run_modes */
-#define MAP_TEST_DATA 0      //map test data mode
-#define MAP_SEQ_READS 1      //map sequencing reads mode
+#define RUN_MODE_INIT 0      //run mode initializer
+#define MAP_TEST_DATA 1      //map test data mode
+#define MAP_SEQ_READS 2      //map sequencing reads mode
 
-/* data types */
-#define STD_TDSPLY  0        //standard TECdisplay (without barcoding)
-#define BRCD_TDSPLY 1        //barcoded TECdisplay
+/* data types note - these are defined in global_defs.h */
+//TDSPLY_STD  //standard TECdisplay (without barcoding)
+//TDSPLY_BRCD //barcoded TECdisplay
 
 /* quality score threshold indices */
 #define Q_VARIABLE 0         //index of minimum variable base quality score

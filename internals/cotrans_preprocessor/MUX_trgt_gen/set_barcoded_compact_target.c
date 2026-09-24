@@ -44,10 +44,10 @@ void set_barcoded_compact_target(compact_target * ctrg, opt_BC * BC_val, target 
     char * trlr2use = NULL; //trailer sequence to search for when parsing target
     char * lnkr2use = NULL; //linker sequence to search for when parsing target
     
-    if (data_type == TDSPLY) { //when processing TECdisplay data
-        ldr2use = c3sc1;       //leader sequence is C3-SC1
-        trlr2use = vra3;       //trailer sequence is VRA3
-        lnkr2use = NULL;       //no linker is used //TODO: add ability to search for user-specified linker?
+    if (data_type == TDSPLY_STD) { //when processing TECdisplay data
+        ldr2use = c3sc1;           //leader sequence is C3-SC1
+        trlr2use = vra3;           //trailer sequence is VRA3
+        lnkr2use = NULL;           //no linker is used //TODO: add ability to search for user-specified linker?
         
     } else if (data_type == TPROBE_MUX) { //when processing TECprobe-MUX data
         ldr2use = pra1_sc1;               //leader sequence is PRA1-SC1 adapter

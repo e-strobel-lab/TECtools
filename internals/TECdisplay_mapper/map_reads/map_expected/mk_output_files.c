@@ -100,10 +100,10 @@ void print_output(void * trgts, target_params * trg_prms, TDSPLY_names * nm, int
     //3. unbound read count
     //4. fraction bound
     for (i = 0; i < trg_prms->t_cnt; i++) {
-        if (mode == STD_TDSPLY) {
+        if (mode == TDSPLY_STD) {
             print_target_line(&(((target *)trgts)[i]), out_fp);
             
-        } else if (mode == BRCD_TDSPLY) {
+        } else if (mode == TDSPLY_BRCD) {
             print_compact_target_line(&(((compact_target *)trgts)[i]), out_fp);
             
         } else {

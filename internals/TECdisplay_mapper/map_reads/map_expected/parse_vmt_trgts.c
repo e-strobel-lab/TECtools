@@ -241,13 +241,13 @@ void parse_vmt_trgts(FILE * ifp, int trgt_ftype, target * refs, opt_ref * ref_va
             }
             
             //set target structure values for the current target
-            if (data_type == TDSPLY && trgt_type == STD_TRGT_STRUCT) {
+            if (data_type == TDSPLY_STD && trgt_type == STD_TRGT_STRUCT) {
                 set_trgt(&(((target *)trgts)[trg_prms->t_cnt]),
                          &(((opt_mx_trg *)trg_val)[trg_prms->t_cnt]),
                          crnt_ref, trgt_id, trgt_sq);
                 if (debug) {print_target_debug(&(((target *)trgts)[trg_prms->t_cnt]), trg_prms);} //print debug messages
                 
-            } else if ((data_type == TDSPLY || data_type == SQ_ATT) && trgt_type == CMPCT_TRGT_STRUCT) {
+            } else if ((data_type == TDSPLY_STD || data_type == SQ_ATT) && trgt_type == CMPCT_TRGT_STRUCT) {
                 set_compact_target(&(((compact_target *)trgts)[trg_prms->t_cnt]),
                                    &(((opt_mx_trg *)trg_val)[trg_prms->t_cnt]),
                                    crnt_ref, trgt_id, trgt_sq);

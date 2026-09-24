@@ -30,8 +30,9 @@
 
 
 #define DATA_TYPE_INIT 0 //data type initialization value
-#define TDSPLY         1 //code for TECdisplay data
-#define TPROBE_MUX     2 //code for TECprobe-MUX data
-#define SQ_ATT         3 //code for sequence attributes data
+#define TDSPLY_STD     1 //code for standard TECdisplay data
+#define TDSPLY_BRCD    2 //code for barcoded TECdisplay data
+#define TPROBE_MUX     3 //code for TECprobe-MUX data
+#define SQ_ATT         4 //code for sequence attributes data
 
 #endif /* global_defs_h */

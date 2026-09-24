@@ -107,7 +107,7 @@ void print_MUX_testdata_analysis(mapping_metrics * met, compact_target * ctrg, i
     //report data type
     if (data_type == TPROBE_MUX) {
         sprintf(out_str, ">    mode - sequences contain TECprobe-MUX barcodes\n");
-    } else if (data_type == TDSPLY) {
+    } else if (data_type == TDSPLY_BRCD) {
         sprintf(out_str, ">    mode - sequences contain TECdisplay barcodes\n");
     } else {
         printf("print_MUX_testdata_analysis: error - unrecognized data type. aborting...\n");
@@ -143,7 +143,7 @@ void print_MUX_testdata_analysis(mapping_metrics * met, compact_target * ctrg, i
     //set channel names to use
     if (data_type == TPROBE_MUX) {
         chan_nm = TPROBE_chans;
-    } else if (data_type == TDSPLY) {
+    } else if (data_type == TDSPLY_BRCD) {
         chan_nm = TDSPLY_chans;
     } else {
         printf("print_MUX_testdata_analysis: error - unrecognized data type. aborting...\n");
