@@ -83,18 +83,18 @@ int main(int argc, char *argv[])
     
     struct names nm = {{0}};   //input names storage
     
-    int mode = 0;              //run mode
-    int varFile_supplied = 0;  //flag that variant template file was provided
-    int brcdFile_supplied = 0; //flag that barcode file was provided
-    int brcds2mk = 0;          //number of barcodes to make
-    int append_barcode = 0;    //flag to append barcodes to variants
-    int first_bc_2_use = 1;    //first barcode id to use. default = 1
-    int append_priming = 0;    //flag to append C3-SC1 and VRA3 priming sites
-    int bcs_per_var = 1;       //number of barcodes to apply to each variant
-    int make_fasta = 0;        //flag to make fasta file
-    int lib_type = -1;         //flag to indicate library type
-    int lib_type_set = 0;      //flag that library type was set
-    int print_Ncmp_fa = 0;     //flag to print n compression fasta
+    int mode = 0;                 //run mode
+    int varFile_supplied = 0;     //flag that variant template file was provided
+    int brcdFile_supplied = 0;    //flag that barcode file was provided
+    int brcds2mk = 0;             //number of barcodes to make
+    int append_barcode = 0;       //flag to append barcodes to variants
+    int first_bc_2_use = 1;       //first barcode id to use. default = 1
+    int append_priming = 0;       //flag to append C3-SC1 and VRA3 priming sites
+    int bcs_per_var = 1;          //number of barcodes to apply to each variant
+    int make_fasta = 0;           //flag to make fasta file
+    int lib_type = LIB_TYPE_INIT; //flag to indicate library type
+    int lib_type_set = 0;         //flag that library type was set
+    int print_Ncmp_fa = 0;        //flag to print n compression fasta
         
     char usr_resp[4] = {0};         //storage for user response
     char discard[MAX_LINE+1] = {0}; //array for flushing stdin

@@ -33,7 +33,7 @@ void print_reference_seq(FILE * out_fp, char * nm, char * seq, char * lnkr, int 
 void print_standard_variant(FILE * out_fp, FILE * fasta_fp, fasta * var, int crrnt_var, int append_priming, int lib_type, int make_vmt, int make_fasta);
 
 /* print_barcoded_variant: print variant that contains barcode */
-void print_barcoded_variant(FILE * out_fp, FILE * fasta_fp, fasta * var, int crrnt_var, int append_priming, char * lnkr, int vTmpCnt, FILE * fp_brcd, int first_bc_2_use, int bcs_per_var, int make_fasta);
+void print_barcoded_variant(FILE * out_fp, FILE * fasta_fp, FILE * link_fp, fasta * var, int crrnt_var, int append_priming, char * lnkr, int vTmpCnt, FILE * fp_brcd, int first_bc_2_use, int bcs_per_var, int make_fasta, int make_link, int lib_type);
 
 /* mk_rndm_DNA_str: make DNA sequence composed of n random bases */
 //NOTE: memory is allocated in function and needs to be freed elsewhere

@@ -94,8 +94,8 @@ void print_output(names * nm, basemap * bmap, int vTmpCnt, int varCnt, char * ou
         abort();
     }
     
-    FILE * fasta_fp = NULL;        //fasta file pointer
-    char fasta_nm[MAX_LINE] = {0}; //fasta file name
+    FILE * fasta_fp = NULL;          //fasta file pointer
+    char fasta_nm[MAX_LINE+1] = {0}; //fasta file name
     
     if (make_fasta) {
         //construct variant fasta file name and generate fasta file
@@ -107,6 +107,28 @@ void print_output(names * nm, basemap * bmap, int vTmpCnt, int varCnt, char * ou
 
         if ((fasta_fp = fopen(fasta_nm, "w")) == NULL) {
             printf("print_output: ERROR - could not generate variants fasta file. aborting...\n");
+            abort();
+        }
+    }
+    
+    //if appending barcode and making fasta file, a file that links the concise variant names used
+    //in the fasta output file to verbose variant names in the vmt output file is generated
+    int make_link = 0;               //flag that link file should be made
+    FILE * link_fp = NULL;           //link file pointer
+    char link_nm[MAX_LINE+1] = {0};  //link file name
+    
+    if (append_barcode && make_fasta) {
+        make_link = 1;
+        
+        //construct link file name and generate link file
+        ret = snprintf(link_nm, MAX_LINE, "./%s/%s_variants.lnk", out_dir, nm->vTmp);
+        if (ret >= MAX_LINE || ret < 0) {
+            printf("print_output: error - error when constructing link file name. aborting...\n");
+            abort();
+        }
+
+        if ((link_fp = fopen(link_nm, "w")) == NULL) {
+            printf("print_output: ERROR - could not generate link file. aborting...\n");
             abort();
         }
     }
@@ -187,7 +209,7 @@ void print_output(names * nm, basemap * bmap, int vTmpCnt, int varCnt, char * ou
             }
         } else {
             if (append_barcode) { //print variant sequence that contains a barcode
-                print_barcoded_variant(out_fp, fasta_fp, &vrnts[i], i, append_priming, lnkr, vTmpCnt, fp_brcd, first_bc_2_use, bcs_per_var, make_fasta);
+                print_barcoded_variant(out_fp, fasta_fp, link_fp, &vrnts[i], i, append_priming, lnkr, vTmpCnt, fp_brcd, first_bc_2_use, bcs_per_var, make_fasta, make_link, lib_type);
             } else { //print variant sequence that does not contain a barcode
                 print_standard_variant(out_fp, fasta_fp, &vrnts[i], i, append_priming, lib_type, 1, make_fasta);
             }
@@ -313,7 +335,7 @@ void print_standard_variant(FILE * out_fp, FILE * fasta_fp, fasta * var, int crr
 }
 
 /* print_barcoded_variant: print variant that contains barcode */
-void print_barcoded_variant(FILE * out_fp, FILE * fasta_fp, fasta * var, int crrnt_var, int append_priming, char * lnkr, int vTmpCnt, FILE * fp_brcd, int first_bc_2_use, int bcs_per_var, int make_fasta)
+void print_barcoded_variant(FILE * out_fp, FILE * fasta_fp, FILE * link_fp, fasta * var, int crrnt_var, int append_priming, char * lnkr, int vTmpCnt, FILE * fp_brcd, int first_bc_2_use, int bcs_per_var, int make_fasta, int make_link, int lib_type)
 {
     if (out_fp == NULL) {
         printf("print_barcoded_variant: error - vmt file cannot be made because vmt file pointer is NULL. aborting...\n");
@@ -330,7 +352,7 @@ void print_barcoded_variant(FILE * out_fp, FILE * fasta_fp, fasta * var, int crr
     extern char * fwd2use;  //forward priming site to use
     extern char * rev2use;  //reverse priming site to use
     
-    int include_vra5 = 0;            //flag to include vra5 //TODO: make option?
+    int make_DNA_QC = 0;             //flag to make DNA QC sequences //TODO: make option?
     extern char vra5[22];            //vra5 sequence
     extern char pra1_m25_to_m50[27]; //upstream promoter sequence, needed when including vra5
     
@@ -353,6 +375,11 @@ void print_barcoded_variant(FILE * out_fp, FILE * fasta_fp, fasta * var, int crr
     int brcd_end_indx = 0;       //index 1 char after barcode end
     char * target_start = NULL;  //pointer to target start
     
+    if (make_DNA_QC && lib_type != TECPROBE_MUX_LIB) {
+        printf("print_barcoded_variant: error - make_DNA_QC requires that library type be TECPROBE_MUX_LIB. aborting...\n");
+        abort();
+    }
+    
     if (crrnt_var == 1) {                            //if processing first variant
         bc_cnt = read_bcFile(fp_brcd, HEADER, crrnt_bc, MAX_LINE+1); //parse barcode file header
         
@@ -373,6 +400,12 @@ void print_barcoded_variant(FILE * out_fp, FILE * fasta_fp, fasta * var, int crr
             incld_lnkr = 0;               //set include linker flag to false
         }
     }
+    
+    int ret_c = 0; //concise name snprintf return value
+    int ret_v = 0; //verbose name snprintf return value
+    
+    char cncs_nm[MAX_LINE+1] = {0}; //concise variant name
+    char vrbs_nm[MAX_LINE+1] = {0}; //verbose variant name
     
     char seq[MAX_LINE+1] = {0}; //output sequence
     int len = 0;                //length of output sequence
@@ -398,7 +431,7 @@ void print_barcoded_variant(FILE * out_fp, FILE * fasta_fp, fasta * var, int crr
 
             //assemble output sequence
             
-            if (include_vra5) {     //if including vra5 sequence
+            if (make_DNA_QC) {     //if including vra5 sequence
                 strcat(seq, vra5);  //append vra5 sequence
                 
                 if ((scnd_bc_indx = read_bcFile(fp_brcd, BC_LINE, scnd_bc, MAX_LINE+1)) == -1) { //get barcode
@@ -430,18 +463,45 @@ void print_barcoded_variant(FILE * out_fp, FILE * fasta_fp, fasta * var, int crr
                 strcat(seq, rev2use);         //append the reverse priming site sequence
             }
             
-            //print output sequence to file(s)
-            if (make_fasta) { //if make fasta option was provided, print full variant seq to fasta file
-                if (!include_vra5) {
-                    fprintf(fasta_fp, ">var%05d_%s%05d\n%s\n", crrnt_var /*vrnts[crrnt_var].nm*/, bc1_ind, bc_indx, seq);
+            //if make fasta option was provided, print full variant seq to fasta file
+            if (make_fasta) {
+                
+                if (!make_DNA_QC) {
+                    ret_c = snprintf(cncs_nm, MAX_LINE, "var%05d_%s%05d",  crrnt_var, bc1_ind, bc_indx);
+                    if (ret_c >= MAX_LINE || ret_c < 0) {
+                        printf("print_barcoded_variant: error - failed to generate variant name. aborting...\n");
+                        abort();
+                    }
+                    
                 } else {
-                    fprintf(fasta_fp, ">var%05d_%s%05d_%s%05d\n%s\n", crrnt_var /*vrnts[crrnt_var].nm*/, bc1_ind, bc_indx, bc2_ind, scnd_bc_indx, seq);
+                    ret_c = snprintf(cncs_nm, MAX_LINE, "var%05d_%s%05d_%s%05d", crrnt_var, bc1_ind, bc_indx, bc2_ind, scnd_bc_indx);
+                    if (ret_c >= MAX_LINE || ret_c < 0) {
+                        printf("print_barcoded_variant: error - failed to generate variant name. aborting...\n");
+                        abort();
+                    }
                 }
                 
+                fprintf(fasta_fp, ">%s\n%s\n", cncs_nm, seq);
+            }
+            
+            //print output sequence to vmt file
+            ret_v = snprintf(vrbs_nm, MAX_LINE, "%s_%05d", var->nm, crrnt_var);
+            if (ret_v >= MAX_LINE || ret_v < 0) {
+                printf("print_barcoded_variant: error - failed to generate variant name. aborting...\n");
+                abort();
             }
             
             seq[brcd_end_indx] = '\0'; //terminate string after barcode for printing to standard targets file
-            fprintf(out_fp, "%s_%05d\t%s\n", var->nm, bc_indx, target_start); //print var to std output file
+            fprintf(out_fp, "%s\t%s\n", vrbs_nm, target_start); //print var to std output file
+            
+            //if making link file, print record of verbose/concise names and associated barcode(s)
+            if (make_link) {
+                if (make_DNA_QC) {
+                    fprintf(link_fp, "%s\t%s\t%s\t%s\n", vrbs_nm, cncs_nm, crrnt_bc, scnd_bc);
+                } else {
+                    fprintf(link_fp, "%s\t%s\t%s\n", vrbs_nm, cncs_nm, crrnt_bc);
+                }
+            }
             
         }
     }
