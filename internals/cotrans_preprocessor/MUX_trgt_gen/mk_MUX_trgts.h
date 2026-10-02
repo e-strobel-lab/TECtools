@@ -27,6 +27,7 @@
 
 #include "../../TECdisplay_mapper/map_reads/map_expected/parse_vmt_trgts.h"
 
+#include "./parse_id_link.h"
 #include "./parse_fa_trgts.h"
 #include "./mk_barcoded_target_fastas.h"
 
@@ -38,7 +39,7 @@
 #define MAX_DEL_CODE 128  //maximum mutcode value for deletions
 
 /* mk_MUX_trgts: manages TECprobe-MUX target generation */
-int mk_MUX_trgts(target * refs, opt_ref * ref_val, compact_target * ctrg, opt_BC * BC_val, FILE * fp_MUXtrgs, int trgt_ftype, target_params * trg_prms, int clcd_ctrg_cnt, TDSPLY_fasta * wt, int data_type);
+int mk_MUX_trgts(target * refs, opt_ref * ref_val, compact_target * ctrg, opt_BC * BC_val, FILE * fp_MUXtrgs, int trgt_ftype, target_params * trg_prms, int clcd_ctrg_cnt, TDSPLY_fasta * wt, var_id_link * id_link, int data_type);
 
 /* mk_SUB_trgts: generates single substitution targets for input barcode */
 int mk_SUB_trgts(compact_target * ctrg, opt_BC * BC_val, int * ctrg_cnt, compact_target * src_ctrg, int brcd_len, uint64_t * mutCode, int link);

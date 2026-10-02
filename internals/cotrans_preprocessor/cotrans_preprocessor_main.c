@@ -52,7 +52,7 @@ int set_run_mode(char * mode_arg, int * run_mode, fastp_params * fastp_prms);
 //functions to check that required input files were supplied for each mode
 int check_make_fasta(int fa_nm_provided, int fa_sq_provided);
 int check_make_3pEnd_targets(int fa_provided);
-int check_standard_cotrans(int fq1_provided, int fq2_provided, int ends_provided, int fa_ref_provided, int MUX_trgs_provided, fastp_params fastp_prms, int making_testdata);
+int check_standard_cotrans(int fq1_provided, int fq2_provided, int ends_provided, int fa_ref_provided, int MUX_trgs_provided, int link_provided, fastp_params fastp_prms, int trgt_ftype, int making_testdata);
 int check_make_SM2_run_script(int config_provided);
 
 //other functions
@@ -90,6 +90,7 @@ int main(int argc, char *argv[])
     int ends_provided = 0;			//tracks number of provided 3' end files
     int fa_ref_provided = 0;        //tracks number of provided fasta reference files
     int MUX_trgs_provided = 0;      //tracks number of provided TECprobe-MX fasta target files
+    int link_provided = 0;          //tracks number of link files provided
     int fastp_path_provided = 0;	//tracks number of fastp paths provided
     int fa_provided = 0;			//tracks number of fasta files provided
     int config_MLT_provided = 0;	//tracks number of config files provided
@@ -139,6 +140,7 @@ int main(int argc, char *argv[])
             {"3pEnd", 		 required_argument,  0,  'e'},	//3' end file input
             {"fasta-ref",    required_argument,  0,  'a'},  //fasta for single length data processing
             {"barcodes",     required_argument,  0,  'b'},  //fasta for TECprobe-MUX targets
+            {"link",         required_argument,  0,  'k'},  //link file input
             {"fastp-path",   required_argument,  0,  'p'},  //provide path to fastp executable
             {"bypass-fastp", no_argument,        0,  'q'},  //run bypass_fastp function during MUX test data processing
             {"debug",        no_argument,        0,  'd'},  //turn on debug mode
@@ -150,7 +152,7 @@ int main(int argc, char *argv[])
             {0, 0, 0, 0}
         };
         
-        c = getopt_long(argc, argv, "m:n:s:A:E:S:TU:Ri:I:e:a:b:p:qdtl:c:", long_options, &option_index);
+        c = getopt_long(argc, argv, "m:n:s:A:E:S:TU:Ri:I:e:a:b:k:p:qdtl:c:", long_options, &option_index);
         
         if (c == -1) {
             break;
@@ -290,6 +292,12 @@ int main(int argc, char *argv[])
                 }
                 get_file(&(fp_MUXtrgs), argv[optind-1]);  //set file pointer to input fasta MUX target file
                 prcs_option_provided = 1;
+                break;
+            
+            /* get link file name */
+            case 'k':
+                link_provided++;
+                strcpy(nm.link, argv[optind-1]);
                 break;
                   
             /* set path to fastp executable */
@@ -443,7 +451,7 @@ int main(int argc, char *argv[])
             if (fastp_prms.mode == MULTI || fastp_prms.mode == SINGLE) { //standard cotrans read processing
                 
                 //check that required arguments were provided correctly
-                check_standard_cotrans(fq1_provided, fq2_provided, ends_provided, fa_ref_provided, MUX_trgs_provided, fastp_prms, 0); //TODO: may want to automate testdata generation for VL too
+                check_standard_cotrans(fq1_provided, fq2_provided, ends_provided, fa_ref_provided, MUX_trgs_provided, link_provided, fastp_prms, trgt_ftype, 0); //TODO: consider automating testdata generation for VL too
                 if (testdata_3pEnd.run) {
                     check_testdata_ipt(&nm);
                 }
@@ -461,7 +469,7 @@ int main(int argc, char *argv[])
             } else if (fastp_prms.mode == MULTIPLEX) { //TECprobe-MX read procesing
                 
                 //check that required arguments were provided correctly
-                check_standard_cotrans(fq1_provided, fq2_provided, ends_provided, fa_ref_provided, MUX_trgs_provided, fastp_prms, testdata_MUX.run);
+                check_standard_cotrans(fq1_provided, fq2_provided, ends_provided, fa_ref_provided, MUX_trgs_provided, link_provided, fastp_prms, trgt_ftype, testdata_MUX.run);
                 
                 //start sequencing read processing
                 prcs_MUX_cotrans(&nm, fp_MUXtrgs, trgt_ftype, fastp_prms, &testdata_MUX, run_bypass_fastp);
@@ -572,7 +580,7 @@ int check_make_3pEnd_targets(int fa_provided)
 }
 
 /* check_standard_cotrans: check that required inputs for standarrd cotrans preprocessing were provided */
-int check_standard_cotrans(int fq1_provided, int fq2_provided, int ends_provided, int fa_ref_provided, int MUX_trgs_provided, fastp_params fastp_prms, int making_testdata)
+int check_standard_cotrans(int fq1_provided, int fq2_provided, int ends_provided, int fa_ref_provided, int MUX_trgs_provided, int link_provided, fastp_params fastp_prms, int trgt_ftype, int making_testdata)
 {
     //check that only one read1 fastq file was provided
     if (fq1_provided != 1 && !making_testdata) {
@@ -601,6 +609,24 @@ int check_standard_cotrans(int fq1_provided, int fq2_provided, int ends_provided
     //check that only one fasta reference file was provided if experiment is single length
     if (fa_ref_provided != 1 && fastp_prms.mode == SINGLE) {
         printf("cotrans_preprocessor_main: error - incorrect number (%d) of fasta reference files provided\n", fa_ref_provided);
+        abort();
+    }
+    
+    //check that link was not provided in a non-MULTIPLEX mode
+    if (link_provided && fastp_prms.mode != MULTIPLEX) {
+        printf("cotrans_preprocessor_main: error - link file should only be provided alongside TECprobe-MUX fasta targets. aborting...\n");
+        abort();
+    }
+    
+    //check that link was not provided alongside non-fasta TECprobe-MUX targets
+    if (link_provided && fastp_prms.mode == MULTIPLEX && trgt_ftype != FASTA_FILE) {
+        printf("cotrans_preprocessor_main: error - link file should only be provided if TECprobe-MUX targets are in fasta format. aborting...\n");
+        abort();
+    }
+    
+    //check that no more than one link file was provided
+    if (fastp_prms.mode == MULTIPLEX && trgt_ftype == FASTA_FILE && link_provided > 1) {
+        printf("cotrans_preprocessor_main: error - no more than one id link file should be provided. aborting...\n");
         abort();
     }
     

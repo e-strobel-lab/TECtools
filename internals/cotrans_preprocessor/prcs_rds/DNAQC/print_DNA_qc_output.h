@@ -31,4 +31,7 @@ void print_DNA_qc_output(char * out_prfx, compact_target * ctrg, int brcd_cnt, i
 /* merge_bc_id: merge the ids of two barcode targets */
 void merge_bc_id(char ** mrg, char * str1, char * str2);
 
+/* print_DNA_qc_metrics: print mapping metrics for DNA qc sample */
+void print_DNA_qc_metrics(mapping_metrics * met);
+
 #endif /* print_DNA_qc_output_h */

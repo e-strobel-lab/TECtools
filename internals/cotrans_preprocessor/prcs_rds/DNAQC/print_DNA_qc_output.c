@@ -55,35 +55,6 @@ void print_DNA_qc_output(char * out_prfx, compact_target * ctrg, int brcd_cnt, i
     fprintf(ofp, "discordant\t%d\t%.4f\n", pairing[DISCORDANT],
             ((double)(pairing[DISCORDANT])/((double)(pairing[CONCORDANT]) + (double)(pairing[DISCORDANT]))));
     
-    
-    //print per-target concordance data
-    fprintf(ofp, "\nid\tconcordant_reads\ttot_reads_bc1\t_tot_reads_bc2\n"); //print header
-    
-    for (i = 0; i < brcd_cnt; i += 2) {           //for every barcode pair
-        crnt_ctrg = &ctrg[i];                     //set pointer to ctrg
-        crnt_BC_val = (opt_BC *)(crnt_ctrg->opt); //set pointer to barcode values
-        assoc = crnt_ctrg->utl;                   //set pointer to association structure
-        
-        lnkd_ctrg = crnt_BC_val->lnk;             //set pointer to linked ctrg
-        lnkd_BC_val = (opt_BC *)(lnkd_ctrg->opt); //set pointer to linked ctrg barcode values
-        
-        if (((uint64_t)(lnkd_ctrg) == (uint64_t)(&ctrg[i+1])) && //if barcodes are adjacent in ctrg array and
-            crnt_BC_val->num == 1 && lnkd_BC_val->num == 2) {    //were assigned complementary barcode numbers
-            
-            merge_bc_id(&mrg, crnt_ctrg->cid, lnkd_ctrg->cid);   //merge the barcode ids
-            
-            //print data line
-            fprintf(ofp, "%s\t%d\t%llu\t%llu\n", mrg, assoc->cncrdnt, (long long unsigned int)crnt_BC_val->mpd, (long long unsigned int)lnkd_BC_val->mpd);
-            
-            free(mrg);  //free mrg
-            mrg = NULL; //reset mrg to NULL
-            
-        } else { //unexpected barcode linkage, throw error and abort
-            printf("print_DNA_qc_output: error - expected barcode pairs to be adjacent in compact_target array. aborting...\n");
-            abort();
-        }
-    }
-    
     //close output file
     if (fclose(ofp) == EOF) {
         printf("assess_brcd_concordance: error - failed to close output file\n");
@@ -164,3 +135,44 @@ void merge_bc_id(char ** mrg, char * str1, char * str2)
     
     return;
 }
+
+/* print_DNA_qc_metrics: print mapping metrics for DNA qc sample */
+void print_DNA_qc_metrics(mapping_metrics * met)
+{
+    FILE * ofp = NULL; //output file poitner
+    
+    //generate mapping metrics file
+    if ((ofp = fopen("mapping_matrics.txt", "w")) == NULL) {
+        printf("print_DNA_qc_metrics: error - failed to generate mapping metrics file. aborting...\n");
+        abort();
+    }
+    
+    //print mapping metrics to output file
+    fprintf(ofp, "%10d (%6.2f%%) barcodes mapped to whitelisted targets\n",
+           met->mapped, ((double)(met->mapped)/(double)(met->reads_processed*2)) * 100);
+    
+    fprintf(ofp, "%10d (%6.2f%%) barcodes mapped to blacklisted targets\n",
+           met->bl_mapped, ((double)(met->bl_mapped)/(double)(met->reads_processed*2)) * 100);
+    
+    fprintf(ofp, "%10d (%6.2f%%) barcodes did not map to a target\n",
+           met->unmapped, ((double)(met->unmapped)/(double)(met->reads_processed*2)) * 100);
+    
+    //close mapping metrics file
+    if (fclose(ofp) == EOF) {
+        printf("print_DNA_qc_metrics: error - failed to close mapping metrics file. aborting...\n");
+        abort();
+    }
+    
+    //print mapping metrics to screen
+    printf("\n%10d (%6.2f%%) barcodes mapped to whitelisted targets\n",
+           met->mapped, ((double)(met->mapped)/(double)(met->reads_processed*2)) * 100);
+    
+    printf("%10d (%6.2f%%) barcodes mapped to blacklisted targets\n",
+           met->bl_mapped, ((double)(met->bl_mapped)/(double)(met->reads_processed*2)) * 100);
+    
+    printf("%10d (%6.2f%%) barcodes did not map to a target\n\n",
+           met->unmapped, ((double)(met->unmapped)/(double)(met->reads_processed*2)) * 100);
+    
+    return;
+}
+

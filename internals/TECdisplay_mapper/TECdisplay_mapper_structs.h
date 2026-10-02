@@ -69,6 +69,7 @@ typedef struct TDSPLY_names {
     char mrg[MAX_LINE];             //array to store merged read sample name
     char trgs[MAX_LINE];            //array to store targets filename
     char trgs_prefix[MAX_LINE];     //array to store targets prefix
+    char link[MAX_LINE];            //array to store link filename
     char out_nm[MAX_LINE];          //array to store output file name
 } TDSPLY_names;
 

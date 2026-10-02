@@ -73,6 +73,7 @@ typedef struct TPROBE_names {
     char smpl[READ_MAX][MAX_LINE+1]; //array to store read 1 and 2 sample names
     char trgts[MAX_LINE+1];          //array to store 3' end targets filename
     char trgts_prfx[MAX_LINE+1];     //barcode filename prefix
+    char link[MAX_LINE+1];           //array to store link filename
     int len;                         //length of single length target
 } TPROBE_names;
 

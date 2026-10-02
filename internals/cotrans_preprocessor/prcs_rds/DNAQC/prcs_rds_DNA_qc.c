@@ -176,6 +176,7 @@ int prcs_rds_DNA_qc(TPROBE_names * nm, FILE * fp_MUXtrgs, int trgt_ftype, fastp_
         assess_testdata_mapping(ctrg, trg_prms.t_cnt); //assess whether testdata mapped as expected
     }
     
+    print_DNA_qc_metrics(&met);
     print_DNA_qc_output(NULL, ctrg, trg_prms.t_cnt, &pairing[0]); //print output
     
     return 1;

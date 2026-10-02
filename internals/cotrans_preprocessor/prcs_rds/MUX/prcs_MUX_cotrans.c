@@ -35,6 +35,7 @@
 
 #include "../../MUX_trgt_gen/mk_MUX_trgts.h"
 #include "../../MUX_trgt_gen/mk_MUX_testdata.h"
+#include "../../MUX_trgt_gen/parse_id_link.h"
 
 #include "../MLT/prcs_MLT_cotrans.h"
 
@@ -59,6 +60,8 @@ int prcs_MUX_cotrans(TPROBE_names * nm, FILE * fp_MUXtrgs, int trgt_ftype, fastp
     
     compact_target * ctrg  = NULL; //pointer to compact target structures
     opt_BC * BC_val = NULL;        //pointer to optional target value structures
+    
+    var_id_link * id_link = NULL;  //pointer to id_link structures
     
     target_params trg_prms = {0};  //structure for storing target parameters
     TDSPLY_fasta wt = {0};         //storage for wt sequence information
@@ -104,6 +107,16 @@ int prcs_MUX_cotrans(TPROBE_names * nm, FILE * fp_MUXtrgs, int trgt_ftype, fastp
         fclose(fp_MUXtrgs);                  //close targets file
         get_file(&(fp_MUXtrgs), nm->trgts);  //re-open targets file
         
+        if (nm->link[0]) { //if an id link file was provided
+            
+            //allocate id link memory
+            if ((id_link = calloc(trg_prms.xpctd, sizeof(*id_link))) == NULL) {
+                printf("prcs_MUX_cotrans: error - failed to allocate id_link memory. aborting...\n");
+                abort();
+            }
+            parse_id_link(id_link, trg_prms.xpctd, nm->link); //parse id link file
+        }
+        
     } else {
         printf("prcs_MUX_cotrans: unrecognized barcoded target file type. aborting...\n");
         abort();
@@ -124,7 +137,7 @@ int prcs_MUX_cotrans(TPROBE_names * nm, FILE * fp_MUXtrgs, int trgt_ftype, fastp
     }
     
     //generate barcode targets
-    ctrg_cnt = mk_MUX_trgts(refs, ref_val, ctrg, BC_val, fp_MUXtrgs, trgt_ftype, &trg_prms, clcd_ctrg_cnt, &wt, TPROBE_MUX);
+    ctrg_cnt = mk_MUX_trgts(refs, ref_val, ctrg, BC_val, fp_MUXtrgs, trgt_ftype, &trg_prms, clcd_ctrg_cnt, &wt, id_link, TPROBE_MUX);
     met.srcTrgs = trg_prms.t_cnt; //record number of source barcodes
     met.targets = ctrg_cnt;       //record number of targets generated
     

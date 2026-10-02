@@ -369,7 +369,7 @@ void print_barcoded_variant(FILE * out_fp, FILE * fasta_fp, FILE * link_fp, fast
     char scnd_bc[MAX_LINE+1] = {0};     //secondary barcode
     static int scnd_bc_indx = 0;        //secondary barcode index
     
-    static int incld_lnkr = 0;          //flag to include linker
+    static int incld_lnkr = 1;          //flag to include linker; set to TRUE by default
     
     int trg_start_indx = 0;      //index at which target starts
     int brcd_end_indx = 0;       //index 1 char after barcode end

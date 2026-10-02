@@ -151,29 +151,33 @@ void parse_MUX_target_seq(char ** p_trgt, char ** p_brcd, int * brcd_len, char *
     if (trgt_ftype == VMT_FILE) { //vmt file sequences contain only the target, linker, and barcode
         *p_trgt = &crnt_seq[0];   //set target start to first array member
         
-    } else if (trgt_ftype == FASTA_FILE) { //fasta file sequences also contain leader and trailer sequences
+    } else if (trgt_ftype == FASTA_FILE) { //fasta file sequences may contain leader and trailer sequences
         
-        //set pointer to leader sequence
-        if ((p_ldr = strstr(crnt_seq, ldr)) == NULL) {
-            printf("parse_target_seq: leader not detected in target sequence in fasta file mode. aborting...\n");
-            abort();
-        }
-        
-        //check that leader sequence is at the start of the target sequence
-        if ((uint64_t)(&p_ldr[0]) == (uint64_t)(&crnt_seq[0])) {  //if pointer is at the start of the target seq
-            *p_trgt = &crnt_seq[strlen(ldr)];                     //set pointer to first nt after leader
-        } else {
-            printf("parse_target_seq: leader not detected at head of target sequence in fasta file mode. aborting...\n");
-            abort();
+        //set pointer to start of target
+        if ((p_ldr = strstr(crnt_seq, ldr)) != NULL) { //if a leader was identified...
+            
+            //check that leader sequence is at the start of the target sequence
+            if ((uint64_t)(&p_ldr[0]) == (uint64_t)(&crnt_seq[0])) {  //if pointer is at the start of the target seq
+                *p_trgt = &crnt_seq[strlen(ldr)];                     //set pointer to first nt after leader
+            } else {
+                printf("parse_target_seq: leader not detected at head of target sequence in fasta file mode. aborting...\n");
+                abort();
+            }
+            
+        } else { //if no leader was identified...
+            *p_trgt = &crnt_seq[0]; //set p_trgt to start of crnt_seq
         }
         
         //set pointer to trailer sequence
-        if ((p_trlr = strstr(*p_trgt, trlr)) == NULL) {
-            printf("parse_target_seq: trailer not detected in target sequence in fasta file mode. aborting...\n");
-            abort();
+        if ((p_trlr = strstr(*p_trgt, trlr)) != NULL) {
+            p_trlr[0] = '\0'; //terminate barcode string by zeroing first index of trailer string, which follows barcode
+        } else {
+            p_trlr = &crnt_seq[strlen(crnt_seq)];
+            if (p_trlr[0]) {
+                printf("parse_target_seq: error - trailer pointer was set to non-terminating null in trailer-less target. this should not be possible. aborting\n");
+                abort();
+            }
         }
-        p_trlr[0] = '\0'; //terminate barcode string by zeroing first index of trailer string, which follows barcode
-        
     } else {
         printf("parse_target_seq: error - unrecognized target file type. aborting...");
         abort();

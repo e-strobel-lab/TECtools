@@ -23,11 +23,23 @@
 
 #include "../../variant_maker/make_barcodes.h"
 #include "../../variant_maker/constant_seqs.h"
+#include "../../variant_maker/bc_ind.h"
 
+#include "./parse_id_link.h"
 #include "./set_barcoded_compact_target.h"
 
-/* parse_fa_trgts: stores input barcodes as targets */
-void parse_fa_trgts(FILE * ifp, int trgt_ftype, void * trgts, void * trg_val, target_params * trg_prms, int data_type);
+#define ID_TYPE_INIT 0
+#define CONCISE_VAR_ID 1
+#define VERBOSE_VAR_ID 2
+#define NONSTD_VAR_ID  3
 
+/* parse_fa_trgts: stores input barcodes as targets */
+void parse_fa_trgts(FILE * ifp, int trgt_ftype, void * trgts, void * trg_val, var_id_link * id_link, target_params * trg_prms, int data_type);
+
+/* detect_id_type: determine variant id type */
+int detect_id_type(char * ipt_trgt_id);
+
+/* sub_vrbs_id: use var_id_link structure to substitute concise id with verbose id */
+void sub_vrbs_id(char * id2use, char * ipt_trgt_id, var_id_link * id_link, int cnt);
 
 #endif /* parse_fa_trgts_h */

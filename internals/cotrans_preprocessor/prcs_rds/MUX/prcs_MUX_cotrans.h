@@ -38,6 +38,7 @@
 
 #include "../../MUX_trgt_gen/mk_MUX_trgts.h"
 #include "../../MUX_trgt_gen/mk_MUX_testdata.h"
+#include "../../MUX_trgt_gen/parse_id_link.h"
 
 #include "../MLT/prcs_MLT_cotrans.h"
 

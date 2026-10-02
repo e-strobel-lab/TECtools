@@ -20,26 +20,32 @@
 
 #include "../../variant_maker/make_barcodes.h"
 #include "../../variant_maker/constant_seqs.h"
+#include "../../variant_maker/bc_ind.h"
 
+#include "./parse_id_link.h"
 #include "./set_barcoded_compact_target.h"
 
 #include "parse_fa_trgts.h"
 
 
 /* parse_fa_trgts: stores input barcodes as targets */
-void parse_fa_trgts(FILE * ifp, int trgt_ftype, void * trgts, void * trg_val, target_params * trg_prms, int data_type)
+void parse_fa_trgts(FILE * ifp, int trgt_ftype, void * trgts, void * trg_val, var_id_link * id_link, target_params * trg_prms, int data_type)
 {
     uint64_t i = 0; //general purpose index
     
     opt_BC * p_opt_BC = NULL; //pointer for handling barcode target optional values
     
-    char trgt_id[MAX_LINE+1] = {0};  //array for current target identifier
-    char trgt_sq[MAX_LINE+1] = {0};  //current target sequence
-        
+    char ipt_trgt_id[MAX_LINE+1] = {0};  //target id from input fasta file
+    char id2use[MAX_LINE+1] = {0};       //target id to use when generating targets
+    char trgt_sq[MAX_LINE+1] = {0};      //current target sequence
+    
+    static int first_id_type = ID_TYPE_INIT; //id type of the first target
+    int crnt_id_type = ID_TYPE_INIT;         //id type of the current target
+    
     int L1 = 0; //variable for checking get fasta line 1 success
     int L2 = 0; //variable for checking get fasta line 2 success
     
-    while ((L1 = get_line(trgt_id, ifp))) {
+    while ((L1 = get_line(ipt_trgt_id, ifp))) { //for every fasta file entry
         
         //if t_cnt > xpctd and got_line was successful,
         //there are more targets than expected and not
@@ -56,12 +62,131 @@ void parse_fa_trgts(FILE * ifp, int trgt_ftype, void * trgts, void * trg_val, ta
             abort();
         }
         
+        //ensure variant id is in correct format for processing by
+        //downstream functions in set_barcoded_compact_target
+        crnt_id_type = detect_id_type(ipt_trgt_id);  //set id type of current fasta entry
+        if (first_id_type == ID_TYPE_INIT) {         //if first entry, set first_id_type
+            first_id_type = crnt_id_type;
+            
+        } else if (crnt_id_type != first_id_type) {  //otherwise, check that current id type matches first id type
+            printf("parse_fa_trgts: error - multiple variant id types detected. aborting...\n");
+            abort();
+        }
+        
+        if (crnt_id_type == CONCISE_VAR_ID) { //if fasta entries contain concise variant ids
+            if (id_link != NULL) {
+                sub_vrbs_id(id2use, ipt_trgt_id, id_link, trg_prms->xpctd); //substitute verbose variant id
+            } else {
+                printf("parse_fa_trgts: error - an id link file must be provided for fasta targets with concise ids. aborting...\n");
+                abort();
+            }
+            
+        } else if (crnt_id_type == VERBOSE_VAR_ID) { //if fasta entries contain verbose variant ids
+            strcpy(id2use, ipt_trgt_id);             //use verbose variant id
+        
+        } else if (crnt_id_type == NONSTD_VAR_ID) { //not currently allowing non-standard variant ids
+            printf("parse_fa_trgts: error - non-standard variant ids are currently disabled. aborting...\n");
+            abort();
+        }
+        
+        //set barcoded compact target for current fasta entry
         set_barcoded_compact_target(&(((compact_target *)trgts)[trg_prms->t_cnt]),
                                     &(((opt_BC *)trg_val)[trg_prms->t_cnt]),
-                                    NULL, trgt_id, trgt_sq, trg_prms, trgt_ftype, data_type);
+                                    NULL, id2use, trgt_sq, trg_prms, trgt_ftype, data_type);
         
         trg_prms->t_cnt++; //increment target count
         L1 = L2 = 0;       //zero L1 and L2
+    }
+    
+    return;
+}
+
+/* detect_id_type: determine variant id type */
+int detect_id_type(char * ipt_trgt_id)
+{
+    extern char bc1_ind[3];   //barcode 1 indicator string
+    char var_ind[5] = ">var"; //variant indicator string
+    
+    int i = 0; //general purpose index
+    
+    int is_cncs_id = 0; //flag that id type is concise
+    int is_vrbs_id = 0; //flag that id type is verbose
+    
+    char * p_var_id  = NULL; //pointer to variant id
+    char * p_bc1_ind = NULL; //pointer to barcode 1 indicator
+    
+    //test if input target id is concise id
+    if (!memcmp(ipt_trgt_id, var_ind, strlen(var_ind))) { //if head of string matches the variant indicator string
+        
+        p_var_id = &ipt_trgt_id[strlen(var_ind)+1]; //set pointer to var id number that follows the var indicator string
+        for (i = 0; isdigit(p_var_id[i]) && p_var_id[i] != '_' && p_var_id[i]; i++) {;} //iterate to next underscore
+        
+        if (p_var_id[i] == '_') {       //if an underscore was found
+            p_bc1_ind = &p_var_id[i+1]; //set pointer to the character after the underscore
+            
+            if (!memcmp(p_bc1_ind, bc1_ind, strlen(bc1_ind))) { //test for presence of barcode 1 indicator string
+                is_cncs_id = 1;                                 //if detected, set flag that id is concise id
+            }
+        }
+    }
+    
+    //test if input target id is verbose id
+    //from end of input target id string, iterate upstream until an underscore is detected or index 0 is reached
+    for (i = strlen(ipt_trgt_id)-1; isdigit(ipt_trgt_id[i]) && ipt_trgt_id[i] != '_' && i >= 0; i--) {;}
+    if (ipt_trgt_id[i] == '_' || (i == 0 && isdigit(ipt_trgt_id[i]))) { //if digits follow the last '_' or id is digits
+        is_vrbs_id = 1;                                                 //set flag that id is verbose id
+    }
+    
+    if (is_cncs_id && is_vrbs_id) { //if id is identified as concise and verbose, throw error and abort
+        printf("detect_id_type: error - variant id %s meets criteria for both concise and verbose ids. aborting...\n", ipt_trgt_id);
+        abort();
+        
+    } else if (is_cncs_id) {   //return concise id
+        return CONCISE_VAR_ID;
+        
+    } else if (is_vrbs_id) {   //return verbose id
+        return VERBOSE_VAR_ID;
+    
+    } else {                   //return non-standard id
+        return NONSTD_VAR_ID;
+    }
+}
+
+/* sub_vrbs_id: use var_id_link structure to substitute concise id with verbose id */
+void sub_vrbs_id(char * id2use, char * ipt_trgt_id, var_id_link * id_link, int cnt)
+{
+    int i = 0;        //general purpose index
+    int fnd_mtch = 0; //flag that match was found
+    
+    char * p_ix1 = NULL;         //pointer to index 1 of id (bypasses '>' at head of string)
+    var_id_link * p_mtch = NULL; //pointer to var_id_link struct that matches input target id
+    
+    for (i = 0; i < cnt; i++) {             //for every var_id_link structure
+        p_ix1 = &ipt_trgt_id[1];            //set pointer to index 1 of id
+        if (!strcmp(p_ix1, id_link[i].c)) { //if id matches the current var_id_link entry
+            fnd_mtch++;                     //set found match flag to true
+            p_mtch = &id_link[i];           //set pointer to matching var_id_link structure
+        }
+    }
+    
+    if (fnd_mtch == 1) {                   //if one match was found
+        if (!p_mtch->subbed) {             //if the match has not be used previously
+            id2use[0] = '>';               //set leading '>' char
+            strcpy(&id2use[1], p_mtch->v); //set verbose id
+            p_mtch->subbed = 1;            //set flag that var_id_link struct has been used
+            
+        } else { //otherwise, throw error and abort
+            printf("sub_vrbs_id: error - verbose id %s was substituted in place of a concise id previously. aborting...\n", p_mtch->v);
+            abort();
+        }
+        
+    } else if (fnd_mtch < 1) { //if fewer than one match was found, throw error and abort
+        printf("sub_vrbs_id: error - did not find match for target id %s in link file. aborting...\n", ipt_trgt_id);
+        abort();
+        
+    } else if (fnd_mtch > 1) { //if more than one match was found, throw error and abort
+        printf("sub_vrbs_id: error - found more than one match for target id %s in link file. aborting...\n", ipt_trgt_id);
+        abort();
     }
     
     return;

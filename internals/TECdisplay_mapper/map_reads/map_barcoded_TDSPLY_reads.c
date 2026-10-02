@@ -12,6 +12,7 @@
 #include "../../global/global_structs.h"
 
 #include "../../cotrans_preprocessor/MUX_trgt_gen/mk_MUX_trgts.h"
+#include "../../cotrans_preprocessor/MUX_trgt_gen/parse_id_link.h"
 #include "../../cotrans_preprocessor/prcs_rds/MUX/map_barcoded_targets.h"
 #include "../../cotrans_preprocessor/prcs_rds/MUX/get_brcd_str.h"
 #include "../../cotrans_preprocessor/prcs_rds/MUX/testdataMUX_analysis.h"
@@ -64,6 +65,8 @@ int prcs_barcoded_TDSPLY_reads(TDSPLY_names * nm, int trgt_ftype, char * minQ, f
     compact_target *ctrg = NULL;  //pointer for array of hash table targets
     opt_BC *BC_val = NULL;        //pointer for array of optional target structures
     
+    var_id_link * id_link = NULL; //pointer to id_link structures
+    
     target_params trg_prms = {0}; //structure for storing target parameters
     TDSPLY_fasta wt = {0};        //storage for wt sequence information
     
@@ -105,6 +108,16 @@ int prcs_barcoded_TDSPLY_reads(TDSPLY_names * nm, int trgt_ftype, char * minQ, f
         fclose(fp_trgs);                //close targets file
         get_file(&(fp_trgs), nm->trgs); //re-open targets file
         
+        if (nm->link[0]) { //if an id link file was provided
+            
+            //allocate id link memory
+            if ((id_link = calloc(trg_prms.xpctd, sizeof(*id_link))) == NULL) {
+                printf("map_barcoded_TDSPLY_reads: error - failed to allocate id_link memory. aborting...\n");
+                abort();
+            }
+            parse_id_link(id_link, trg_prms.xpctd, nm->link); //parse id link file
+        }
+        
     } else {
         printf("map_barcoded_TDSPLY_reads: expected targets as fasta file. aborting...\n");
         abort();
@@ -127,7 +140,7 @@ int prcs_barcoded_TDSPLY_reads(TDSPLY_names * nm, int trgt_ftype, char * minQ, f
     printf("\nProcessing targets file that contains %d targets\n\n", trg_prms.xpctd);
     
     //generate barcode targets
-    ctrg_cnt = mk_MUX_trgts(refs, ref_val, ctrg, BC_val, fp_trgs, trgt_ftype, &trg_prms, clcd_ctrg_cnt, &wt, TDSPLY_BRCD);
+    ctrg_cnt = mk_MUX_trgts(refs, ref_val, ctrg, BC_val, fp_trgs, trgt_ftype, &trg_prms, clcd_ctrg_cnt, &wt, id_link, TDSPLY_BRCD);
     met.srcTrgs = trg_prms.t_cnt; //record number of source barcodes
     met.targets = ctrg_cnt;       //record number of targets generated
     

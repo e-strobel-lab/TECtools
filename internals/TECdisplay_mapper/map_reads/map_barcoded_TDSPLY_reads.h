@@ -15,6 +15,7 @@
 #include "../../global/global_structs.h"
 
 #include "../../cotrans_preprocessor/MUX_trgt_gen/mk_MUX_trgts.h"
+#include "../../cotrans_preprocessor/MUX_trgt_gen/parse_id_link.h"
 #include "../../cotrans_preprocessor/prcs_rds/MUX/map_barcoded_targets.h"
 #include "../../cotrans_preprocessor/prcs_rds/MUX/get_brcd_str.h"
 #include "../../cotrans_preprocessor/prcs_rds/MUX/testdataMUX_analysis.h"

@@ -24,6 +24,7 @@
 
 #include "../../TECdisplay_mapper/map_reads/map_expected/parse_vmt_trgts.h"
 
+#include "./parse_id_link.h"
 #include "./parse_fa_trgts.h"
 #include "./mk_barcoded_target_fastas.h"
 
@@ -36,7 +37,7 @@ uint64_t trgt_ID_mask = 0xFFFFFFFFFFFF0000; //barcode id mask that isolates the 
 uint64_t mutcode_mask = 0x000000000000FFFF; //barcode id mask that isolates mutation code
 
 /* mk_MUX_trgts: manages TECprobe-MUX target generation */
-int mk_MUX_trgts(target * refs, opt_ref * ref_val, compact_target * ctrg, opt_BC * BC_val, FILE * fp_MUXtrgs, int trgt_ftype, target_params * trg_prms, int clcd_ctrg_cnt, TDSPLY_fasta * wt, int data_type)
+int mk_MUX_trgts(target * refs, opt_ref * ref_val, compact_target * ctrg, opt_BC * BC_val, FILE * fp_MUXtrgs, int trgt_ftype, target_params * trg_prms, int clcd_ctrg_cnt, TDSPLY_fasta * wt, var_id_link * id_link, int data_type)
 {
     extern char RLA29synch_3p11[34]; //linker sequence for TECprobe-MUX experiments
     
@@ -49,7 +50,7 @@ int mk_MUX_trgts(target * refs, opt_ref * ref_val, compact_target * ctrg, opt_BC
         parse_vmt_trgts(fp_MUXtrgs, trgt_ftype, refs, ref_val, ctrg, BC_val, trg_prms, wt, data_type, CMPCT_TRGT_STRUCT);
         
     } else if (trgt_ftype == FASTA_FILE) {
-        parse_fa_trgts(fp_MUXtrgs, trgt_ftype, ctrg, BC_val, trg_prms, data_type);
+        parse_fa_trgts(fp_MUXtrgs, trgt_ftype, ctrg, BC_val, id_link, trg_prms, data_type);
         
     } else {
         printf("mk_MUX_trgts: error - unrecognized barcoded targets file type. aborting...\n");
