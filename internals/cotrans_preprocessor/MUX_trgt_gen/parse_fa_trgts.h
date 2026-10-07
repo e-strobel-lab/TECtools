@@ -33,6 +33,9 @@
 #define VERBOSE_VAR_ID 2
 #define NONSTD_VAR_ID  3
 
+#define MAX_VAR_NUM 99999
+#define MAX_NUM_STR 10
+
 /* parse_fa_trgts: stores input barcodes as targets */
 void parse_fa_trgts(FILE * ifp, int trgt_ftype, void * trgts, void * trg_val, var_id_link * id_link, target_params * trg_prms, int data_type);
 
@@ -40,6 +43,9 @@ void parse_fa_trgts(FILE * ifp, int trgt_ftype, void * trgts, void * trg_val, va
 int detect_id_type(char * ipt_trgt_id);
 
 /* sub_vrbs_id: use var_id_link structure to substitute concise id with verbose id */
-void sub_vrbs_id(char * id2use, char * ipt_trgt_id, var_id_link * id_link, int cnt);
+void sub_vrbs_id(char ** id2use, char * ipt_trgt_id, var_id_link * id_link, int cnt);
+
+/* append var_num: append variant number to id. for use with non-standard variant ids */
+void append_var_num(char ** id2use, char * ipt_trgt_id);
 
 #endif /* parse_fa_trgts_h */

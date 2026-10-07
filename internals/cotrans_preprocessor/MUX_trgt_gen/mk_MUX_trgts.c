@@ -44,6 +44,7 @@ int mk_MUX_trgts(target * refs, opt_ref * ref_val, compact_target * ctrg, opt_BC
     int brcd_len = 0;  //barcode length
     int ctrg_cnt = 0;  //number of barcode targets
     
+    int l = 0; //general purpose index
     
     //parse barcoded targets file and store as compact targets
     if (trgt_ftype == VMT_FILE) {
@@ -52,6 +53,14 @@ int mk_MUX_trgts(target * refs, opt_ref * ref_val, compact_target * ctrg, opt_BC
     } else if (trgt_ftype == FASTA_FILE) {
         parse_fa_trgts(fp_MUXtrgs, trgt_ftype, ctrg, BC_val, id_link, trg_prms, data_type);
         
+        if (id_link != NULL) { //if using id link file to sub variant ids, test if all id link entries were used
+            for (l = 0; l < trg_prms->xpctd; l++) {
+                if (!id_link[l].subbed) {
+                    printf("mk_MUX_trgts: error - detected unused id link entry. the number of id link entries should match the number of targets and every id link entry should be used. aborting...\n");
+                    abort();
+                }
+            }
+        }
     } else {
         printf("mk_MUX_trgts: error - unrecognized barcoded targets file type. aborting...\n");
     }
