@@ -18,6 +18,7 @@
 
 #include "./variant_maker_defs.h"
 #include "./variant_maker_structs.h"
+#include "./constant_seqs.h"
 #include "./vmt_suffix.h"
 #include "./make_barcodes.h"
 #include "./bc_ind.h"
@@ -349,8 +350,12 @@ void print_barcoded_variant(FILE * out_fp, FILE * fasta_fp, FILE * link_fp, fast
     //extern fasta *vrnts;    //array of variant sequences
     extern uint64_t v_indx; //index for vrnts array
     
-    extern char * fwd2use;  //forward priming site to use
-    extern char * rev2use;  //reverse priming site to use
+    extern char * fwd2use;                  //forward priming site to use
+    extern char * rev2use;                  //reverse priming site to use
+    extern char c3sc_BC[C3SC_BRCD_CNT][34]; //array of barcoded C3SC sequences
+    static int crnt_c3sc_BC = 0; //current C3SC barcode to use for doubly-barcoded variants
+                                 //this variable must be static so that all barcodes are used
+                                 //in sequence before they are reused
     
     int make_DNA_QC = 0;             //flag to make DNA QC sequences //TODO: make option?
     extern char vra5[22];            //vra5 sequence
@@ -369,12 +374,15 @@ void print_barcoded_variant(FILE * out_fp, FILE * fasta_fp, FILE * link_fp, fast
     char scnd_bc[MAX_LINE+1] = {0};     //secondary barcode
     static int scnd_bc_indx = 0;        //secondary barcode index
     
+    int bc2_indx_2_print = BC2_INDX_2_PRINT_INIT; //barcode index to print to variant name
+    
     static int incld_lnkr = 1;          //flag to include linker; set to TRUE by default
     
     int trg_start_indx = 0;      //index at which target starts
     int brcd_end_indx = 0;       //index 1 char after barcode end
     char * target_start = NULL;  //pointer to target start
     
+    //MAKE_DNA_QC mode can only be run if library type is singly-barcoded TECprobe-MUX
     if (make_DNA_QC && lib_type != TECPROBE_MUX_SGL_BC_LIB) {
         printf("print_barcoded_variant: error - make_DNA_QC requires that library type be TECPROBE_MUX_LIB. aborting...\n");
         abort();
@@ -439,13 +447,34 @@ void print_barcoded_variant(FILE * out_fp, FILE * fasta_fp, FILE * link_fp, fast
                     abort();
                 } else {
                     strcat(seq, scnd_bc); //append second barcode
+                    if (bc2_indx_2_print == BC2_INDX_2_PRINT_INIT) {
+                        bc2_indx_2_print = scnd_bc_indx;
+                    } else {
+                        printf("print_output: bc2_indx_2_print is not set to initial value. aborting...\n");
+                        abort();
+                    }
                 }
                 
                 strcat(seq, pra1_m25_to_m50); //append upstream promoter segment
             }
             
-            if (append_priming) {             //if appending priming sites
-                strcat(seq, fwd2use);         //append the forward priming site sequence
+            if (append_priming) { //if appending priming sites
+                if (lib_type == TECPROBE_MUX_DBL_BC_LIB) { //if generating doubly-barcoded TECprobe-MUX library
+                    fwd2use = &c3sc_BC[crnt_c3sc_BC++][0]; //set forward priming site to use from barcoded C3SC array
+                                                           //incremented here so that printed value is +1
+                    
+                    if (bc2_indx_2_print == BC2_INDX_2_PRINT_INIT) { //test bc2_indx_2_print initialization
+                        bc2_indx_2_print = crnt_c3sc_BC;             //set bc2 index to print in variant name
+                    } else {
+                        printf("print_output: bc2_indx_2_print is not set to initial value. aborting...\n");
+                        abort();
+                    }
+                    
+                    if (crnt_c3sc_BC >= C3SC_BRCD_CNT) {   //if all C3SC barcodes have been used
+                        crnt_c3sc_BC = 0;                  //reset current c3sc barcode index to 0
+                    }
+                }
+                strcat(seq, fwd2use); //append the forward priming site sequence
             }
             
             trg_start_indx = strlen(seq);        //store target start index
@@ -466,7 +495,7 @@ void print_barcoded_variant(FILE * out_fp, FILE * fasta_fp, FILE * link_fp, fast
             //if make fasta option was provided, print full variant seq to fasta file
             if (make_fasta) {
                 
-                if (!make_DNA_QC) {
+                if (!make_DNA_QC && lib_type != TECPROBE_MUX_DBL_BC_LIB) {
                     ret_c = snprintf(cncs_nm, MAX_LINE, "var%05d_%s%05d",  crrnt_var, bc1_ind, bc_indx);
                     if (ret_c >= MAX_LINE || ret_c < 0) {
                         printf("print_barcoded_variant: error - failed to generate variant name. aborting...\n");
@@ -474,11 +503,12 @@ void print_barcoded_variant(FILE * out_fp, FILE * fasta_fp, FILE * link_fp, fast
                     }
                     
                 } else {
-                    ret_c = snprintf(cncs_nm, MAX_LINE, "var%05d_%s%05d_%s%05d", crrnt_var, bc1_ind, bc_indx, bc2_ind, scnd_bc_indx);
+                    ret_c = snprintf(cncs_nm, MAX_LINE, "var%05d_%s%05d_%s%05d", crrnt_var, bc1_ind, bc_indx, bc2_ind, bc2_indx_2_print);
                     if (ret_c >= MAX_LINE || ret_c < 0) {
                         printf("print_barcoded_variant: error - failed to generate variant name. aborting...\n");
                         abort();
                     }
+                    bc2_indx_2_print = BC2_INDX_2_PRINT_INIT;
                 }
                 
                 fprintf(fasta_fp, ">%s\n%s\n", cncs_nm, seq);

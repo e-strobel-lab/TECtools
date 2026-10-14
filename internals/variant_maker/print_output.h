@@ -23,6 +23,8 @@
 
 #include "read_bcFile.h"
 
+#define BC2_INDX_2_PRINT_INIT -1
+
 /* print_output: print variants to output file */
 void print_output(names * nm, basemap * bmap, int vTmpCnt, int varCnt, char * out_dir, int append_priming, int append_barcode, FILE * fp_brcd, int first_bc_2_use, int bcs_per_var, char * lnkr, int make_fasta, int lib_type);
 

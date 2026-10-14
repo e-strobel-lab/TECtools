@@ -57,7 +57,7 @@ char out_msg[MAX_LINE] = {0};     //output message
 
 char * fwd2use = NULL;
 char * rev2use = NULL;
-
+char c3sc_dbl_bc[12] = "c3sc_dbl_bc";
 /* end of global variables */
 
 int main(int argc, char *argv[])
@@ -197,6 +197,13 @@ int main(int argc, char *argv[])
                     rev2use = &vra3[0];
                     lnkr = &RLA29synch_3p11[0];
                     lib_type = TECPROBE_MUX_SGL_BC_LIB;
+                    lib_type_set = 1;
+                    
+                } else if (!strcmp(argv[optind-1], "TECprobe-MUX-DBL-BC")) {
+                    fwd2use = &c3sc_dbl_bc[0];
+                    rev2use = &vra3[0];
+                    lnkr = &RLA29synch_3p11[0];
+                    lib_type = TECPROBE_MUX_DBL_BC_LIB;
                     lib_type_set = 1;
                     
                 } else {
@@ -478,7 +485,7 @@ void check_input(names * nm, int varFile_supplied, int brcdFile_supplied, int li
     
     
     //if lib_type is TECprobe-MUX, check that custom linker was not provided
-    if ((lib_type == TECPROBE_MUX_SGL_BC_LIB) && strcmp(cstm_lnkr, "exclude")) {
+    if ((lib_type == TECPROBE_MUX_SGL_BC_LIB || lib_type == TECPROBE_MUX_DBL_BC_LIB) && strcmp(cstm_lnkr, "exclude")) {
         printf("check_input: error - custom linker sequences cannot be used in TECprobe-MUX libraries. aborting...\n");
         abort();
     }

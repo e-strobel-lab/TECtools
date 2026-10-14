@@ -18,4 +18,22 @@ char vra5[22]            = "ccttggcacccgagaattcca";
 char RLA29synch_3p11[34] = "aaacaccaccaAcatcaccatcatcctgacgcg"; //v2
 char RLA29synch_inFP[12] = "aaacaccacca"; //sequence in RNAP footprint when RNAP is at synch site
 
-char sc1[17] = "atggccttcgggccaa";
+char sc1[17] = "atggccttcgggccaa"; //SC1 sequence
+
+//array of barcoded C3SC sequences
+char c3sc_BC[C3SC_BRCD_CNT][34] = {"ATTCGGTGCTCTTCTCTTCGGGGTTCGCCCCAA",
+                                   "ATTCGGTGCTCTTCTCTTCGGGCTTCGGCCCAA",
+                                   "ATTCGGTGCTCTTCTCTTCGGCGTTCGCGCCAA",
+                                   "ATTCGGTGCTCTTCTCTTCGGCCTTCGGGCCAA",
+                                   "ATTCGGTGCTCTTCTCTTCGCGGTTCGCCGCAA",
+                                   "ATTCGGTGCTCTTCTCTTCGCGCTTCGGCGCAA",
+                                   "ATTCGGTGCTCTTCTCTTCGCCGTTCGCGGCAA",
+                                   "ATTCGGTGCTCTTCTCTTCGCCCTTCGGGGCAA",
+                                   "ATTCGGTGCTCTTCTCTTCCGGGTTCGCCCGAA",
+                                   "ATTCGGTGCTCTTCTCTTCCGGCTTCGGCCGAA",
+                                   "ATTCGGTGCTCTTCTCTTCCGCGTTCGCGCGAA",
+                                   "ATTCGGTGCTCTTCTCTTCCGCCTTCGGGCGAA",
+                                   "ATTCGGTGCTCTTCTCTTCCCGGTTCGCCGGAA",
+                                   "ATTCGGTGCTCTTCTCTTCCCGCTTCGGCGGAA",
+                                   "ATTCGGTGCTCTTCTCTTCCCCGTTCGCGGGAA",
+                                   "ATTCGGTGCTCTTCTCTTCCCCCTTCGGGGGAA"};

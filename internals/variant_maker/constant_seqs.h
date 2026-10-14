@@ -10,4 +10,6 @@
 
 #include <stdio.h>
 
+#define C3SC_BRCD_CNT 16
+
 #endif /* constant_seqs_h */
