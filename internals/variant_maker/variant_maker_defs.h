@@ -16,9 +16,10 @@
 #define MAKE_VARIANTS 1       //make variants mode
 #define MAKE_BARCODES 2       //make barcodes mode
 
-#define LIB_TYPE_INIT    -1
-#define TECDISPLAY_LIB    0   //making TECdisplay library
-#define TECPROBE_MUX_LIB  1   //making TECprobe-MUX library
+#define LIB_TYPE_INIT           -1
+#define TECDISPLAY_LIB           0   //making TECdisplay library
+#define TECPROBE_MUX_SGL_BC_LIB  1   //making TECprobe-MUX library
+#define TECPROBE_MUX_DBL_BC_LIB  2
 
 #define MAXREF 1024           //maximum number of references sequences
 #define MAX_COMPLEX 26        //maximum number of complex pairs

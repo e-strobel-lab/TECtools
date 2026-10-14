@@ -375,7 +375,7 @@ void print_barcoded_variant(FILE * out_fp, FILE * fasta_fp, FILE * link_fp, fast
     int brcd_end_indx = 0;       //index 1 char after barcode end
     char * target_start = NULL;  //pointer to target start
     
-    if (make_DNA_QC && lib_type != TECPROBE_MUX_LIB) {
+    if (make_DNA_QC && lib_type != TECPROBE_MUX_SGL_BC_LIB) {
         printf("print_barcoded_variant: error - make_DNA_QC requires that library type be TECPROBE_MUX_LIB. aborting...\n");
         abort();
     }
