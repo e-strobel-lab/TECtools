@@ -21,6 +21,7 @@
 
 #include "../../seq_utils/seq2bin_hash.h"
 #include "../../seq_utils/seq2bin_long.h"
+#include "../../seq_utils/ispair.h"
 
 #include "../filter_by_characteristics_defs.h"
 #include "../filter_by_characteristics_structs.h"
@@ -535,7 +536,7 @@ void find_ntbl_var_prs(compact_target ** ctrg, int wl, comparison_values * cmp, 
                             //z-score difference is within limit
                             
                             //zero mct_difs structure
-                            difs.np_tot = difs.n_sub = difs.p_tot = difs.p_sub = difs.p_swp = 0;
+                            difs.np_tot = difs.n_sub = difs.p_tot = difs.p_sub = difs.p_swp = difs.gc_au = difs.gc_gu = difs.au_gu = 0;
                             
                             //set sequence attributes pointers
                             sq_att1 = sp_srtd[j]->sq_att;
@@ -603,9 +604,11 @@ void cnt_dif_bps(mct_diffs * difs, min_con_table * mct1, min_con_table * mct2)
     
     char b1 = 0; //base 1
     char p1 = 0; //base paired to base 1
+    int pr1_typ = 0;
     
     char b2 = 0; //base 2
     char p2 = 0; //base paired to base 2
+    int pr2_typ = 0;
     
     int * tstd = NULL; //pointer for allocating array to track which nucleotides have been tested
     
@@ -647,10 +650,11 @@ void cnt_dif_bps(mct_diffs * difs, min_con_table * mct1, min_con_table * mct2)
                 //set b1/p1 and b2/p2 to simplify the code below
                 b1 = mct1->sq[i];
                 p1 = mct1->sq[mct1->p2ix[i]];
+                pr1_typ = ispair(b1, p1);
                          
                 b2 = mct2->sq[i];
                 p2 = mct2->sq[mct2->p2ix[i]];
-                         
+                pr2_typ = ispair(b2, p2);
                          
                 if (b1 != b2 || p1 != p2) {      //if the base pairs are different
                     if (b1 == p2 && p1 == b2) {  //check whether the orientation of the pair was swapped
@@ -666,6 +670,21 @@ void cnt_dif_bps(mct_diffs * difs, min_con_table * mct1, min_con_table * mct2)
                     
                     difs->cssq1[mct1->p2ix[i]] = toupper(mct1->sq[mct1->p2ix[i]]);
                     difs->cssq2[mct2->p2ix[i]] = toupper(mct2->sq[mct2->p2ix[i]]);
+                    
+                    //increment pair type difference counter
+                    if ((pr1_typ == GC_PAIR && pr2_typ == AU_PAIR) ||
+                        (pr1_typ == AU_PAIR && pr2_typ == GC_PAIR)) {
+                        difs->gc_au++;
+                    } else if ((pr1_typ == GC_PAIR && pr2_typ == GU_PAIR) ||
+                               (pr1_typ == GU_PAIR && pr2_typ == GC_PAIR)) {
+                        difs->gc_gu++;
+                    } else if ((pr1_typ == AU_PAIR && pr2_typ == GU_PAIR) ||
+                               (pr1_typ == GU_PAIR && pr2_typ == AU_PAIR)) {
+                        difs->au_gu++;
+                    } else {
+                        printf("cnt_dif_bps: unexpected pair type difference. pr1 = %d, pr2 = %d\n aborting...", pr1_typ, pr2_typ);
+                        abort();
+                    }
                     
                 } else {
                     //set case-seq chars as lowercase to indicate same
@@ -702,7 +721,7 @@ void cnt_dif_bps(mct_diffs * difs, min_con_table * mct1, min_con_table * mct2)
 void print_tl_out_hdr(FILE * ofp, char * db)
 {
     fprintf(ofp, "SecStruct:\t%s\n", db);
-    fprintf(ofp, "id\tfull_seq\tprediction_seq\tdot-bracket_annnotated\tdG\text_dG\tnt_ext_unchanged\tcomparison_value\tz-score\tdelta_comparison_value\tabs_delta_comparison_value\tdelta_z-score\tabs_delta_z-score\ttot_nt_and_pair_difs\tnt_substitutions\ttot_pair_difs\tpair_substitutions\tpair_swaps\n");
+    fprintf(ofp, "id\tfull_seq\tprediction_seq\tdot-bracket_annnotated\tdG\text_dG\tnt_ext_unchanged\tcomparison_value\tz-score\tdelta_comparison_value\tabs_delta_comparison_value\tdelta_z-score\tabs_delta_z-score\ttot_nt_and_pair_difs\tnt_substitutions\ttot_pair_difs\tpair_substitutions\tpair_swaps\tGC<->AU\tGC<->GU\tAU<->GU\n");
     //^consider changing n/p nomenclature
     
     return;
@@ -711,7 +730,7 @@ void print_tl_out_hdr(FILE * ofp, char * db)
 /* print_tl_out_data: print data line for two-line output file */
 void print_tl_out_data(FILE * ofp, comparison_values * cmp, sequence_attributes * sq_att1, sequence_attributes * sq_att2, structProps * sp1, structProps * sp2, mct_diffs * difs, int ext_limit)
 {
-    fprintf(ofp, "%s\t%s\t%s\t%s\t%f\t%f\t%lu\t%f\t%f\t%f\t%f\t%f\t%f\t%d\t%d\t%d\t%d\t%d\n",
+    fprintf(ofp, "%s\t%s\t%s\t%s\t%f\t%f\t%lu\t%f\t%f\t%f\t%f\t%f\t%f\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\n",
             sq_att1->nm,
             sq_att1->sq1,
             difs->cssq1,
@@ -729,7 +748,10 @@ void print_tl_out_data(FILE * ofp, comparison_values * cmp, sequence_attributes 
             difs->n_sub,
             difs->p_tot,
             difs->p_sub,
-            difs->p_swp);
+            difs->p_swp,
+            difs->gc_au,
+            difs->gc_gu,
+            difs->au_gu);
     
     fprintf(ofp, "%s\t%s\t%s\t%s\t%f\t%f\t%lu\t%f\t%f\n-----\n",
             sq_att2->nm,
@@ -748,7 +770,7 @@ void print_tl_out_data(FILE * ofp, comparison_values * cmp, sequence_attributes 
 /* print_ol_out_hdr: print header line for one-line output file */
 void print_ol_out_hdr(FILE * ofp)
 {
-    fprintf(ofp, "id\tparent_sequence\tsequence_1\tannotated_dot_bracket_1\tstructure_1_deltaG\tstructure_1_ext_deltaG\tstructure_1_nt_ext_unchanged\tstructure_1_cmp_val\tstructure_1_z-score\tsequence_2\tannotated_dot_bracket_2\tstructure2_deltaG\tstructure_2_ext_deltaG\tstructure_2_nt_ext_unchanged\tstructure_2_cmp_val\tstructure_2_z-score\tdelta_comparison_value\tabs_delta_comparison_value\tdelta_z-score\tabs_delta_z-score\tdelta_delta_G\ttot_nt_and_pair_difs\tnt_substitutions\ttot_pair_difs\tpair_substitutions\tpair_swaps\n");
+    fprintf(ofp, "id\tparent_sequence\tsequence_1\tannotated_dot_bracket_1\tstructure_1_deltaG\tstructure_1_ext_deltaG\tstructure_1_nt_ext_unchanged\tstructure_1_cmp_val\tstructure_1_z-score\tsequence_2\tannotated_dot_bracket_2\tstructure2_deltaG\tstructure_2_ext_deltaG\tstructure_2_nt_ext_unchanged\tstructure_2_cmp_val\tstructure_2_z-score\tdelta_comparison_value\tabs_delta_comparison_value\tdelta_z-score\tabs_delta_z-score\tdelta_delta_G\ttot_nt_and_pair_difs\tnt_substitutions\ttot_pair_difs\tpair_substitutions\tpair_swaps\tGC<->AU\tGC<->GU\tAU<->GU\n");
     
     return;
 }
@@ -757,7 +779,7 @@ void print_ol_out_hdr(FILE * ofp)
 /* print_ol_out_data: print data line for one-line output file */
 void print_ol_out_data(FILE * ofp, int s_id, compact_target * ctrg, comparison_values * cmp, sequence_attributes * sq_att1, sequence_attributes * sq_att2, structProps * sp1, structProps * sp2, mct_diffs * difs, int ext_limit)
 {
-    fprintf(ofp, "%d\t%s\t%s\t%s\t%f\t%f\t%lu\t%f\t%f\t%s\t%s\t%f\t%f\t%lu\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%d\t%d\t%d\t%d\t%d\n",
+    fprintf(ofp, "%d\t%s\t%s\t%s\t%f\t%f\t%lu\t%f\t%f\t%s\t%s\t%f\t%f\t%lu\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\n",
             s_id,
             ctrg->csq,
             difs->cssq1,
@@ -783,7 +805,10 @@ void print_ol_out_data(FILE * ofp, int s_id, compact_target * ctrg, comparison_v
             difs->n_sub,
             difs->p_tot,
             difs->p_sub,
-            difs->p_swp);
+            difs->p_swp,
+            difs->gc_au,
+            difs->gc_gu,
+            difs->au_gu);
     
     return;
 }

@@ -55,11 +55,14 @@ typedef struct min_con_table {
 
 /* mct_diffs: categorized differences between min_con_table structs */
 typedef struct mct_diffs {
+    int np_tot;
     int n_sub;
+    int p_tot;
     int p_sub;
     int p_swp;
-    int p_tot;
-    int np_tot;
+    int gc_au;
+    int gc_gu;
+    int au_gu;
     char * cssq1;
     char * cssq2;
 } mct_diffs;
