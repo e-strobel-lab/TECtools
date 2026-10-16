@@ -14,6 +14,8 @@
 #include "../../global/global_defs.h"
 #include "../../global/global_structs.h"
 
+#include "../../cotrans_preprocessor/cotrans_preprocessor_defs.h"
+
 #include "../TECdisplay_mapper_defs.h"
 #include "../TECdisplay_mapper_structs.h"
 

@@ -19,6 +19,8 @@
 #include "../../seq_utils/seq2bin_long.h"
 #include "../../seq_utils/basemap.h"
 
+#include "../../cotrans_preprocessor/cotrans_preprocessor_defs.h"
+
 #include "../../TECdisplay_mapper/TECdisplay_mapper_defs.h"
 #include "../../TECdisplay_mapper/TECdisplay_mapper_structs.h"
 

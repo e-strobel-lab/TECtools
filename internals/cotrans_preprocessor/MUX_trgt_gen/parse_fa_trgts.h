@@ -37,7 +37,7 @@
 #define MAX_NUM_STR 10
 
 /* parse_fa_trgts: stores input barcodes as targets */
-void parse_fa_trgts(FILE * ifp, int trgt_ftype, void * trgts, void * trg_val, var_id_link * id_link, target_params * trg_prms, int data_type);
+void parse_fa_trgts(FILE * ifp, int trgt_ftype, int lib_struct, void * trgts, void * trg_val, var_id_link * id_link, target_params * trg_prms, int data_type);
 
 /* detect_id_type: determine variant id type */
 int detect_id_type(char * ipt_trgt_id);

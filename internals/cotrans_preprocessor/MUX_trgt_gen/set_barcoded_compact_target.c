@@ -26,7 +26,7 @@
 
 
 /* set_barcoded_compact_target: set target values in target struct */
-void set_barcoded_compact_target(compact_target * ctrg, opt_BC * BC_val, target * crnt_ref, char * trgt_id, char * trgt_sq, target_params * trg_prms, int trgt_ftype, int data_type)
+void set_barcoded_compact_target(compact_target * ctrg, opt_BC * BC_val, target * crnt_ref, char * trgt_id, char * trgt_sq, target_params * trg_prms, int trgt_ftype, int lib_struct, int data_type)
 {
     extern char pra1_sc1[41];
     extern char c3sc1[34];

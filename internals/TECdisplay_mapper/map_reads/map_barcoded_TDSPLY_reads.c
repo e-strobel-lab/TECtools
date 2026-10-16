@@ -140,7 +140,7 @@ int prcs_barcoded_TDSPLY_reads(TDSPLY_names * nm, int trgt_ftype, char * minQ, f
     printf("\nProcessing targets file that contains %d targets\n\n", trg_prms.xpctd);
     
     //generate barcode targets
-    ctrg_cnt = mk_MUX_trgts(refs, ref_val, ctrg, BC_val, fp_trgs, trgt_ftype, &trg_prms, clcd_ctrg_cnt, &wt, id_link, TDSPLY_BRCD);
+    ctrg_cnt = mk_MUX_trgts(refs, ref_val, ctrg, BC_val, fp_trgs, trgt_ftype, SGL_BC, &trg_prms, clcd_ctrg_cnt, &wt, id_link, TDSPLY_BRCD);
     met.srcTrgs = trg_prms.t_cnt; //record number of source barcodes
     met.targets = ctrg_cnt;       //record number of targets generated
     

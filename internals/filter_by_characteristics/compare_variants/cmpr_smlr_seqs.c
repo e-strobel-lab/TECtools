@@ -16,6 +16,8 @@
 #include "../../seq_utils/seq2bin_long.h"
 #include "../../seq_utils/basemap.h"
 
+#include "../../cotrans_preprocessor/cotrans_preprocessor_defs.h"
+
 #include "../../TECdisplay_mapper/TECdisplay_mapper_defs.h"
 #include "../../TECdisplay_mapper/TECdisplay_mapper_structs.h"
 
@@ -125,7 +127,7 @@ void cmpr_smlr_seqs(char * msa_path, int msa_typ, sequence_attributes * sq_att, 
     //present in the vmt file. then associate sequence_attributes and basemaps with their
     //respective targets
     parse_header_lines(fp_vmt, &trg_prms, &wt);
-    parse_vmt_trgts(fp_vmt, msa_typ, refs, ref_val, ctrg, trg_val, &trg_prms, &wt, SQ_ATT, CMPCT_TRGT_STRUCT);
+    parse_vmt_trgts(fp_vmt, msa_typ, LIB_STRUCT_INIT, refs, ref_val, ctrg, trg_val, &trg_prms, &wt, SQ_ATT, CMPCT_TRGT_STRUCT);
     set_bmap_from_prsd_vmt(bmap, &wt_src, cnstnt_indels, refs, &wt, &trg_prms);
     set_sq_att_utl(ctrg, sq_att_val, sq_att, bmap, &trg_prms);
     

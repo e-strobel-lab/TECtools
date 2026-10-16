@@ -49,7 +49,7 @@
 #include "prcs_MUX_cotrans.h"
 
 /* prcs_MUX_cotrans: manages processing of TECprobe-MUX data */
-int prcs_MUX_cotrans(TPROBE_names * nm, FILE * fp_MUXtrgs, int trgt_ftype, fastp_params fastp_prms, testdata_MUX_vars * testdata_MUX, int run_bypass_fastp);
+int prcs_MUX_cotrans(TPROBE_names * nm, FILE * fp_MUXtrgs, int trgt_ftype, int lib_struct, fastp_params fastp_prms, testdata_MUX_vars * testdata_MUX, int run_bypass_fastp);
 
 /* split_MUX_reads: demultiplex TECprobe-MUX reads into separate fastq file */
 void split_MUX_reads(FILE **ifp, compact_h_node **htbl_MUX, TPROBE_names * nm, compact_target * ctrg, int brcd_cnt, int ctrg_cnt, mapping_metrics * met, int mode);

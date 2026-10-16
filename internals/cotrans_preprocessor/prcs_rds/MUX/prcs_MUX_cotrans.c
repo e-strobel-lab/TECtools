@@ -46,7 +46,7 @@
 #include "prcs_MUX_cotrans.h"
 
 /* prcs_MUX_cotrans: manages processing of TECprobe-MUX data */
-int prcs_MUX_cotrans(TPROBE_names * nm, FILE * fp_MUXtrgs, int trgt_ftype, fastp_params fastp_prms, testdata_MUX_vars * testdata_MUX, int run_bypass_fastp)
+int prcs_MUX_cotrans(TPROBE_names * nm, FILE * fp_MUXtrgs, int trgt_ftype, int lib_struct, fastp_params fastp_prms, testdata_MUX_vars * testdata_MUX, int run_bypass_fastp)
 {
     printf("processing multiplex cotrans\n");
         
@@ -137,7 +137,7 @@ int prcs_MUX_cotrans(TPROBE_names * nm, FILE * fp_MUXtrgs, int trgt_ftype, fastp
     }
     
     //generate barcode targets
-    ctrg_cnt = mk_MUX_trgts(refs, ref_val, ctrg, BC_val, fp_MUXtrgs, trgt_ftype, &trg_prms, clcd_ctrg_cnt, &wt, id_link, TPROBE_MUX);
+    ctrg_cnt = mk_MUX_trgts(refs, ref_val, ctrg, BC_val, fp_MUXtrgs, trgt_ftype, lib_struct, &trg_prms, clcd_ctrg_cnt, &wt, id_link, TPROBE_MUX);
     met.srcTrgs = trg_prms.t_cnt; //record number of source barcodes
     met.targets = ctrg_cnt;       //record number of targets generated
     

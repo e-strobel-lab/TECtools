@@ -34,7 +34,7 @@
 #define MUTCODE_BITS 16   //number of bits allocated for barcode mutation codes
 
 /* set_barcoded_compact_target: set target values in target struct */
-void set_barcoded_compact_target(compact_target * ctrg, opt_BC * BC_val, target * crnt_ref, char * trgt_id, char * trgt_sq, target_params * trg_prms, int trgt_ftype, int data_type);
+void set_barcoded_compact_target(compact_target * ctrg, opt_BC * BC_val, target * crnt_ref, char * trgt_id, char * trgt_sq, target_params * trg_prms, int trgt_ftype, int lib_struct, int data_type);
 
 /* parse_barcode_id: parse barcode id to set full id and numerical id pointers */
 int parse_barcode_id(char ** p_nid, char ** p_fid, char * crnt_bcid, int trgt_ftype);

@@ -67,6 +67,9 @@
 
 /* barcode mapping definitions */
 #define MAX_BRCD_CNT 20000  //maximum number of TECprobe-MUX barcodes
+#define LIB_STRUCT_INIT 0   //initial value for library barcode structure variable. default number of barcodes is zero
+#define SGL_BC 1            //specifies one barcoded
+#define DBL_BC 2            //specifies two barcodes
 
 /* DNA QC definitions */
 #define CONCORDANT 0  //index for counting concordant reads

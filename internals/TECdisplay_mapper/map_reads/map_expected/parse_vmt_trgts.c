@@ -105,7 +105,7 @@ void parse_header_lines(FILE * ifp, target_params * trg_prms, TDSPLY_fasta * wt)
 
 /* parse_vmt_trgts: parse targets file to obtain target ids, sequences, attributes,
   and min/max transcript lengths */
-void parse_vmt_trgts(FILE * ifp, int trgt_ftype, target * refs, opt_ref * ref_val, void * trgts, void * trg_val, target_params * trg_prms, TDSPLY_fasta * wt, int data_type, int trgt_type)
+void parse_vmt_trgts(FILE * ifp, int trgt_ftype, int lib_struct, target * refs, opt_ref * ref_val, void * trgts, void * trg_val, target_params * trg_prms, TDSPLY_fasta * wt, int data_type, int node_type)
 {
     //TODO: double check that reversion from revcomp is all correct
     extern int debug;				           //flag to run debug mode
@@ -241,13 +241,13 @@ void parse_vmt_trgts(FILE * ifp, int trgt_ftype, target * refs, opt_ref * ref_va
             }
             
             //set target structure values for the current target
-            if (data_type == TDSPLY_STD && trgt_type == STD_TRGT_STRUCT) {
+            if (data_type == TDSPLY_STD && node_type == STD_TRGT_STRUCT) {
                 set_trgt(&(((target *)trgts)[trg_prms->t_cnt]),
                          &(((opt_mx_trg *)trg_val)[trg_prms->t_cnt]),
                          crnt_ref, trgt_id, trgt_sq);
                 if (debug) {print_target_debug(&(((target *)trgts)[trg_prms->t_cnt]), trg_prms);} //print debug messages
                 
-            } else if ((data_type == TDSPLY_STD || data_type == SQ_ATT) && trgt_type == CMPCT_TRGT_STRUCT) {
+            } else if ((data_type == TDSPLY_STD || data_type == SQ_ATT) && node_type == CMPCT_TRGT_STRUCT) {
                 set_compact_target(&(((compact_target *)trgts)[trg_prms->t_cnt]),
                                    &(((opt_mx_trg *)trg_val)[trg_prms->t_cnt]),
                                    crnt_ref, trgt_id, trgt_sq);
@@ -255,10 +255,10 @@ void parse_vmt_trgts(FILE * ifp, int trgt_ftype, target * refs, opt_ref * ref_va
             } else if (data_type == TPROBE_MUX) {
                 set_barcoded_compact_target(&(((compact_target *)trgts)[trg_prms->t_cnt]),
                                             &(((opt_BC *)trg_val)[trg_prms->t_cnt]),
-                                            crnt_ref, trgt_id, trgt_sq, trg_prms, trgt_ftype, data_type);
+                                            crnt_ref, trgt_id, trgt_sq, trg_prms, trgt_ftype, lib_struct, data_type);
                 
             } else {
-                printf("parse_vmt_trgts: error - unexpected data_type/trgt_type combination. aborting...\n");
+                printf("parse_vmt_trgts: error - unexpected data_type/node_type combination. aborting...\n");
                 abort();
             }
             

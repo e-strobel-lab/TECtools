@@ -18,22 +18,23 @@ char vra5[22]            = "ccttggcacccgagaattcca";
 char RLA29synch_3p11[34] = "aaacaccaccaAcatcaccatcatcctgacgcg"; //v2
 char RLA29synch_inFP[12] = "aaacaccacca"; //sequence in RNAP footprint when RNAP is at synch site
 
-char sc1[17] = "atggccttcgggccaa"; //SC1 sequence
+char sc1[17] = "atggccttcgggccaa";    //SC1 sequence
+char c3[20]  = "attcggtgctcttctcttc"; //C3_sequence
 
-//array of barcoded C3SC sequences
-char c3sc_BC[C3SC_BRCD_CNT][34] = {"ATTCGGTGCTCTTCTCTTCGGGGTTCGCCCCAA",
-                                   "ATTCGGTGCTCTTCTCTTCGGGCTTCGGCCCAA",
-                                   "ATTCGGTGCTCTTCTCTTCGGCGTTCGCGCCAA",
-                                   "ATTCGGTGCTCTTCTCTTCGGCCTTCGGGCCAA",
-                                   "ATTCGGTGCTCTTCTCTTCGCGGTTCGCCGCAA",
-                                   "ATTCGGTGCTCTTCTCTTCGCGCTTCGGCGCAA",
-                                   "ATTCGGTGCTCTTCTCTTCGCCGTTCGCGGCAA",
-                                   "ATTCGGTGCTCTTCTCTTCGCCCTTCGGGGCAA",
-                                   "ATTCGGTGCTCTTCTCTTCCGGGTTCGCCCGAA",
-                                   "ATTCGGTGCTCTTCTCTTCCGGCTTCGGCCGAA",
-                                   "ATTCGGTGCTCTTCTCTTCCGCGTTCGCGCGAA",
-                                   "ATTCGGTGCTCTTCTCTTCCGCCTTCGGGCGAA",
-                                   "ATTCGGTGCTCTTCTCTTCCCGGTTCGCCGGAA",
-                                   "ATTCGGTGCTCTTCTCTTCCCGCTTCGGCGGAA",
-                                   "ATTCGGTGCTCTTCTCTTCCCCGTTCGCGGGAA",
-                                   "ATTCGGTGCTCTTCTCTTCCCCCTTCGGGGGAA"};
+//array of barcoded C3SC sequences  ...................((((....))))..
+char c3sc_BC[C3SC_BRCD_CNT][34] = {"attcggtgctcttctcttcggggttcgccccaa",
+                                   "attcggtgctcttctcttcgggcttcggcccaa",
+                                   "attcggtgctcttctcttcggcgttcgcgccaa",
+                                   "attcggtgctcttctcttcggccttcgggccaa",
+                                   "attcggtgctcttctcttcgcggttcgccgcaa",
+                                   "attcggtgctcttctcttcgcgcttcggcgcaa",
+                                   "attcggtgctcttctcttcgccgttcgcggcaa",
+                                   "attcggtgctcttctcttcgcccttcggggcaa",
+                                   "attcggtgctcttctcttccgggttcgcccgaa",
+                                   "attcggtgctcttctcttccggcttcggccgaa",
+                                   "attcggtgctcttctcttccgcgttcgcgcgaa",
+                                   "attcggtgctcttctcttccgccttcgggcgaa",
+                                   "attcggtgctcttctcttcccggttcgccggaa",
+                                   "attcggtgctcttctcttcccgcttcggcggaa",
+                                   "attcggtgctcttctcttccccgttcgcgggaa",
+                                   "attcggtgctcttctcttcccccttcgggggaa"};
