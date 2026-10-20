@@ -478,7 +478,7 @@ void print_barcoded_variant(FILE * out_fp, FILE * fasta_fp, FILE * link_fp, fast
             }
             
             trg_start_indx = strlen(seq);        //store target start index
-            strcat(seq, var->sq);    //append variant sequence
+            strcat(seq, var->sq);                //append variant sequence
             target_start = &seq[trg_start_indx]; //set pointer to target start
             
             if (incld_lnkr) {                 //if including linker sequence
@@ -521,8 +521,12 @@ void print_barcoded_variant(FILE * out_fp, FILE * fasta_fp, FILE * link_fp, fast
                 abort();
             }
             
+            //print var to std output file
+            //both upstream and downstream priming sites are omitted for all lib types except doubly barcoded MUX
+            //doubly-barcoded TECprobe-MUX vmt targets include the upstream priming site, which contains the C3SC
+            //barcode sequence
             seq[brcd_end_indx] = '\0'; //terminate string after barcode for printing to standard targets file
-            fprintf(out_fp, "%s\t%s\n", vrbs_nm, target_start); //print var to std output file
+            fprintf(out_fp, "%s\t%s\n", vrbs_nm, (lib_type == TECPROBE_MUX_DBL_BC_LIB) ? seq : target_start);
             
             //if making link file, print record of verbose/concise names and associated barcode(s)
             if (make_link) {
