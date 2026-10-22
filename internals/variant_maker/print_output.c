@@ -28,33 +28,9 @@
 /* print_output: print variants to output file */
 void print_output(names * nm, basemap * bmap, int vTmpCnt, int varCnt, char * out_dir, int append_priming, int append_barcode, FILE * fp_brcd, int first_bc_2_use, int bcs_per_var, char * lnkr, int make_fasta, int lib_type)
 {
-    //print_output rules:
-    
-    //append priming == FALSE and append barcode == FALSE
-    //if neither priming sites nor a barcode are to be appended to the target sequence,
-    //variant sequences are printed to both the target and fasta files. in this case,
-    //both files contain the same sequences
-    
-    //append priming == TRUE and append barcode == FALSE
-    //if priming sites, but not a barcode, are to be appended to the target sequence,
-    //the priming sites are only included in the fasta file. the target file contains
-    //target sequences without the priming sites
-    
-    //append priming == FALSE and append barcode == TRUE
-    //if a barcode, but not priming sites, is to be appended to the target sequence,
-    //the barcode and the linker that connects the barcode to the target are included
-    //in both the target and fasta files. in the target file, the wild type and reference
-    //sequences contain the linker and a string of N bases in place of a specific barcode
-    
-    //append priming == TRUE and append barcode == TRUE
-    //if both priming sites and a barcode are to be appended to the target sequence,
-    //both the priming sites and the barcode are included in the fasta file, but only the
-    //barcode and the linker that connects the barcode to the target are included in the
-    //target file, with one exception: if the library being generated is a doubly-barcoded
-    //TECprobe-MUX library, the upstream priming site (which contains a barcode) is included
-    //in the target file. as above, in the target file, the wild type and reference sequences
-    //contain the linker and a string of N bases in place of a specific barcode
-    
+    //print_output rules: barcodes and priming sites are only included in fasta file output. barcodes
+    //and priming sites are omitted from the vmt file output for simplicity when using vmt files for
+    //analytical purposes
     
     extern fasta *vrnts;       //array of variant sequences
     extern uint64_t v_indx;    //index for vrnts array
@@ -141,7 +117,7 @@ void print_output(names * nm, basemap * bmap, int vTmpCnt, int varCnt, char * ou
     } else {                                                          //otherwise,
         fprintf(out_fp, "variants:%d\n", filtered_tot);               //tot vars is filtered_tot
     }
-    print_reference_seq(out_fp, bmap[0].wt->nm, bmap[0].wt->sq, lnkr, append_barcode, "WT"); //print WT sequence
+    print_reference_seq(out_fp, bmap[0].wt->nm, bmap[0].wt->sq, "WT", lib_type); //print WT sequence
     
     //print variants to the output file
     for (i = 0, j = 0; i < v_indx; i++) {
@@ -203,7 +179,7 @@ void print_output(names * nm, basemap * bmap, int vTmpCnt, int varCnt, char * ou
                     }
                 }
                 
-                print_reference_seq(out_fp, NULL, vrnts[i].sq, lnkr, append_barcode, "REF"); //print reference sequence
+                print_reference_seq(out_fp, NULL, vrnts[i].sq, "REF", lib_type); //print reference sequence
                 j++; //increment basemap index
                 
             } else {
@@ -237,8 +213,10 @@ void print_output(names * nm, basemap * bmap, int vTmpCnt, int varCnt, char * ou
 }
 
 /* print_reference_seq: print reference sequence to output file */
-void print_reference_seq(FILE * out_fp, char * nm, char * seq, char * lnkr, int append_barcode, char * type)
+void print_reference_seq(FILE * out_fp, char * nm, char * seq, char * type, int lib_type)
 {
+    extern char scbc_ref[15]; //sc barcode reference seq
+    
     int i = 0; //general purpose index
     
     if (!strcmp(type, "WT")) {          //if printing wild type reference
@@ -252,19 +230,13 @@ void print_reference_seq(FILE * out_fp, char * nm, char * seq, char * lnkr, int 
         abort();
     }
     
-    if (append_barcode) {               //if appending barcode
-        fprintf(out_fp, "\t%s", seq);   //print sequence
-        if (strcmp(lnkr, "exclude")) {  //if linker is to be included,
-            fprintf(out_fp,"%s", lnkr); //print linker
-        }
-        for (i = 0; i < MAX_BARCODE_LEN; i++) { //print one N for every barcode char
-            fprintf(out_fp, "N");
-        }
-        fprintf(out_fp, "\n"); //terminate line with newline
-        
+    if (lib_type == TECPROBE_MUX_DBL_BC_LIB) {
+        fprintf(out_fp, "\t%s%s\n", scbc_ref, seq); //print reference sc barcode + sequence
     } else {
         fprintf(out_fp, "\t%s\n", seq); //print sequence
     }
+    
+    return;
 }
 
 /* print_standard_variant: print variant sequence that does not contain a barcode */
@@ -355,6 +327,8 @@ void print_barcoded_variant(FILE * out_fp, FILE * fasta_fp, FILE * link_fp, fast
     extern char * fwd2use;                  //forward priming site to use
     extern char * rev2use;                  //reverse priming site to use
     extern char c3sc_BC[C3SC_BRCD_CNT][34]; //array of barcoded C3SC sequences
+    extern char c3[20];                     //c3 sequence
+    
     static int crnt_c3sc_BC = 0; //current C3SC barcode to use for doubly-barcoded variants
                                  //this variable must be static so that all barcodes are used
                                  //in sequence before they are reused
@@ -381,12 +355,13 @@ void print_barcoded_variant(FILE * out_fp, FILE * fasta_fp, FILE * link_fp, fast
     static int incld_lnkr = 1;          //flag to include linker; set to TRUE by default
     
     int trg_start_indx = 0;      //index at which target starts
-    int brcd_end_indx = 0;       //index 1 char after barcode end
+    int trg_end_indx = 0;        //index 1 char after target end
     char * target_start = NULL;  //pointer to target start
+    char * sc_start = NULL;      //start of barcoded structure cassette
     
     //MAKE_DNA_QC mode can only be run if library type is singly-barcoded TECprobe-MUX
-    if (make_DNA_QC && lib_type != TECPROBE_MUX_SGL_BC_LIB) {
-        printf("print_barcoded_variant: error - make_DNA_QC requires that library type be TECPROBE_MUX_LIB. aborting...\n");
+    if (make_DNA_QC && (lib_type != TECPROBE_MUX_SGL_BC_LIB || !append_priming)) {
+        printf("print_barcoded_variant: error - make_DNA_QC requires that library type be TECprobe-MUX-SGL-BC and that the append priming option be turned on. aborting...\n");
         abort();
     }
     
@@ -442,7 +417,7 @@ void print_barcoded_variant(FILE * out_fp, FILE * fasta_fp, FILE * link_fp, fast
             //assemble output sequence
             
             if (make_DNA_QC) {     //if including vra5 sequence
-                strcat(seq, vra5);  //append vra5 sequence
+                strcat(seq, vra5); //append vra5 sequence
                 
                 if ((scnd_bc_indx = read_bcFile(fp_brcd, BC_LINE, scnd_bc, MAX_LINE+1)) == -1) { //get barcode
                     printf("print_output: ERROR - too few barcodes. %llu barcodes are required to barcode each variant %d time(s).\nNOTE: this error occurred when attempting to read a secondary barcode for inclusion downstream of the vra5 sequence.\n aborting...\n", (long long unsigned int)((v_indx-vTmpCnt)*bcs_per_var), bcs_per_var);
@@ -457,10 +432,13 @@ void print_barcoded_variant(FILE * out_fp, FILE * fasta_fp, FILE * link_fp, fast
                     }
                 }
                 
-                strcat(seq, pra1_m25_to_m50); //append upstream promoter segment
+                //append upstream promoter segment, remaining promoter segment
+                //is appended below when 'fwd2use' is appended to sequence
+                strcat(seq, pra1_m25_to_m50);
             }
             
             if (append_priming) { //if appending priming sites
+                
                 if (lib_type == TECPROBE_MUX_DBL_BC_LIB) { //if generating doubly-barcoded TECprobe-MUX library
                     fwd2use = &c3sc_BC[crnt_c3sc_BC++][0]; //set forward priming site to use from barcoded C3SC array
                                                            //incremented here so that printed value is +1
@@ -476,19 +454,24 @@ void print_barcoded_variant(FILE * out_fp, FILE * fasta_fp, FILE * link_fp, fast
                         crnt_c3sc_BC = 0;                  //reset current c3sc barcode index to 0
                     }
                 }
+                
                 strcat(seq, fwd2use); //append the forward priming site sequence
+                
+                if (lib_type == TECPROBE_MUX_DBL_BC_LIB) {  //if generating doubly-barcoded TECprobe-MUX library
+                    sc_start = &seq[strlen(c3)];            //set pointer to barcoded structure cassette start
+                }
             }
             
             trg_start_indx = strlen(seq);        //store target start index
             strcat(seq, var->sq);                //append variant sequence
             target_start = &seq[trg_start_indx]; //set pointer to target start
+            trg_end_indx = strlen(seq);          //store target end index
             
             if (incld_lnkr) {                 //if including linker sequence
                 strcat(seq, lnkr);            //append linker sequence
             }
             
             strcat(seq, crrnt_bc);            //append barcode
-            brcd_end_indx = strlen(seq);      //store barcode end index
             
             if (append_priming) {             //if appending priming sites
                 strcat(seq, rev2use);         //append the reverse priming site sequence
@@ -523,12 +506,10 @@ void print_barcoded_variant(FILE * out_fp, FILE * fasta_fp, FILE * link_fp, fast
                 abort();
             }
             
-            //print var to std output file
-            //both upstream and downstream priming sites are omitted for all lib types except doubly barcoded MUX
-            //doubly-barcoded TECprobe-MUX vmt targets include the upstream priming site, which contains the C3SC
-            //barcode sequence
-            seq[brcd_end_indx] = '\0'; //terminate string after barcode for printing to standard targets file
-            fprintf(out_fp, "%s\t%s\n", vrbs_nm, (lib_type == TECPROBE_MUX_DBL_BC_LIB) ? seq : target_start);
+            //print var to std output file. for most applications this is just the variant sequence
+            //doubly-barcoded TECprobe-MUX vmt targets include the barcoded structure cassette
+            seq[trg_end_indx] = '\0'; //terminate string after barcode for printing to standard targets file
+            fprintf(out_fp, "%s\t%s\n", vrbs_nm, (lib_type == TECPROBE_MUX_DBL_BC_LIB) ? sc_start : target_start);
             
             //if making link file, print record of verbose/concise names and associated barcode(s)
             if (make_link) {

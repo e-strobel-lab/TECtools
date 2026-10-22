@@ -29,7 +29,7 @@
 void print_output(names * nm, basemap * bmap, int vTmpCnt, int varCnt, char * out_dir, int append_priming, int append_barcode, FILE * fp_brcd, int first_bc_2_use, int bcs_per_var, char * lnkr, int make_fasta, int lib_type);
 
 /* print_reference_seq: print reference sequence to output file */
-void print_reference_seq(FILE * out_fp, char * nm, char * seq, char * lnkr, int append_barcode, char * type);
+void print_reference_seq(FILE * out_fp, char * nm, char * seq, char * type, int lib_type);
 
 /* print_standard_variant: print variant sequence that does not contain a barcode */
 void print_standard_variant(FILE * out_fp, FILE * fasta_fp, fasta * var, int crrnt_var, int append_priming, int lib_type, int make_vmt, int make_fasta);

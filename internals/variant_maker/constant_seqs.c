@@ -21,6 +21,7 @@ char RLA29synch_inFP[12] = "aaacaccacca"; //sequence in RNAP footprint when RNAP
 char sc1[17] = "atggccttcgggccaa";    //SC1 sequence
 char c3[20]  = "attcggtgctcttctcttc"; //C3_sequence
 char ttcg[5] = "ttcg";                //UUCG tetraloop sequence
+char scbc_ref[34] = "NNNNttcgNNNNaa"; //sc barcode reference seq
 
 //array of barcoded C3SC sequences  ...................((((....))))..
 char c3sc_BC[C3SC_BRCD_CNT][34] = {"attcggtgctcttctcttcggggttcgccccaa",

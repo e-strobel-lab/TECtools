@@ -46,14 +46,23 @@ void set_barcoded_compact_target(compact_target * ctrg, opt_BC * BC_val, target 
     char * lnkr2use = NULL; //linker sequence to search for when parsing target
     
     if (data_type == TDSPLY_STD || data_type == TDSPLY_BRCD) { //when processing TECdisplay data
-        ldr2use = c3sc1;           //leader sequence is C3-SC1
-        trlr2use = vra3;           //trailer sequence is VRA3
-        lnkr2use = NULL;           //no linker is used //TODO: add ability to search for user-specified linker?
+        ldr2use  = c3sc1;           //leader sequence is C3-SC1
+        trlr2use = vra3;            //trailer sequence is VRA3
+        lnkr2use = NULL;            //no linker is used //TODO: add ability to search for user-specified linker?
         
-    } else if (data_type == TPROBE_MUX) { //when processing TECprobe-MUX data
-        ldr2use = pra1_sc1;               //leader sequence is PRA1-SC1 adapter
-        trlr2use = vra3;                  //trailer is VRA3
-        lnkr2use = RLA29synch_3p11;       //linker is RLA29synch_3p11
+    } else if (data_type == TPROBE_MUX && lib_struct == SGL_BC) { //when processing single BC TECprobe-MUX data
+        ldr2use  = pra1_sc1;        //leader sequence is PRA1-SC1 adapter
+        trlr2use = vra3;            //trailer is VRA3
+        lnkr2use = RLA29synch_3p11; //linker is RLA29synch_3p11
+        
+    } else if (data_type == TPROBE_MUX && lib_struct == DBL_BC) {
+        ldr2use  = NULL;            //leader is processed by parse_C3SC_barcode
+        trlr2use = vra3;            //trailer is VRA3
+        lnkr2use = RLA29synch_3p11; //linker is RLA29synch_3p11
+        
+    } else {
+        printf("set_barcoded_compact_target: error - unrecongnized data type/library structure. aborting...\n");
+        abort();
     }
     
     static C3SC_barcode_node scbt_root = {EOF, NULL, NULL, NULL, NULL}; //root for sc barcode tree
@@ -65,9 +74,6 @@ void set_barcoded_compact_target(compact_target * ctrg, opt_BC * BC_val, target 
         }
         
         //parse the sc barcode and find match in sc barcode tree
-        //sc barcode parsing also points trgt_sq to the start of the target,
-        //rather than to the start of the C3SC sequence. parse_MUX_target_seq
-        //accepts this as an input sequence
         if ((scbc_node = parse_C3SC_barcode(&trgt_sq, &scbt_root)) == NULL) {
             printf("set_barcoded_compact_target: error - failed to find match for SC barcode during target parsing. aborting...\n");
             abort();
@@ -110,6 +116,7 @@ C3SC_barcode_node * parse_C3SC_barcode(char ** trgt_sq, C3SC_barcode_node * scbt
     extern char ttcg[5];
     extern char c3sc1[34];
     
+    char * trgt_cpy = NULL;   //copy of target sequence
     char * p_c3 = NULL;       //pointer to C3 sequence
     char * p_ustrm_bc = NULL; //pointer to upstream barcode segment
     char * p_ttcg = NULL;     //pointer to ttcg loop sequence
@@ -118,21 +125,31 @@ C3SC_barcode_node * parse_C3SC_barcode(char ** trgt_sq, C3SC_barcode_node * scbt
     
     C3SC_barcode_node * scbc_node = NULL; //pointer for storing outcome of sc barcode tree search
     
+    //make copy of target sequence for parsing
+    if ((trgt_cpy = malloc((strlen(*trgt_sq)+1) * sizeof(*trgt_cpy))) == NULL) {
+        printf("parse_C3SC_barcode: failed to allocate memory for target copy. aborting...\n");
+        abort();
+    }
+    strcpy(trgt_cpy, *trgt_sq);
+    
+    //trim c3 sequence from input sequence
     p_c3 = strstr(*trgt_sq, c3);                                    //find C3 sequence in target
     if (p_c3 == NULL || (uint64_t)(p_c3) != (uint64_t)(*trgt_sq)) { //verify C3 sequence formatting
         printf("parse_C3SC_barcode: error - failed to detect C3 sequence\n. ");
         abort();
     }
+    *trgt_sq = &p_c3[strlen(c3)];
     
-    p_trgt     = &((*trgt_sq)[strlen(c3sc1)]);                                     //set ptr to start of target seq
-    p_ustrm_bc = &((*trgt_sq)[strlen(c3)]);                                        //set ptr to upstream bc stem
-    p_ttcg     = &((*trgt_sq)[strlen(c3) + MAX_C3SCBC_TREE_LAYER]);                //set ptr to ttcg loop
-    p_dstrm_bc = &((*trgt_sq)[strlen(c3) + MAX_C3SCBC_TREE_LAYER + strlen(ttcg)]); //set ptr to downstream bc stem
+    //parse sc barcode from target sequence copy
+    p_c3 = strstr(trgt_cpy, c3);                                                 //find C3 sequence in target
+    p_trgt     = &(trgt_cpy[strlen(c3sc1)]);                                     //set ptr to start of target seq
+    p_ustrm_bc = &(trgt_cpy[strlen(c3)]);                                        //set ptr to upstream bc stem
+    p_ttcg     = &(trgt_cpy[strlen(c3) + MAX_C3SCBC_TREE_LAYER]);                //set ptr to ttcg loop
+    p_dstrm_bc = &(trgt_cpy[strlen(c3) + MAX_C3SCBC_TREE_LAYER + strlen(ttcg)]); //set ptr to downstream bc stem
     
     //verify upstream bounds of target sequence, which should be preceded by two 'a' nucleotides
     if (p_trgt[-1] == 'a' && p_trgt[-2] == 'a') { //if upstream bounds are verified
         p_trgt[-2] = '\0';                        //terminate downstream barcode string
-        *trgt_sq = p_trgt;                        //point trgt_sq to start of target sequence
         
     } else { //otherwise, throw error and abort
         printf("parse_C3SC_barcode: error - unexpected leader structure. 'aa' motif not detected before target start. aborting...\n");
@@ -156,6 +173,10 @@ C3SC_barcode_node * parse_C3SC_barcode(char ** trgt_sq, C3SC_barcode_node * scbt
         printf("parse_C3SC_barcode: error - reported barcode match is not a match. this should never happen. aborting...\n");
         abort();
     }
+    
+    //free allocated memory
+    free(trgt_cpy);
+    trgt_cpy = NULL;
     
     return scbc_node; //return node
 }
@@ -225,13 +246,40 @@ void parse_MUX_target_seq(char ** p_trgt, char ** p_brcd, int * brcd_len, char *
     
     char tmp_brcd[MAX_BARCODE_LEN+1] = {0}; //array to temporarily store barcode during transposition
     
+    static int ldr_detected = -1; //flag that a leader was or was not detected in the first target
+        
     if (trgt_ftype == VMT_FILE) { //vmt file sequences contain only the target, linker, and barcode
         *p_trgt = &crnt_seq[0];   //set target start to first array member
         
     } else if (trgt_ftype == FASTA_FILE) { //fasta file sequences may contain leader and trailer sequences
         
+        //the code below is designed to allow flexibility in the provided targets. each assay has an expected
+        //leader sequence, and if detected, this leader will be trimmed from the target. however the presence
+        //of the leader is not required and non-standard leaders can be used (but will not be trimmed).
+        
+        //check for presence of leader sequence
+        if (ldr != NULL) {                 //if a leader might be present
+            p_ldr = strstr(crnt_seq, ldr); //search for leader within the current target sequence
+            
+            if (ldr_detected == -1) { //if the leader status of the first target has not yet been set
+                
+                //if a leader was detected in the target
+                if (p_ldr != NULL && (uint64_t)(&p_ldr[0]) == (uint64_t)(&crnt_seq[0])) {
+                    ldr_detected = 1; //set ldr_detected to true
+                } else {              //otherwise,
+                    ldr_detected = 0; //set ldr_detected to false
+                }
+                
+            } else if ((p_ldr == NULL && ldr_detected != 0) ||
+                       (p_ldr != NULL && ldr_detected == 1)) {
+                //if leader status is inconsistent across targets, throw error and abort
+                printf("parse_MUX_target_seq: error - inconsistent leader status in targets. aborting...\n");
+                abort();
+            }
+        }
+        
         //set pointer to start of target
-        if ((p_ldr = strstr(crnt_seq, ldr)) != NULL) { //if a leader was identified...
+        if (ldr != NULL && p_ldr != NULL) { //if a leader was expected and identified...
             
             //check that leader sequence is at the start of the target sequence
             if ((uint64_t)(&p_ldr[0]) == (uint64_t)(&crnt_seq[0])) {  //if pointer is at the start of the target seq
@@ -241,7 +289,7 @@ void parse_MUX_target_seq(char ** p_trgt, char ** p_brcd, int * brcd_len, char *
                 abort();
             }
             
-        } else { //if no leader was identified...
+        } else { //if no leader was identified or expected...
             *p_trgt = &crnt_seq[0]; //set p_trgt to start of crnt_seq
         }
         
@@ -249,11 +297,8 @@ void parse_MUX_target_seq(char ** p_trgt, char ** p_brcd, int * brcd_len, char *
         if ((p_trlr = strstr(*p_trgt, trlr)) != NULL) {
             p_trlr[0] = '\0'; //terminate barcode string by zeroing first index of trailer string, which follows barcode
         } else {
-            p_trlr = &crnt_seq[strlen(crnt_seq)];
-            if (p_trlr[0]) {
-                printf("parse_target_seq: error - trailer pointer was set to non-terminating null in trailer-less target. this should not be possible. aborting\n");
-                abort();
-            }
+            printf("parse_MUX_target_seq: trailer sequence was not detected in target sequence. aborting...\n");
+            abort();
         }
     } else {
         printf("parse_target_seq: error - unrecognized target file type. aborting...");
@@ -279,6 +324,8 @@ void parse_MUX_target_seq(char ** p_trgt, char ** p_brcd, int * brcd_len, char *
             *p_brcd = &((*p_brcd)[1]);                                 //point BC to char after trg str null char
             strcpy(*p_brcd, tmp_brcd);                                 //copy barcode back to seq string
             (*p_brcd)[strlen(*p_brcd)] = '\0';                         //guarantee null char after barcode
+            //^NOTE: all input sequence configurations contain a trailer sequence, which guarantees that there
+            //is enough space to shift the barcode down one index in the array
             
         } else {
             printf("parse_target_seq: unexpected short target. aborting...\n");
