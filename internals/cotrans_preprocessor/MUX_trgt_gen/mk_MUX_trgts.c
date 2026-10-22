@@ -83,9 +83,9 @@ int mk_MUX_trgts(target * refs, opt_ref * ref_val, compact_target * ctrg, opt_BC
         mutCode = 1; //set mutCode to 1 (input barcodes have mutCode 0)
         
         //generate sub and indel targets for the current barcode
-        tot_SUB_trgts += mk_SUB_trgts(ctrg, BC_val, &ctrg_cnt, &ctrg[i], trg_prms->BClen, &mutCode, 0);
-        tot_INS_trgts += mk_INS_trgts(ctrg, BC_val, &ctrg_cnt, &ctrg[i], trg_prms->BClen, &mutCode, 0);
-        tot_DEL_trgts += mk_DEL_trgts(ctrg, BC_val, &ctrg_cnt, &ctrg[i], trg_prms->BClen, &mutCode, toupper(RLA29synch_3p11[strlen(RLA29synch_3p11)-1]), 0);
+        tot_SUB_trgts += mk_SUB_trgts(ctrg, BC_val, &ctrg_cnt, &ctrg[i], trg_prms->BClen, &mutCode, 0, lib_struct);
+        tot_INS_trgts += mk_INS_trgts(ctrg, BC_val, &ctrg_cnt, &ctrg[i], trg_prms->BClen, &mutCode, 0, lib_struct);
+        tot_DEL_trgts += mk_DEL_trgts(ctrg, BC_val, &ctrg_cnt, &ctrg[i], trg_prms->BClen, &mutCode, toupper(RLA29synch_3p11[strlen(RLA29synch_3p11)-1]), 0, lib_struct);
     }
     
     //print the number of targets that were generated
@@ -95,7 +95,7 @@ int mk_MUX_trgts(target * refs, opt_ref * ref_val, compact_target * ctrg, opt_BC
 }
 
 /* mk_SUB_trgts: generates single substitution targets for input barcode */
-int mk_SUB_trgts(compact_target * ctrg, opt_BC * BC_val, int * ctrg_cnt, compact_target * src_ctrg, int brcd_len, uint64_t * mutCode, int link)
+int mk_SUB_trgts(compact_target * ctrg, opt_BC * BC_val, int * ctrg_cnt, compact_target * src_ctrg, int brcd_len, uint64_t * mutCode, int link, int lib_struct)
 {
     int sub_trgts_made = 0; //number of substitution targets that were made
     
@@ -160,7 +160,7 @@ int mk_SUB_trgts(compact_target * ctrg, opt_BC * BC_val, int * ctrg_cnt, compact
         
         //store substitution variants as binary encoded sequences in compact targets
         for (i = 0; i < 3; i++) {
-            set_BC_val(&ctrg[*ctrg_cnt], &BC_val[*ctrg_cnt], NULL, src_ctrg, MUTANT_BRCD); //set ptr to BC_val structure
+            set_BC_val(&ctrg[*ctrg_cnt], &BC_val[*ctrg_cnt], NULL, src_ctrg, lib_struct, NULL, MUTANT_BRCD); //set ptr to BC_val structure
             ctrg[*ctrg_cnt].bid = src_ctrg->bid | (*mutCode)++; //generate and store barcode id
             seq2bin_long(var[i], &ctrg[*ctrg_cnt].bsq, 1);      //store binary-encoded barcode sequence
             BC_val[*ctrg_cnt].typ = SUB;                        //set barcode type to substitution
@@ -191,7 +191,7 @@ int mk_SUB_trgts(compact_target * ctrg, opt_BC * BC_val, int * ctrg_cnt, compact
 }
 
 /* mk_INS_trgts: generate single insertion targets for input barcode */
-int mk_INS_trgts(compact_target * ctrg, opt_BC * BC_val, int * ctrg_cnt, compact_target * src_ctrg, int brcd_len, uint64_t * mutCode, int link)
+int mk_INS_trgts(compact_target * ctrg, opt_BC * BC_val, int * ctrg_cnt, compact_target * src_ctrg, int brcd_len, uint64_t * mutCode, int link, int lib_struct)
 {
     int ins_trgts_made = 0;  //number of insertion targets that were made
     
@@ -241,7 +241,7 @@ int mk_INS_trgts(compact_target * ctrg, opt_BC * BC_val, int * ctrg_cnt, compact
         
         //store insertion variants as binary encoded sequences in compact targets
         for (i = 0; i < 4; i++) {
-            set_BC_val(&ctrg[*ctrg_cnt], &BC_val[*ctrg_cnt], NULL, src_ctrg, MUTANT_BRCD); //set ptr to BC_val structure
+            set_BC_val(&ctrg[*ctrg_cnt], &BC_val[*ctrg_cnt], NULL, src_ctrg, lib_struct, NULL, MUTANT_BRCD); //set ptr to BC_val structure
             ctrg[*ctrg_cnt].bid = src_ctrg->bid | (*mutCode)++;  //generate and store barcode id
             seq2bin_long(var[i], &ctrg[*ctrg_cnt].bsq, 1);       //store binary-encoded barcode sequence
             BC_val[*ctrg_cnt].typ = INS;                         //set barcode type to insertion
@@ -272,7 +272,7 @@ int mk_INS_trgts(compact_target * ctrg, opt_BC * BC_val, int * ctrg_cnt, compact
 }
 
 /* mk_DEL_trgts: generate single deletion targets for input barcode */
-int mk_DEL_trgts(compact_target * ctrg, opt_BC * BC_val, int * ctrg_cnt, compact_target * src_ctrg, int brcd_len, uint64_t * mutCode, char upstrm_nt, int link)
+int mk_DEL_trgts(compact_target * ctrg, opt_BC * BC_val, int * ctrg_cnt, compact_target * src_ctrg, int brcd_len, uint64_t * mutCode, char upstrm_nt, int link, int lib_struct)
 {
     int del_trgts_made = 0;  //number of deletion targets made
     
@@ -311,7 +311,7 @@ int mk_DEL_trgts(compact_target * ctrg, opt_BC * BC_val, int * ctrg_cnt, compact
         }
         
         //store deletion variant as binary encoded sequences in compact target
-        set_BC_val(&ctrg[*ctrg_cnt], &BC_val[*ctrg_cnt], NULL, src_ctrg, MUTANT_BRCD); //set ptr to BC_val structure
+        set_BC_val(&ctrg[*ctrg_cnt], &BC_val[*ctrg_cnt], NULL, src_ctrg, lib_struct, NULL, MUTANT_BRCD); //set ptr to BC_val structure
         ctrg[*ctrg_cnt].bid = src_ctrg->bid | (*mutCode)++;  //generate and store barcode id
         seq2bin_long(var, &ctrg[*ctrg_cnt].bsq, 1);          //store binary-encoded barcode sequence
         BC_val[*ctrg_cnt].typ = DEL;                         //set barcode type to deletion

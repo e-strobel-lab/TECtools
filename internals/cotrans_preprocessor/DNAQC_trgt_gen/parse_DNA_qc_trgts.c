@@ -286,7 +286,7 @@ void set_DNA_qc_compact_target(compact_target * ctrg, opt_BC * BC_val, char * in
         abort();
     }
     
-    set_BC_val(ctrg, BC_val, insert, NULL, NATIVE_BRCD); //set pointer to BC_val structure
+    set_BC_val(ctrg, BC_val, insert, NULL, LIB_STRUCT_INIT, NULL, NATIVE_BRCD); //set pointer to BC_val structure
     nid = (uint64_t)(strtoull(bc_id, NULL, 10));         //convert nid string to numerical id
     ctrg->bid = nid << MUTCODE_BITS;     //set barcode id (bits 0-15 are used for mutCode)
     seq2bin_long(bc_sq, &ctrg->bsq, 1);  //store barcode sequence as a binary sequence

@@ -16,6 +16,7 @@
 #include "../seq_utils/fastp_params.h"
 #include "../seq_utils/seq2bin_hash.h"
 #include "../seq_utils/seq2bin_long.h"
+#include "../seq_utils/C3SCbc_tree.h"
 
 #include "../TECdisplay_mapper/TECdisplay_mapper_structs.h"
 
@@ -57,6 +58,7 @@ typedef struct target3p_params {
 typedef struct opt_BC {
     compact_target * ref; //pointer to reference target, for native targets this points to self
     compact_target * lnk; //pointer to another target to which this is linked, used for paired barcodes
+    C3SC_barcode_node * scbc; //pointer to sc barcode node
     FILE * ofp[TPROBE_CHANNEL_MAX][READ_MAX]; //output file pointer (only used for native targets)
     uint64_t mpd; //number of reads that mapped to native+mutant targets (used for native targets)
     uint64_t cnt; //number of reads that mapped to the current target

@@ -50,7 +50,9 @@ void print_output(names * nm, basemap * bmap, int vTmpCnt, int varCnt, char * ou
     //if both priming sites and a barcode are to be appended to the target sequence,
     //both the priming sites and the barcode are included in the fasta file, but only the
     //barcode and the linker that connects the barcode to the target are included in the
-    //target file. as above, in the target file, the wild type and reference sequences
+    //target file, with one exception: if the library being generated is a doubly-barcoded
+    //TECprobe-MUX library, the upstream priming site (which contains a barcode) is included
+    //in the target file. as above, in the target file, the wild type and reference sequences
     //contain the linker and a string of N bases in place of a specific barcode
     
     

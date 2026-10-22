@@ -42,12 +42,12 @@
 int mk_MUX_trgts(target * refs, opt_ref * ref_val, compact_target * ctrg, opt_BC * BC_val, FILE * fp_MUXtrgs, int trgt_ftype, int lib_struct, target_params * trg_prms, int clcd_ctrg_cnt, TDSPLY_fasta * wt, var_id_link * id_link, int data_type);
 
 /* mk_SUB_trgts: generates single substitution targets for input barcode */
-int mk_SUB_trgts(compact_target * ctrg, opt_BC * BC_val, int * ctrg_cnt, compact_target * src_ctrg, int brcd_len, uint64_t * mutCode, int link);
+int mk_SUB_trgts(compact_target * ctrg, opt_BC * BC_val, int * ctrg_cnt, compact_target * src_ctrg, int brcd_len, uint64_t * mutCode, int link, int lib_struct);
 
 /* mk_INS_trgts: generate single insertion targets for input barcode */
-int mk_INS_trgts(compact_target * ctrg, opt_BC * BC_val, int * ctrg_cnt, compact_target * src_ctrg, int brcd_len, uint64_t * mutCode, int link);
+int mk_INS_trgts(compact_target * ctrg, opt_BC * BC_val, int * ctrg_cnt, compact_target * src_ctrg, int brcd_len, uint64_t * mutCode, int link, int lib_struct);
 
 /* mk_DEL_trgts: generate single deletion targets for input barcode */
-int mk_DEL_trgts(compact_target * ctrg, opt_BC * BC_val, int * ctrg_cnt, compact_target * src_ctrg, int brcd_len, uint64_t * mutCode, char upstrm_nt, int link);
+int mk_DEL_trgts(compact_target * ctrg, opt_BC * BC_val, int * ctrg_cnt, compact_target * src_ctrg, int brcd_len, uint64_t * mutCode, char upstrm_nt, int link, int lib_struct);
 
 #endif /* mk_MUX_trgts_h */

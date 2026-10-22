@@ -61,9 +61,9 @@ int mk_DNA_qc_trgts(target * refs, opt_ref * ref_val, compact_target * ctrg, opt
         mutCode = 1; //set mutCode to 1 (input barcodes have mutCode 0)
         
         //generate sub and indel targets for the current barcode
-        tot_SUB_trgts += mk_SUB_trgts(ctrg, BC_val, &ctrg_cnt, &ctrg[i], trg_prms->BClen, &mutCode, 1);
-        tot_INS_trgts += mk_INS_trgts(ctrg, BC_val, &ctrg_cnt, &ctrg[i], trg_prms->BClen, &mutCode, 1);
-        tot_DEL_trgts += mk_DEL_trgts(ctrg, BC_val, &ctrg_cnt, &ctrg[i], trg_prms->BClen, &mutCode, toupper(RLA29synch_3p11[strlen(RLA29synch_3p11)-1]), 1);
+        tot_SUB_trgts += mk_SUB_trgts(ctrg, BC_val, &ctrg_cnt, &ctrg[i], trg_prms->BClen, &mutCode, 1, LIB_STRUCT_INIT);
+        tot_INS_trgts += mk_INS_trgts(ctrg, BC_val, &ctrg_cnt, &ctrg[i], trg_prms->BClen, &mutCode, 1, LIB_STRUCT_INIT);
+        tot_DEL_trgts += mk_DEL_trgts(ctrg, BC_val, &ctrg_cnt, &ctrg[i], trg_prms->BClen, &mutCode, toupper(RLA29synch_3p11[strlen(RLA29synch_3p11)-1]), 1, LIB_STRUCT_INIT);
     }
     
     //print the number of targets that were generated

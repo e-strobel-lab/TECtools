@@ -16,6 +16,7 @@
 
 #include "../../seq_utils/seq2bin_hash.h"
 #include "../../seq_utils/seq2bin_long.h"
+#include "../../seq_utils/C3SCbc_tree.h"
 
 #include "../../variant_maker/make_barcodes.h"
 #include "../../variant_maker/constant_seqs.h"
@@ -55,12 +56,30 @@ void set_barcoded_compact_target(compact_target * ctrg, opt_BC * BC_val, target 
         lnkr2use = RLA29synch_3p11;       //linker is RLA29synch_3p11
     }
     
+    static C3SC_barcode_node scbt_root = {EOF, NULL, NULL, NULL, NULL}; //root for sc barcode tree
+    C3SC_barcode_node * scbc_node = NULL;                               //pointer for storing sc barcode node return
+    
+    if (lib_struct == DBL_BC) {                    //if processing doubly-barcoded targets
+        if (scbt_root.key == EOF) {                //if the tree has not yet been generated
+            make_C3SCbc_tree(&scbt_root, 0, 0);    //generate the tree
+        }
+        
+        //parse the sc barcode and find match in sc barcode tree
+        //sc barcode parsing also points trgt_sq to the start of the target,
+        //rather than to the start of the C3SC sequence. parse_MUX_target_seq
+        //accepts this as an input sequence
+        if ((scbc_node = parse_C3SC_barcode(&trgt_sq, &scbt_root)) == NULL) {
+            printf("set_barcoded_compact_target: error - failed to find match for SC barcode during target parsing. aborting...\n");
+            abort();
+        }
+    }
+    
     parse_barcode_id(&p_nid, &p_fid, trgt_id, trgt_ftype); //parse barcode id to isolate full and numerical ids
     parse_MUX_target_seq(&p_trgt, &p_brcd, &trg_prms->BClen, trgt_sq, trgt_ftype, ldr2use, trlr2use, lnkr2use); //parse seq to isolate target and BC seqs
     
     //printf("%s\t%s\t%s\t%s\n", p_nid, p_fid, p_brcd, p_trgt);
     
-    set_BC_val(ctrg, BC_val, p_trgt, NULL, NATIVE_BRCD); //set pointer to BC_val structure
+    set_BC_val(ctrg, BC_val, p_trgt, NULL, lib_struct, scbc_node, NATIVE_BRCD); //set pointer to BC_val structure
     nid = (uint64_t)(strtoull(p_nid, NULL, 10));         //convert nid string to numerical id
     ctrg->bid = nid << MUTCODE_BITS;     //set barcode id (bits 0-15 are used for mutCode)
     seq2bin_long(p_brcd, &ctrg->bsq, 1); //store barcode sequence as a binary sequence
@@ -81,6 +100,64 @@ void set_barcoded_compact_target(compact_target * ctrg, opt_BC * BC_val, target 
     strcpy(ctrg->cid, p_fid); //store character-encoded barcode id
     
     return;
+}
+
+/* parse_C3SC_barcode: parse C3SC barcode and find match in sc barcode tree. sc barcode
+parsing also points trgt_sq to the start of the target sequence */
+C3SC_barcode_node * parse_C3SC_barcode(char ** trgt_sq, C3SC_barcode_node * scbt_root)
+{
+    extern char c3[20];
+    extern char ttcg[5];
+    extern char c3sc1[34];
+    
+    char * p_c3 = NULL;       //pointer to C3 sequence
+    char * p_ustrm_bc = NULL; //pointer to upstream barcode segment
+    char * p_ttcg = NULL;     //pointer to ttcg loop sequence
+    char * p_dstrm_bc = NULL; //pointer to downstream barcode sequence
+    char * p_trgt = NULL;     //pointer to target sequence
+    
+    C3SC_barcode_node * scbc_node = NULL; //pointer for storing outcome of sc barcode tree search
+    
+    p_c3 = strstr(*trgt_sq, c3);                                    //find C3 sequence in target
+    if (p_c3 == NULL || (uint64_t)(p_c3) != (uint64_t)(*trgt_sq)) { //verify C3 sequence formatting
+        printf("parse_C3SC_barcode: error - failed to detect C3 sequence\n. ");
+        abort();
+    }
+    
+    p_trgt     = &((*trgt_sq)[strlen(c3sc1)]);                                     //set ptr to start of target seq
+    p_ustrm_bc = &((*trgt_sq)[strlen(c3)]);                                        //set ptr to upstream bc stem
+    p_ttcg     = &((*trgt_sq)[strlen(c3) + MAX_C3SCBC_TREE_LAYER]);                //set ptr to ttcg loop
+    p_dstrm_bc = &((*trgt_sq)[strlen(c3) + MAX_C3SCBC_TREE_LAYER + strlen(ttcg)]); //set ptr to downstream bc stem
+    
+    //verify upstream bounds of target sequence, which should be preceded by two 'a' nucleotides
+    if (p_trgt[-1] == 'a' && p_trgt[-2] == 'a') { //if upstream bounds are verified
+        p_trgt[-2] = '\0';                        //terminate downstream barcode string
+        *trgt_sq = p_trgt;                        //point trgt_sq to start of target sequence
+        
+    } else { //otherwise, throw error and abort
+        printf("parse_C3SC_barcode: error - unexpected leader structure. 'aa' motif not detected before target start. aborting...\n");
+        abort();
+    }
+        
+    //verify ttcg tetraloop
+    if (!memcmp(p_ttcg, ttcg, strlen(ttcg))) { //if ttcg tetraloop is verified
+        p_ttcg[0] = '\0';                      //terminate upstream barcode string
+        
+    } else { //otherwise, throw error and abort
+        printf("parse_C3SC_barcode: error - unexpected leader structure. 'ttcg' not detected between stems of structure cassette. aborting...\n");
+        abort();
+    }
+    
+    //perform search for barcode match
+    scbc_node = srch_C3SCbc_tree(p_ustrm_bc, 0, &p_ustrm_bc[0], scbt_root);
+        
+    //verify match node and revcomp match node sequences are as expected
+    if (strcmp(scbc_node->sq, p_ustrm_bc) || strcmp(scbc_node->rc->sq, p_dstrm_bc)) {
+        printf("parse_C3SC_barcode: error - reported barcode match is not a match. this should never happen. aborting...\n");
+        abort();
+    }
+    
+    return scbc_node; //return node
 }
 
 /* parse_barcode_id: parse barcode id to set full id and numerical id pointers */
@@ -235,7 +312,7 @@ void parse_MUX_target_seq(char ** p_trgt, char ** p_brcd, int * brcd_len, char *
 }
 
 /* set_BC_val: set optional values for barcode target */
-void set_BC_val(compact_target * ctrg, opt_BC * BC_val, char * tsq, compact_target * ntv, int mode)
+void set_BC_val(compact_target * ctrg, opt_BC * BC_val, char * tsq, compact_target * ntv, int lib_struct, C3SC_barcode_node * scbc_node, int mode)
 {
     opt_BC * p_opt_BC = NULL; //pointer for handling barcode target optional values
     
@@ -264,6 +341,10 @@ void set_BC_val(compact_target * ctrg, opt_BC * BC_val, char * tsq, compact_targ
             abort();
         }
         strcpy(p_opt_BC->tsq, processed_seq);
+        
+        if (lib_struct == DBL_BC) {
+            p_opt_BC->scbc = scbc_node;
+        }
         
     } else if (mode == MUTANT_BRCD) { //if setting values for mutant barcode
         p_opt_BC->ref = ntv;          //point ref to reference native barcode from which the mutant was derived

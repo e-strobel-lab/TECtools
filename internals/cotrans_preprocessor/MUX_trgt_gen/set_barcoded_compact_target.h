@@ -19,6 +19,7 @@
 
 #include "../../seq_utils/seq2bin_hash.h"
 #include "../../seq_utils/seq2bin_long.h"
+#include "../../seq_utils/C3SCbc_tree.h"
 
 #include "../../variant_maker/make_barcodes.h"
 #include "../../variant_maker/constant_seqs.h"
@@ -36,6 +37,10 @@
 /* set_barcoded_compact_target: set target values in target struct */
 void set_barcoded_compact_target(compact_target * ctrg, opt_BC * BC_val, target * crnt_ref, char * trgt_id, char * trgt_sq, target_params * trg_prms, int trgt_ftype, int lib_struct, int data_type);
 
+/* parse_C3SC_barcode: parse C3SC barcode and find match in sc barcode tree. sc barcode
+parsing also points trgt_sq to the start of the target sequence */
+C3SC_barcode_node * parse_C3SC_barcode(char ** trgt_sq, C3SC_barcode_node * scbt_root);
+
 /* parse_barcode_id: parse barcode id to set full id and numerical id pointers */
 int parse_barcode_id(char ** p_nid, char ** p_fid, char * crnt_bcid, int trgt_ftype);
 
@@ -43,6 +48,6 @@ int parse_barcode_id(char ** p_nid, char ** p_fid, char * crnt_bcid, int trgt_ft
 void parse_MUX_target_seq(char ** p_trgt, char ** p_brcd, int * brcd_len, char * crnt_seq, int trgt_ftype, char * ldr, char * trlr, char * lnkr);
 
 /* set_BC_val: set optional values for barcode target */
-void set_BC_val(compact_target * ctrg, opt_BC * BC_val, char * tsq, compact_target * ntv, int mode);
+void set_BC_val(compact_target * ctrg, opt_BC * BC_val, char * tsq, compact_target * ntv, int lib_struct, C3SC_barcode_node * scbc_node, int mode);
 
 #endif /* set_barcoded_compact_target_h */
