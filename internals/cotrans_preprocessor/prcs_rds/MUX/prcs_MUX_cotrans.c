@@ -84,14 +84,7 @@ int prcs_MUX_cotrans(TPROBE_names * nm, FILE * fp_MUXtrgs, int trgt_ftype, int l
     }
     
     //determine expected target count
-    if (trgt_ftype == VMT_FILE) {
-        
-        //parse header to determine expected number of targets
-        parse_header_lines(fp_MUXtrgs, &trg_prms, &wt);
-        printf("%d expected targets\n", trg_prms.xpctd);
-        printf("%s: %s\n", wt.nm, wt.sq);
-        
-    } else if (trgt_ftype == FASTA_FILE) {
+    if (trgt_ftype == FASTA_FILE) {
         
         //iterate through file to count number of targets
         while (get_line(line, fp_MUXtrgs)) { //until all lines have been read
@@ -118,7 +111,7 @@ int prcs_MUX_cotrans(TPROBE_names * nm, FILE * fp_MUXtrgs, int trgt_ftype, int l
         }
         
     } else {
-        printf("prcs_MUX_cotrans: unrecognized barcoded target file type. aborting...\n");
+        printf("prcs_MUX_cotrans: error - barcode targets must be provided as a fasta file with extension '.fasta' or '.fa'. aborting...\n");
         abort();
     }
     

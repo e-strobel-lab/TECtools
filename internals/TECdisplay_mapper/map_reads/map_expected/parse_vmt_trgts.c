@@ -252,11 +252,6 @@ void parse_vmt_trgts(FILE * ifp, int trgt_ftype, int lib_struct, target * refs, 
                                    &(((opt_mx_trg *)trg_val)[trg_prms->t_cnt]),
                                    crnt_ref, trgt_id, trgt_sq);
                 
-            } else if (data_type == TPROBE_MUX) {
-                set_barcoded_compact_target(&(((compact_target *)trgts)[trg_prms->t_cnt]),
-                                            &(((opt_BC *)trg_val)[trg_prms->t_cnt]),
-                                            crnt_ref, trgt_id, trgt_sq, trg_prms, trgt_ftype, lib_struct, data_type);
-                
             } else {
                 printf("parse_vmt_trgts: error - unexpected data_type/node_type combination. aborting...\n");
                 abort();

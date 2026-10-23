@@ -277,12 +277,10 @@ int main(int argc, char *argv[])
                 strcpy(nm.trgts, argv[optind-1]);                            //store barcode targets filename
                 trgt_suffix = get_sample_name(nm.trgts, nm.trgts_prfx);      //get targets sample name and suffix
                 
-                if (!strcmp(trgt_suffix, vmt_suffix)) { //check and set barcoded targets file type
-                    trgt_ftype = VMT_FILE;
-                } else if (!strcmp(trgt_suffix, "fasta") || !strcmp(trgt_suffix, "fa")) {
+                if (!strcmp(trgt_suffix, "fasta") || !strcmp(trgt_suffix, "fa")) {
                     trgt_ftype = FASTA_FILE;
                 } else {
-                    printf("cotrans_preprocessor: error - unrecognized barcoded targets file type (.%s). aborting...\n", trgt_suffix);
+                    printf("cotrans_preprocessor: error - barcode targets must be provided as a fasta file with extension '.fasta' or '.fa'. aborting...\n");
                     abort();
                 }
                 
@@ -626,6 +624,12 @@ int check_standard_cotrans(int fq1_provided, int fq2_provided, int ends_provided
     //check that only one fasta reference file was provided if experiment is single length
     if (fa_ref_provided != 1 && fastp_prms.mode == SINGLE) {
         printf("cotrans_preprocessor_main: error - incorrect number (%d) of fasta reference files provided\n", fa_ref_provided);
+        abort();
+    }
+    
+    //check that TECprobe-MUX targets were provided as a fasta file
+    if (fastp_prms.mode == MULTIPLEX && trgt_ftype != FASTA_FILE) {
+        printf("cotrans_preprocessor: error - barcode targets must be provided as a fasta file with extension '.fasta' or '.fa'. aborting...\n");
         abort();
     }
     

@@ -47,10 +47,7 @@ int mk_MUX_trgts(target * refs, opt_ref * ref_val, compact_target * ctrg, opt_BC
     int l = 0; //general purpose index
     
     //parse barcoded targets file and store as compact targets
-    if (trgt_ftype == VMT_FILE) {
-        parse_vmt_trgts(fp_MUXtrgs, trgt_ftype, lib_struct, refs, ref_val, ctrg, BC_val, trg_prms, wt, data_type, CMPCT_TRGT_STRUCT);
-        
-    } else if (trgt_ftype == FASTA_FILE) {
+    if (trgt_ftype == FASTA_FILE) {
         parse_fa_trgts(fp_MUXtrgs, trgt_ftype, lib_struct, ctrg, BC_val, id_link, trg_prms, data_type);
         
         if (id_link != NULL) { //if using id link file to sub variant ids, test if all id link entries were used
@@ -62,7 +59,8 @@ int mk_MUX_trgts(target * refs, opt_ref * ref_val, compact_target * ctrg, opt_BC
             }
         }
     } else {
-        printf("mk_MUX_trgts: error - unrecognized barcoded targets file type. aborting...\n");
+        printf("mk_MUX_trgts: error - barcode targets must be provided as a fasta file with extension '.fasta' or '.fa'. aborting...\n");
+        abort();
     }
 
     ctrg_cnt = trg_prms->t_cnt;                    //set ctrg_cnt, which tracks total ctrgs below
