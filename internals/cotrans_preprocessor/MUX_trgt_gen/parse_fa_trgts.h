@@ -20,6 +20,7 @@
 
 #include "../../seq_utils/seq2bin_hash.h"
 #include "../../seq_utils/seq2bin_long.h"
+#include "../../seq_utils/C3SCbc_tree.h"
 
 #include "../../variant_maker/make_barcodes.h"
 #include "../../variant_maker/constant_seqs.h"
@@ -37,7 +38,7 @@
 #define MAX_NUM_STR 10
 
 /* parse_fa_trgts: stores input barcodes as targets */
-void parse_fa_trgts(FILE * ifp, int trgt_ftype, int lib_struct, void * trgts, void * trg_val, var_id_link * id_link, target_params * trg_prms, int data_type);
+void parse_fa_trgts(FILE * ifp, int trgt_ftype, int lib_struct, void * trgts, void * trg_val, C3SC_barcode_node * scbt_root, var_id_link * id_link, target_params * trg_prms, int data_type);
 
 /* detect_id_type: determine variant id type */
 int detect_id_type(char * ipt_trgt_id);

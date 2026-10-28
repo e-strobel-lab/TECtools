@@ -27,7 +27,7 @@
 
 
 /* set_barcoded_compact_target: set target values in target struct */
-void set_barcoded_compact_target(compact_target * ctrg, opt_BC * BC_val, target * crnt_ref, char * trgt_id, char * trgt_sq, target_params * trg_prms, int trgt_ftype, int lib_struct, int data_type)
+void set_barcoded_compact_target(compact_target * ctrg, opt_BC * BC_val, target * crnt_ref, char * trgt_id, char * trgt_sq, target_params * trg_prms, C3SC_barcode_node * scbt_root, int trgt_ftype, int lib_struct, int data_type)
 {
     extern char pra1_sc1[41];
     extern char c3sc1[34];
@@ -65,16 +65,12 @@ void set_barcoded_compact_target(compact_target * ctrg, opt_BC * BC_val, target 
         abort();
     }
     
-    static C3SC_barcode_node scbt_root = {EOF, NULL, NULL, NULL, NULL}; //root for sc barcode tree
-    C3SC_barcode_node * scbc_node = NULL;                               //pointer for storing sc barcode node return
+    C3SC_barcode_node * scbc_node = NULL; //pointer for storing sc barcode node return
     
-    if (lib_struct == DBL_BC) {                    //if processing doubly-barcoded targets
-        if (scbt_root.key == EOF) {                //if the tree has not yet been generated
-            make_C3SCbc_tree(&scbt_root, 0, 0);    //generate the tree
-        }
+    if (lib_struct == DBL_BC) { //if processing doubly-barcoded targets
         
         //parse the sc barcode and find match in sc barcode tree
-        if ((scbc_node = parse_C3SC_barcode(&trgt_sq, &scbt_root)) == NULL) {
+        if ((scbc_node = parse_C3SC_barcode(&trgt_sq, scbt_root)) == NULL) {
             printf("set_barcoded_compact_target: error - failed to find match for SC barcode during target parsing. aborting...\n");
             abort();
         }
@@ -83,7 +79,6 @@ void set_barcoded_compact_target(compact_target * ctrg, opt_BC * BC_val, target 
     parse_barcode_id(&p_nid, &p_fid, trgt_id, trgt_ftype); //parse barcode id to isolate full and numerical ids
     parse_MUX_target_seq(&p_trgt, &p_brcd, &trg_prms->BClen, trgt_sq, trgt_ftype, ldr2use, trlr2use, lnkr2use); //parse seq to isolate target and BC seqs
     
-    //printf("%s\t%s\t%s\t%s\n", p_nid, p_fid, p_brcd, p_trgt);
     
     set_BC_val(ctrg, BC_val, p_trgt, NULL, lib_struct, scbc_node, NATIVE_BRCD); //set pointer to BC_val structure
     nid = (uint64_t)(strtoull(p_nid, NULL, 10));         //convert nid string to numerical id

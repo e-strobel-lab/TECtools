@@ -16,6 +16,7 @@
 
 #include "../../../seq_utils/seq2bin_hash.h"
 #include "../../../seq_utils/seq2bin_long.h"
+#include "../../../seq_utils/C3SCbc_tree.h"
 
 #include "../../../variant_maker/variant_maker_defs.h"
 #include "../../../variant_maker/vmt_suffix.h"
@@ -44,6 +45,7 @@
 
 #include "./map_barcoded_targets.h"
 #include "./get_brcd_str.h"
+#include "./map_sc_brcd.h"
 #include "./testdataMUX_analysis.h"
 
 #include "prcs_MUX_cotrans.h"
@@ -52,7 +54,7 @@
 int prcs_MUX_cotrans(TPROBE_names * nm, FILE * fp_MUXtrgs, int trgt_ftype, int lib_struct, fastp_params fastp_prms, testdata_MUX_vars * testdata_MUX, int run_bypass_fastp);
 
 /* split_MUX_reads: demultiplex TECprobe-MUX reads into separate fastq file */
-void split_MUX_reads(FILE **ifp, compact_h_node **htbl_MUX, TPROBE_names * nm, compact_target * ctrg, int brcd_cnt, int ctrg_cnt, mapping_metrics * met, int mode);
+void split_MUX_reads(FILE **ifp, compact_h_node **htbl_MUX, C3SC_barcode_node * scbt_root, TPROBE_names * nm, compact_target * ctrg, int brcd_cnt, int ctrg_cnt, int lib_struct, mapping_metrics * met, int mode);
 
 
 #endif /* prcs_MUX_cotrans_h */

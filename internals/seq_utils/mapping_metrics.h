@@ -29,9 +29,13 @@ typedef struct mapping_metrics {
     int sub_cnt;                 //tracks number of reads that match substitution targets
     int ins_cnt;                 //tracks number of reads that match insertion targets
     int del_cnt;                 //tracks number of reads that match deletion targets
-    int mapped;                  //mapped reads count
+    int mapped;                  //mapped reads count (in doubly-barcoded libraries, tracks BC1 mapping)
+    int bc2_mapped;              //barcode 2 mapped reads count
+    int dblBC_mapped;            //number of doubly-barcoded reads in which both barcodes mapped
+    int noBC_mapped;             //neither barcode mapped
     int bl_mapped;               //blacklisted mapped reads count
     int unmapped;                //unmapped reads count
+    int concordant;              //tracks concordance when a second barcode is present
     int read_matches[READ_MAX];  //count of post-processing verified reads
     int len_dist[MAX_LINE];      //array for tracking the length distribution of UNT, MOD, and ERR reads
 } mapping_metrics;

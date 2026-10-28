@@ -20,6 +20,7 @@
 
 #include "../../seq_utils/seq2bin_hash.h"
 #include "../../seq_utils/seq2bin_long.h"
+#include "../../seq_utils/C3SCbc_tree.h"
 
 #include "../../variant_maker/constant_seqs.h"
 #include "../../variant_maker/vmt_suffix.h"
@@ -39,7 +40,7 @@
 #define MAX_DEL_CODE 128  //maximum mutcode value for deletions
 
 /* mk_MUX_trgts: manages TECprobe-MUX target generation */
-int mk_MUX_trgts(target * refs, opt_ref * ref_val, compact_target * ctrg, opt_BC * BC_val, FILE * fp_MUXtrgs, int trgt_ftype, int lib_struct, target_params * trg_prms, int clcd_ctrg_cnt, TDSPLY_fasta * wt, var_id_link * id_link, int data_type);
+int mk_MUX_trgts(target * refs, opt_ref * ref_val, compact_target * ctrg, opt_BC * BC_val, C3SC_barcode_node * scbt_root, FILE * fp_MUXtrgs, int trgt_ftype, int lib_struct, target_params * trg_prms, int clcd_ctrg_cnt, TDSPLY_fasta * wt, var_id_link * id_link, int data_type);
 
 /* mk_SUB_trgts: generates single substitution targets for input barcode */
 int mk_SUB_trgts(compact_target * ctrg, opt_BC * BC_val, int * ctrg_cnt, compact_target * src_ctrg, int brcd_len, uint64_t * mutCode, int link, int lib_struct);

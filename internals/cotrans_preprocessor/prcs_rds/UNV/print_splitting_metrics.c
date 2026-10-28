@@ -22,7 +22,7 @@
 #include "print_splitting_metrics.h"
 
 /* print_metrics: prints a report of channel and 3' end processing metrics */
-void print_splitting_metrics(TPROBE_names * nm, mapping_metrics  * met, fastp_params fastp_prms)
+void print_splitting_metrics(TPROBE_names * nm, int lib_struct, mapping_metrics  * met, fastp_params fastp_prms)
 {
     extern struct testdata_3pEnd_vars testdata_3pEnd; //structure containing test data read analysis variables
     extern struct testdata_MUX_vars testdata_MUX;     //structure containing test data read analysis variables
@@ -101,36 +101,56 @@ void print_splitting_metrics(TPROBE_names * nm, mapping_metrics  * met, fastp_pa
                 met->mapped,
                 met->nat_cnt, ((float)(met->nat_cnt)/(float)(met->mapped))*100,
                 met->nat_cnt+met->sub_cnt, ((float)(met->nat_cnt+met->sub_cnt)/(float)(met->mapped))*100,
-                met->hits, ((float)(met->matches)/(float)(met->hits))*100);
+                met->matches, ((float)(met->matches)/(float)(met->hits))*100);
         printf2_scrn_n_fl(log_fp, out_str);
         
     } else if (fastp_prms.mode == MULTIPLEX) {
-        //barcode mapping metrics for multi-length cotranscriptional structure probing experiments
+        //barcode mapping metrics for TECprobe-MUX experiments
         
-        //barcode mapping efficiency metrics
-        sprintf(out_str, "variant barcodes:\n  total assessed: %d reads\n  mapped:   %6.2f%% (%9d reads)\n  unmapped: %6.2f%% (%9d reads)\n",
-                met->reads_processed,
-                ((float)(met->mapped) / (float)(met->reads_processed))*100, met->mapped,
-                ((float)(met->unmapped) / (float)(met->reads_processed))*100, met->unmapped);
-        printf2_scrn_n_fl(log_fp, out_str);
-        
-        //test data analysis-specific error indicating that <100% of test data reads were mappable
-        //this is also reported from the print_MUX_testdata_analysis function, however this failure is
-        //so severe that it is worth printing more than once
-        if (testdata_MUX.run) {
-            if ((met->reads_processed - met->mapped) != 0) {
-                sprintf(out_str, "TEST DATA ANALYSIS: error - expected 100%% of reads to map correctly.\n");
-                printf2_scrn_n_fl(log_fp, out_str);
+        if (lib_struct == SGL_BC) {
+            
+            //barcode mapping efficiency metrics
+            sprintf(out_str, "variant barcodes:\ndata processed as singly-barcoded library\n  total assessed: %d reads\n  mapped:   %6.2f%% (%9d reads)\n  unmapped: %6.2f%% (%9d reads)\n",
+                    met->reads_processed,
+                    ((float)(met->mapped) / (float)(met->reads_processed))*100, met->mapped,
+                    ((float)(met->unmapped) / (float)(met->reads_processed))*100, met->unmapped);
+            printf2_scrn_n_fl(log_fp, out_str);
+            
+            //test data analysis-specific error indicating that <100% of test data reads were mappable
+            //this is also reported from the print_MUX_testdata_analysis function, however this failure is
+            //so severe that it is worth printing more than once
+            if (testdata_MUX.run) {
+                if ((met->reads_processed - met->mapped) != 0) {
+                    sprintf(out_str, "TEST DATA ANALYSIS: error - expected 100%% of reads to map correctly.\n");
+                    printf2_scrn_n_fl(log_fp, out_str);
+                }
             }
+            
+            //barcode mapping quality metrics
+            sprintf(out_str, "    of %d mapped reads,\n     %9d barcodes (%6.2f%%) mapped without substitutions or indels,\n     %9d barcodes (%6.2f%%) mapped without indels, and\n     %9d barcodes (%6.2f%%) match the expected sequence\n\n",
+                    met->mapped,
+                    met->nat_cnt, ((float)(met->nat_cnt)/(float)(met->mapped))*100,
+                    met->nat_cnt+met->sub_cnt, ((float)(met->nat_cnt+met->sub_cnt)/(float)(met->mapped))*100,
+                    met->matches, ((float)(met->matches)/(float)(met->hits))*100);
+            printf2_scrn_n_fl(log_fp, out_str);
+            
+        } else if (lib_struct == DBL_BC) {
+            
+            //barcode mapping efficiency metrics
+            sprintf(out_str, "variant barcodes:\ndata processed as doubly-barcoded library\n  total assessed: %d reads\n  BC1 and BC2 mapped:   %6.2f%% (%9d reads), %6.2f%% (%d/%d reads) concordant\n          BC1 mapped:   %6.2f%% (%9d reads)\n          BC2 mapped:   %6.2f%% (%9d reads)\n   neither BC mapped: %6.2f%% (%9d reads)\n",
+                    met->reads_processed,
+                    ((float)(met->dblBC_mapped) / (float)(met->reads_processed))*100, met->dblBC_mapped,
+                    ((float)(met->concordant) / (float)(met->dblBC_mapped))*100, met->concordant, met->dblBC_mapped,
+                    ((float)(met->mapped) / (float)(met->reads_processed))*100, met->mapped,
+                    ((float)(met->bc2_mapped) / (float)(met->reads_processed))*100, met->bc2_mapped,
+                    ((float)(met->noBC_mapped) / (float)(met->reads_processed))*100, met->noBC_mapped);
+            printf2_scrn_n_fl(log_fp, out_str);
+            
+            //TODO: add barcode mapping quality metrics here?
+            
+        } else {
+            printf("print_splitting_metrics: ERROR - unrecognized library structure code\n");
         }
-        
-        //barcode mapping quality metrics
-        sprintf(out_str, "    of %d mapped reads,\n     %9d barcodes (%6.2f%%) mapped without substitutions or indels,\n     %9d barcodes (%6.2f%%) mapped without indels, and\n     %9d barcodes (%6.2f%%) match the expected sequence\n\n",
-                met->mapped,
-                met->nat_cnt, ((float)(met->nat_cnt)/(float)(met->mapped))*100,
-                met->nat_cnt+met->sub_cnt, ((float)(met->nat_cnt+met->sub_cnt)/(float)(met->mapped))*100,
-                met->hits, ((float)(met->matches)/(float)(met->hits))*100);
-        printf2_scrn_n_fl(log_fp, out_str);
     }
     
     

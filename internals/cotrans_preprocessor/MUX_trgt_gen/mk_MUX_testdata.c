@@ -26,7 +26,7 @@
 #include "mk_MUX_testdata.h"
 
 /* mk_MUX_testdata: generate TECprobe-MUX test data */
-void mk_MUX_testdata(TPROBE_names * nm, compact_target * ctrg, int ctrg_cnt)
+void mk_MUX_testdata(TPROBE_names * nm, compact_target * ctrg, int ctrg_cnt, int lib_struct)
 {
     srand(time(NULL)); //seed pseudorandom number generator
     
@@ -83,7 +83,7 @@ void mk_MUX_testdata(TPROBE_names * nm, compact_target * ctrg, int ctrg_cnt)
             //generate one test data read for each of the five types of channel barcodes
             for (j = 0; j < CHNL_CLASSES; j++) {
                 mk_rndmzd_bc(chnl_bc, mk_chnl[j], mk_mtch[j]);
-                read_pair_count = print_MUX_fq(out_rd1, out_rd2, chnl_bc, &ctrg[i]);
+                read_pair_count = print_MUX_fq(out_rd1, out_rd2, chnl_bc, &ctrg[i], lib_struct);
             }
         }
     }
@@ -105,9 +105,10 @@ void mk_MUX_testdata(TPROBE_names * nm, compact_target * ctrg, int ctrg_cnt)
 }
 
 /* print_MUX_fq: print TECprobe-MUX test data read to output fastq file */
-int print_MUX_fq(FILE * out_rd1, FILE * out_rd2, char * chnl_bc, compact_target * ctrg)
+int print_MUX_fq(FILE * out_rd1, FILE * out_rd2, char * chnl_bc, compact_target * ctrg, int lib_struct)
 {
     extern char sc1[17];             //structure cassette 1 sequence
+    extern char c3[20];              //c3 sequence
     extern char RLA29synch_3p11[34]; //TECprobe-MX linker, v2
     
     static int cnt = 0; //number of read pairs generated
@@ -119,7 +120,20 @@ int print_MUX_fq(FILE * out_rd1, FILE * out_rd2, char * chnl_bc, compact_target 
     
     char rd1[MAX_LINE+1] = {0};    //array for generating read 1 sequence
     char rd2[MAX_LINE+1] = {0};    //array for generating read 2 sequence
+    
+    char * ldr2use = NULL; //leader to append to target seq in test data read
+    
+    if (lib_struct == SGL_BC) {        //if targets are singly-barcoded
+        ldr2use = sc1;                 //use sc1 as the leader (parsed targets do not contain SC1)
         
+    } else if (lib_struct == DBL_BC) { //if targets are doubly-barcoded
+        ldr2use = c3;                  //use c3 as the leader (parsed targets contain SC barcode)
+    
+    } else {  //unrecognized library structure, abort
+        printf("print_MUX_fq: error - unrecognized library structure. aborting...\n");
+        abort();
+    }
+    
     opt_BC * p_opt_BC_crnt = (opt_BC *)ctrg->opt;               //set current target optional barcode values pointer
     opt_BC * p_opt_BC_ref  = (opt_BC *)p_opt_BC_crnt->ref->opt; //set reference target optional barcode values pointer
     
@@ -127,11 +141,11 @@ int print_MUX_fq(FILE * out_rd1, FILE * out_rd2, char * chnl_bc, compact_target 
     
     //generate test data read 2, which contains:
     //1. channel barcode
-    //2. structure cassette 1
+    //2. leader (sc1 for SGL_BC or c3 for DBL_BC)
     //3. target sequence of the reference target from which the current barcode was derived
     //4. RLA29synch_3p11 linker
     //5. current barcode
-    ret = snprintf(rd2, MAX_LINE, "%s%s%s%s%s", chnl_bc, sc1, p_opt_BC_ref->tsq, RLA29synch_3p11, brcd);
+    ret = snprintf(rd2, MAX_LINE, "%s%s%s%s%s", chnl_bc, ldr2use, p_opt_BC_ref->tsq, RLA29synch_3p11, brcd);
     if (ret >= MAX_LINE || ret < 0) {
         printf("print_MUX_fq: error - error when constructing test data read. aborting...\n");
         abort();

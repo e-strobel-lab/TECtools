@@ -17,6 +17,7 @@
 
 #include "../../seq_utils/seq2bin_hash.h"
 #include "../../seq_utils/seq2bin_long.h"
+#include "../../seq_utils/C3SCbc_tree.h"
 
 #include "../../variant_maker/make_barcodes.h"
 #include "../../variant_maker/constant_seqs.h"
@@ -29,7 +30,7 @@
 
 
 /* parse_fa_trgts: stores input barcodes as targets */
-void parse_fa_trgts(FILE * ifp, int trgt_ftype, int lib_struct, void * trgts, void * trg_val, var_id_link * id_link, target_params * trg_prms, int data_type)
+void parse_fa_trgts(FILE * ifp, int trgt_ftype, int lib_struct, void * trgts, void * trg_val, C3SC_barcode_node * scbt_root, var_id_link * id_link, target_params * trg_prms, int data_type)
 {
     uint64_t i = 0; //general purpose index
     
@@ -95,7 +96,7 @@ void parse_fa_trgts(FILE * ifp, int trgt_ftype, int lib_struct, void * trgts, vo
         //set barcoded compact target for current fasta entry
         set_barcoded_compact_target(&(((compact_target *)trgts)[trg_prms->t_cnt]),
                                     &(((opt_BC *)trg_val)[trg_prms->t_cnt]),
-                                    NULL, id2use, trgt_sq, trg_prms, trgt_ftype, lib_struct, data_type);
+                                    NULL, id2use, trgt_sq, trg_prms, scbt_root, trgt_ftype, lib_struct, data_type);
         
         trg_prms->t_cnt++; //increment target count
         L1 = L2 = 0;       //zero L1 and L2

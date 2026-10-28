@@ -13,6 +13,7 @@
 
 #include "../../../seq_utils/seq2bin_hash.h"
 #include "../../../seq_utils/seq2bin_long.h"
+#include "../../../seq_utils/C3SCbc_tree.h"
 
 #include "../../../variant_maker/variant_maker_defs.h"
 #include "../../../variant_maker/vmt_suffix.h"
@@ -41,6 +42,7 @@
 
 #include "./map_barcoded_targets.h"
 #include "./get_brcd_str.h"
+#include "./map_sc_brcd.h"
 #include "./testdataMUX_analysis.h"
 
 #include "prcs_MUX_cotrans.h"
@@ -129,8 +131,15 @@ int prcs_MUX_cotrans(TPROBE_names * nm, FILE * fp_MUXtrgs, int trgt_ftype, int l
         abort();
     }
     
+    /********** generate secondary barcode tree ***********/
+    C3SC_barcode_node scbt_root = {EOF, NULL, NULL, NULL, NULL}; //root for sc barcode tree
+    if (lib_struct == DBL_BC) {             //if processing doubly-barcoded library
+        make_C3SCbc_tree(&scbt_root, 0, 0); //generate tree for mapping secondary barcode
+    }
+    /****** end of secondary barcode tree generation ******/
+    
     //generate barcode targets
-    ctrg_cnt = mk_MUX_trgts(refs, ref_val, ctrg, BC_val, fp_MUXtrgs, trgt_ftype, lib_struct, &trg_prms, clcd_ctrg_cnt, &wt, id_link, TPROBE_MUX);
+    ctrg_cnt = mk_MUX_trgts(refs, ref_val, ctrg, BC_val, &scbt_root, fp_MUXtrgs, trgt_ftype, lib_struct, &trg_prms, clcd_ctrg_cnt, &wt, id_link, TPROBE_MUX);
     met.srcTrgs = trg_prms.t_cnt; //record number of source barcodes
     met.targets = ctrg_cnt;       //record number of targets generated
     
@@ -160,7 +169,7 @@ int prcs_MUX_cotrans(TPROBE_names * nm, FILE * fp_MUXtrgs, int trgt_ftype, int l
     
     /*************** testdata generation *****************/
     if (testdata_MUX->run) {
-        mk_MUX_testdata(nm, ctrg, ctrg_cnt); //generate test data
+        mk_MUX_testdata(nm, ctrg, ctrg_cnt, lib_struct); //generate test data
     }
     /*********** end of test data generation *************/
     
@@ -181,10 +190,10 @@ int prcs_MUX_cotrans(TPROBE_names * nm, FILE * fp_MUXtrgs, int trgt_ftype, int l
     }
     
     //split input fastq by channel and barcode
-    split_MUX_reads(&ifp[0], htbl_MUX, nm, ctrg, trg_prms.t_cnt, ctrg_cnt, &met, fastp_prms.mode);
+    split_MUX_reads(&ifp[0], htbl_MUX, &scbt_root, nm, ctrg, trg_prms.t_cnt, ctrg_cnt, lib_struct, &met, fastp_prms.mode);
     /********** end of process and split sequencing reads **********/
     
-    print_splitting_metrics(nm, &met, fastp_prms); //print metrics
+    print_splitting_metrics(nm, lib_struct, &met, fastp_prms); //print metrics
     if (testdata_MUX->run) {
         print_MUX_testdata_analysis(&met, &ctrg[0], TPROBE_MUX);
     }
@@ -194,6 +203,7 @@ int prcs_MUX_cotrans(TPROBE_names * nm, FILE * fp_MUXtrgs, int trgt_ftype, int l
     
     mk_config(nm, NULL, fastp_prms.mode); //make config file for run script generation
     
+    //TODO: set up separate VMT file input for generating navigator template file
     if (trgt_ftype == VMT_FILE) {
         print_navigator_template(refs, &wt, &trg_prms); //print navigator template file
     }
@@ -202,7 +212,7 @@ int prcs_MUX_cotrans(TPROBE_names * nm, FILE * fp_MUXtrgs, int trgt_ftype, int l
 }
 
 /* split_MUX_reads: demultiplex TECprobe-MUX reads into separate fastq file */
-void split_MUX_reads(FILE **ifp, compact_h_node **htbl_MUX, TPROBE_names * nm, compact_target * ctrg, int brcd_cnt, int ctrg_cnt, mapping_metrics * met, int mode)
+void split_MUX_reads(FILE **ifp, compact_h_node **htbl_MUX, C3SC_barcode_node * scbt_root, TPROBE_names * nm, compact_target * ctrg, int brcd_cnt, int ctrg_cnt, int lib_struct, mapping_metrics * met, int mode)
 {
     extern int debug;                             //flag to turn on debug mode
     extern struct testdata_MUX_vars testdata_MUX; //structure containing test data read analysis variables
@@ -272,11 +282,17 @@ void split_MUX_reads(FILE **ifp, compact_h_node **htbl_MUX, TPROBE_names * nm, c
     compact_target * crnt_ref_trg = NULL; //pointer to reference target of mapped target
     compact_target * crnt_mpd_trg = NULL; //pointer to mapped target
     
+    C3SC_barcode_node * crnt_scbc_node = NULL; //pointer for storing SC barcode node during read mapping
+    
+    int concordant = 0; //for doubly-barcoded libraries, flag that barcodes are concordant
+    
     for (i = 0; proceed; i++) {
         
         brcd_str[0] = chan_str[0] = '\0';   //initialize barcode and channel strings to 0
         channel = -1;                       //initialize channel value to -1
         crnt_ref_trg = crnt_mpd_trg = NULL; //initialize reference and mapped taret pointers to NULL
+        crnt_scbc_node = NULL;              //initialize SC barcode node pointer to NULL
+        concordant = 0;                     //initialize concordant flag to 0
         
         for (j = 0; j < FQ_LINES; j++) {    //zero first index of fastq line storage
             read1[j][0] = read2[j][0] = '\0';
@@ -341,13 +357,32 @@ void split_MUX_reads(FILE **ifp, compact_h_node **htbl_MUX, TPROBE_names * nm, c
             reverse_complement(rc_brcd_str, brcd_str, REVCOMP);                 //revcomp barcode string
             crnt_ref_trg = map_brcd(rc_brcd_str, htbl_MUX, &crnt_mpd_trg, met); //map barcode using hash table
             
-            if (crnt_ref_trg != NULL) { //if barcode mapped
+            if (lib_struct == DBL_BC) { //if processing doubly-barcoded library
+                if ((crnt_scbc_node = map_sc_brcd(read2[LINE2], scbt_root)) != NULL) { //map SC barcode
+                    met->bc2_mapped++;  //track number of reads in which barcode 2 mapped
+                }
+            }
+            
+            //if barcode(s) mapped
+            if (crnt_ref_trg != NULL && (lib_struct == SGL_BC || (lib_struct == DBL_BC && crnt_scbc_node != NULL))) {
+                
+                if (lib_struct == DBL_BC) { //if processing doubly-barcoded libary
+                    met->dblBC_mapped++;    //track reads in which both barcodes mapped
+                }
                 
                 if (testdata_MUX.run) { //if mapping test data, check that read mapped to correct target
                     compare_testdata_barcode_id(crnt_mpd_trg, &read2[LINE1][0], &read2[LINE2][0]);
                 }
                 
                 BC_val = (opt_BC *)crnt_ref_trg->opt; //set pointer to ref barcode optional values
+                
+                //for doubly-barcoded libraries, test BC1 and BC2 concordance
+                if (lib_struct == DBL_BC && (uint64_t)(crnt_scbc_node) == (uint64_t)(BC_val->scbc)) {
+                    concordant = 1;    //set flag that barcodes are concordant
+                    met->concordant++; //track number of reads with concordant barcodes
+                } else {
+                    concordant = 0;    //sanity check/safeguard, concordant was initialized to zero already
+                }
                 
                 // *** append attributes to read ids ***
                 appnd_att(&read1[LINE1][0], &read2[LINE1][0], chan_str);          //append channel to read name
@@ -376,27 +411,33 @@ void split_MUX_reads(FILE **ifp, compact_h_node **htbl_MUX, TPROBE_names * nm, c
                     abort();
                 }
                 // *** end verify read sequences ***
-                
-                if (channel > -1 && channel < ERR) { //if channel barcode corresponds to untreated or modified sample
+                                
+                if (lib_struct == SGL_BC || (lib_struct == DBL_BC && concordant)) { //if SGL_BC or DBL_BC and concordant
                     
-                    //print fastq entry to corresponding read 1/2 output files
-                    for (j = 0; j < FQ_LINES; j++) {
-                        r1_printed = r2_printed = -1; //set print success flags to -1
+                    if (channel > -1 && channel < ERR) { //if channel barcode corresponds to UNT or MOD sample
                         
-                        r1_printed = fprintf(BC_val->ofp[channel][READ1], "%s\n", read1[j]);
-                        r2_printed = fprintf(BC_val->ofp[channel][READ2], "%s\n", read2[j]);
-                        
-                        if (r1_printed <= 0 || r2_printed <= 0) {
-                            printf("split_MUX_reads: error occurred when printing fastq file output. aborting...");
-                            abort();
+                        //print fastq entry to corresponding read 1/2 output files
+                        for (j = 0; j < FQ_LINES; j++) {
+                            r1_printed = r2_printed = -1; //set print success flags to -1
+                            
+                            r1_printed = fprintf(BC_val->ofp[channel][READ1], "%s\n", read1[j]);
+                            r2_printed = fprintf(BC_val->ofp[channel][READ2], "%s\n", read2[j]);
+                            
+                            if (r1_printed <= 0 || r2_printed <= 0) {
+                                printf("split_MUX_reads: error occurred when printing fastq file output. aborting...");
+                                abort();
+                            }
                         }
-                    }
-                } //TODO: consider adding option to keep discarded reads in separate file
-                
+                    } //TODO: consider adding option to keep discarded reads in separate file
+                }
+
                 //track ongoing processing
                 if (i+1 % 1000000 == 0) {
                     printf(">");
                 }
+                
+            } else if (lib_struct == DBL_BC && crnt_ref_trg == NULL && crnt_scbc_node == NULL) {
+                met->noBC_mapped++; //track number of reads in which neither barcodemapped
             }
         }
     }

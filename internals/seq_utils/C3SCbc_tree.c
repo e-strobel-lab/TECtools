@@ -18,8 +18,8 @@
 
 #include "C3SCbc_tree.h"
 
-char C3SCbc_node_left_key  = 'g'; //key for left C3SCbc node child
-char C3SCbc_node_right_key = 'c'; //key for right C3SCbc node child
+char C3SCbc_node_left_key  = 'G'; //key for left C3SCbc node child
+char C3SCbc_node_right_key = 'C'; //key for right C3SCbc node child
 
 /* make_C3SCbc_tree: construct C3SC barcode tree */
 void make_C3SCbc_tree(C3SC_barcode_node * scbc_tree, char key, int layer)
@@ -109,6 +109,26 @@ C3SC_barcode_node * srch_C3SCbc_tree(char * str, int i, char * nxt_key, C3SC_bar
 void set_C3SCbc_tree_revcomp(C3SC_barcode_node * scbt_root)
 {
     //list of possible barcodes
+    char SCbrcds[C3SC_BRCD_CNT][MAX_C3SCBC_TREE_LAYER+1] = {"GGGG",
+                                                            "GGGC",
+                                                            "GGCG",
+                                                            "GGCC",
+                                                            "GCGG",
+                                                            "GCGC",
+                                                            "GCCG",
+                                                            "GCCC",
+                                                            "CGGG",
+                                                            "CGGC",
+                                                            "CGCG",
+                                                            "CGCC",
+                                                            "CCGG",
+                                                            "CCGC",
+                                                            "CCCG",
+                                                            "CCCC"};
+
+    
+    //list of possible barcodes
+    /*
     char SCbrcds[C3SC_BRCD_CNT][MAX_C3SCBC_TREE_LAYER+1] = {"gggg",
                                                             "gggc",
                                                             "ggcg",
@@ -125,6 +145,7 @@ void set_C3SCbc_tree_revcomp(C3SC_barcode_node * scbt_root)
                                                             "ccgc",
                                                             "cccg",
                                                             "cccc"};
+    */
     
     int i = 0; //general purpose index
     

@@ -18,12 +18,33 @@ char vra5[22]            = "ccttggcacccgagaattcca";
 char RLA29synch_3p11[34] = "aaacaccaccaAcatcaccatcatcctgacgcg"; //v2
 char RLA29synch_inFP[12] = "aaacaccacca"; //sequence in RNAP footprint when RNAP is at synch site
 
-char sc1[17] = "atggccttcgggccaa";    //SC1 sequence
-char c3[20]  = "attcggtgctcttctcttc"; //C3_sequence
-char ttcg[5] = "ttcg";                //UUCG tetraloop sequence
-char scbc_ref[34] = "NNNNttcgNNNNaa"; //sc barcode reference seq
+char sc1[17]       = "atggccttcgggccaa";    //SC1 sequence
+char c3[20]        = "attcggtgctcttctcttc"; //C3 sequence
+char c3_upper[20]  = "ATTCGGTGCTCTTCTCTTC"; //uppercase C3 sequence
+char ttcg[5]       = "ttcg";                //UUCG tetraloop sequence
+char scbc_ref[34]  = "NNNNttcgNNNNaa";      //sc barcode reference seq
 
 //array of barcoded C3SC sequences  ...................((((....))))..
+char c3sc_BC[C3SC_BRCD_CNT][34] = {"attcggtgctcttctcttcGGGGttcgCCCCaa",
+                                   "attcggtgctcttctcttcGGGCttcgGCCCaa",
+                                   "attcggtgctcttctcttcGGCGttcgCGCCaa",
+                                   "attcggtgctcttctcttcGGCCttcgGGCCaa",
+                                   "attcggtgctcttctcttcGCGGttcgCCGCaa",
+                                   "attcggtgctcttctcttcGCGCttcgGCGCaa",
+                                   "attcggtgctcttctcttcGCCGttcgCGGCaa",
+                                   "attcggtgctcttctcttcGCCCttcgGGGCaa",
+                                   "attcggtgctcttctcttcCGGGttcgCCCGaa",
+                                   "attcggtgctcttctcttcCGGCttcgGCCGaa",
+                                   "attcggtgctcttctcttcCGCGttcgCGCGaa",
+                                   "attcggtgctcttctcttcCGCCttcgGGCGaa",
+                                   "attcggtgctcttctcttcCCGGttcgCCGGaa",
+                                   "attcggtgctcttctcttcCCGCttcgGCGGaa",
+                                   "attcggtgctcttctcttcCCCGttcgCGGGaa",
+                                   "attcggtgctcttctcttcCCCCttcgGGGGaa"};
+
+
+//array of barcoded C3SC sequences  ...................((((....))))..
+/*
 char c3sc_BC[C3SC_BRCD_CNT][34] = {"attcggtgctcttctcttcggggttcgccccaa",
                                    "attcggtgctcttctcttcgggcttcggcccaa",
                                    "attcggtgctcttctcttcggcgttcgcgccaa",
@@ -40,3 +61,4 @@ char c3sc_BC[C3SC_BRCD_CNT][34] = {"attcggtgctcttctcttcggggttcgccccaa",
                                    "attcggtgctcttctcttcccgcttcggcggaa",
                                    "attcggtgctcttctcttccccgttcgcgggaa",
                                    "attcggtgctcttctcttcccccttcgggggaa"};
+*/

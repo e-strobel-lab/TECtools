@@ -112,7 +112,7 @@ int prcs_MLT_cotrans(TPROBE_names * nm, FILE * fp_3pEnd, fastp_params fastp_prms
         print_len_dist(&met, trg_prms);		//print the distribution of 3' end lengths
     }
     
-    print_splitting_metrics(nm, &met, fastp_prms);	//print channel and 3' end pre-processing metrics
+    print_splitting_metrics(nm, LIB_STRUCT_INIT, &met, fastp_prms);	//print channel and 3' end pre-processing metrics
     if (testdata_3pEnd.run) {
         print_3pEnd_testdata_analysis(&met, trg_prms, trgts);	//print a report of test data read analysis
     }

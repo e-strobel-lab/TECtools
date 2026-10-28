@@ -17,6 +17,7 @@
 
 #include "../../seq_utils/seq2bin_hash.h"
 #include "../../seq_utils/seq2bin_long.h"
+#include "../../seq_utils/C3SCbc_tree.h"
 
 #include "../../variant_maker/make_barcodes.h"
 #include "../../variant_maker/constant_seqs.h"
@@ -37,7 +38,7 @@ uint64_t trgt_ID_mask = 0xFFFFFFFFFFFF0000; //barcode id mask that isolates the 
 uint64_t mutcode_mask = 0x000000000000FFFF; //barcode id mask that isolates mutation code
 
 /* mk_MUX_trgts: manages TECprobe-MUX target generation */
-int mk_MUX_trgts(target * refs, opt_ref * ref_val, compact_target * ctrg, opt_BC * BC_val, FILE * fp_MUXtrgs, int trgt_ftype, int lib_struct, target_params * trg_prms, int clcd_ctrg_cnt, TDSPLY_fasta * wt, var_id_link * id_link, int data_type)
+int mk_MUX_trgts(target * refs, opt_ref * ref_val, compact_target * ctrg, opt_BC * BC_val, C3SC_barcode_node * scbt_root, FILE * fp_MUXtrgs, int trgt_ftype, int lib_struct, target_params * trg_prms, int clcd_ctrg_cnt, TDSPLY_fasta * wt, var_id_link * id_link, int data_type)
 {
     extern char RLA29synch_3p11[34]; //linker sequence for TECprobe-MUX experiments
     
@@ -48,7 +49,7 @@ int mk_MUX_trgts(target * refs, opt_ref * ref_val, compact_target * ctrg, opt_BC
     
     //parse barcoded targets file and store as compact targets
     if (trgt_ftype == FASTA_FILE) {
-        parse_fa_trgts(fp_MUXtrgs, trgt_ftype, lib_struct, ctrg, BC_val, id_link, trg_prms, data_type);
+        parse_fa_trgts(fp_MUXtrgs, trgt_ftype, lib_struct, ctrg, BC_val, scbt_root, id_link, trg_prms, data_type);
         
         if (id_link != NULL) { //if using id link file to sub variant ids, test if all id link entries were used
             for (l = 0; l < trg_prms->xpctd; l++) {
