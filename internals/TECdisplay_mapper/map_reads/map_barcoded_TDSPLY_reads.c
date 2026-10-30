@@ -240,7 +240,7 @@ int prcs_barcoded_TDSPLY_reads(TDSPLY_names * nm, int trgt_ftype, char * minQ, f
     print_metrics(&trg_prms, &met, nm); //print mapping metrics
     
     if (testdata->run) { //print test data analysis
-        print_MUX_testdata_analysis(&met, ctrg, TDSPLY_BRCD);
+        print_MUX_testdata_analysis(&met, ctrg, TDSPLY_BRCD, SGL_BC);
     }
     
     //compress merged fastq file

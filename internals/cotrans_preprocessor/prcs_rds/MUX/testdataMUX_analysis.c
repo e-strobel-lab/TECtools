@@ -82,7 +82,7 @@ void compare_testdata_barcode_id(compact_target * ctrg, char * rd_id, char * sq)
 
 
 /* print_MUX_testdata_analysis: report outcome of test data read mapping */
-void print_MUX_testdata_analysis(mapping_metrics * met, compact_target * ctrg, int data_type)
+void print_MUX_testdata_analysis(mapping_metrics * met, compact_target * ctrg, int data_type, int lib_struct)
 {
     extern struct testdata_MUX_vars testdata_MUX;
     
@@ -92,6 +92,8 @@ void print_MUX_testdata_analysis(mapping_metrics * met, compact_target * ctrg, i
     char pass[7] = "[PASS]";  //output string for PASS outcomes
     char fail[7] = "[FAIL]";  //output string for FAIL outcomes
     char * pf_ptr = NULL;     //pointer to PASS/FAIL strings
+    
+    double test_val = 0; //used to store calculated values
     
     //open testdata analysis output file
     FILE * testdata_fp = NULL;
@@ -121,10 +123,21 @@ void print_MUX_testdata_analysis(mapping_metrics * met, compact_target * ctrg, i
     printf2_scrn_n_fl(testdata_fp, out_str);
     
     //report barcode mapping efficiency
-    pf_ptr = (met->mapped == met->reads_processed) ? &pass[0] : &fail[0];
-    sprintf(out_str, "> barcode - %s %10.6f%% (expected 100%%) of sequences mapped to a barcode target\n",
-            pf_ptr, ((float)(met->mapped)/(float)(met->reads_processed))*100);
-    printf2_scrn_n_fl(testdata_fp, out_str);
+    if (lib_struct == SGL_BC) {
+        pf_ptr = (met->mapped == met->reads_processed) ? &pass[0] : &fail[0];
+        sprintf(out_str, "> barcode - %s %10.6f%% (expected 100%%) of sequences mapped to a barcode target\n",
+                pf_ptr, ((float)(met->mapped)/(float)(met->reads_processed))*100);
+        printf2_scrn_n_fl(testdata_fp, out_str);
+    
+    } else if (lib_struct == DBL_BC) {
+        pf_ptr = (met->dblBC_mapped == met->reads_processed) ? &pass[0] : &fail[0];
+        sprintf(out_str, "> barcode - %s %10.6f%% (expected 100%%) of sequences mapped to a barcode target\n",
+                pf_ptr, ((float)(met->dblBC_mapped)/(float)(met->reads_processed))*100);
+        printf2_scrn_n_fl(testdata_fp, out_str);
+
+    } else {
+        printf("ERROR: unrecognized library type. cannot print test data mapping metrics\n");
+    }
     
     //report barcode mapping accuracy
     pf_ptr = (testdata_MUX.bid_match == met->mapped) ? &pass[0] : &fail[0];
@@ -132,9 +145,15 @@ void print_MUX_testdata_analysis(mapping_metrics * met, compact_target * ctrg, i
             pf_ptr, ((float)(testdata_MUX.bid_match)/(float)(met->mapped))*100);
     printf2_scrn_n_fl(testdata_fp, out_str);
     
-    //report channel mapping
-    double test_val = 0; //used to store calculated values
+    if (lib_struct == DBL_BC) {
+        test_val = (double)(met->concordant)/(double)(met->reads_processed);
+        pf_ptr = (compare_float(test_val, 0.5, 0.000001)) ? &pass[0] : &fail[0];
+        sprintf(out_str, "> barcode - %s %10.6f%% (expected  50%%) of mapped reads contained concordant barcodes\n",
+                pf_ptr, test_val*100);
+        printf2_scrn_n_fl(testdata_fp, out_str);
+    }
     
+    //report channel mapping
     double expctd_chan[3] = {0.4, 0.4, 0.2};                            //expected channel fractions
     char (*chan_nm)[32] = NULL;                                         //pointer to channel names
     char TPROBE_chans[3][32] = {"untreated", "modified", "unmappable"}; //TECprobe channel names

@@ -83,7 +83,12 @@ void mk_MUX_testdata(TPROBE_names * nm, compact_target * ctrg, int ctrg_cnt, int
             //generate one test data read for each of the five types of channel barcodes
             for (j = 0; j < CHNL_CLASSES; j++) {
                 mk_rndmzd_bc(chnl_bc, mk_chnl[j], mk_mtch[j]);
-                read_pair_count = print_MUX_fq(out_rd1, out_rd2, chnl_bc, &ctrg[i], lib_struct);
+                read_pair_count = print_MUX_fq(out_rd1, out_rd2, chnl_bc, &ctrg[i], lib_struct, 1);
+                
+                if (lib_struct == DBL_BC) {
+                    mk_rndmzd_bc(chnl_bc, mk_chnl[j], mk_mtch[j]);
+                    read_pair_count = print_MUX_fq(out_rd1, out_rd2, chnl_bc, &ctrg[i], lib_struct, 0);
+                }
             }
         }
     }
@@ -105,11 +110,13 @@ void mk_MUX_testdata(TPROBE_names * nm, compact_target * ctrg, int ctrg_cnt, int
 }
 
 /* print_MUX_fq: print TECprobe-MUX test data read to output fastq file */
-int print_MUX_fq(FILE * out_rd1, FILE * out_rd2, char * chnl_bc, compact_target * ctrg, int lib_struct)
+int print_MUX_fq(FILE * out_rd1, FILE * out_rd2, char * chnl_bc, compact_target * ctrg, int lib_struct, int concordant)
 {
     extern char sc1[17];             //structure cassette 1 sequence
     extern char c3[20];              //c3 sequence
+    extern char c3sc1[34];           //c3sc1 sequence
     extern char RLA29synch_3p11[34]; //TECprobe-MX linker, v2
+    extern char c3sc_BC[C3SC_BRCD_CNT][34]; //list of all c3sc barcodes
     
     static int cnt = 0; //number of read pairs generated
     
@@ -121,7 +128,17 @@ int print_MUX_fq(FILE * out_rd1, FILE * out_rd2, char * chnl_bc, compact_target 
     char rd1[MAX_LINE+1] = {0};    //array for generating read 1 sequence
     char rd2[MAX_LINE+1] = {0};    //array for generating read 2 sequence
     
-    char * ldr2use = NULL; //leader to append to target seq in test data read
+    char * ldr2use = NULL;      //leader to append to target seq in test data read
+    char * trg2use = NULL;      //pointer to target to use in test data read
+    char * p_trg_RNA = NULL;    //pointer to start of target RNA sequence within target sequence
+    char ipt_sc_brcd[15] = {0}; //concordant sc barcode of the input sequence
+    
+    char * p_dsc_sc = NULL;         //pointer to discordant sc barcode
+    char dsc_sc_upr[15] = {0};      //uppercase version of discordant sc barcode
+    char dsc_trg[MAX_LINE+1] = {0}; //array for constructing discordant target sequence
+    
+    int sc_brcd_len = strlen(sc1)-2; //length of sc barcode, -2 is because sc1 contains an 'AT' start dinucleotide
+    int dscrdnt_bc_fnd = 0;          //flag that discordant barcode was found
     
     if (lib_struct == SGL_BC) {        //if targets are singly-barcoded
         ldr2use = sc1;                 //use sc1 as the leader (parsed targets do not contain SC1)
@@ -139,13 +156,68 @@ int print_MUX_fq(FILE * out_rd1, FILE * out_rd2, char * chnl_bc, compact_target 
     
     bin2seq(brcd, &ctrg->bsq, MAX_LINE); //convert binary-encoded barcode sequence to character string
     
+    if (lib_struct == SGL_BC || (lib_struct == DBL_BC && concordant)) { //if singly-barcoded or concordant
+        trg2use = p_opt_BC_ref->tsq;                                    //trg2use is target seq associated with ctrg
+        
+    } else if (lib_struct == DBL_BC && !concordant) { //if doubly-barcoded and discordant, make discordant target
+        p_trg_RNA = &p_opt_BC_ref->tsq[sc_brcd_len];  //set pointer to target RNA sequence (without sc barcode)
+        
+        //make a copy of the input sc barcode string for use
+        //in comparison below
+        for (i = 0; i < sc_brcd_len && p_opt_BC_ref->tsq[i]; i++) { 
+            ipt_sc_brcd[i] = p_opt_BC_ref->tsq[i];
+        }
+        ipt_sc_brcd[i] = '\0';
+        
+        if (i != sc_brcd_len) { //check length of resulting string
+            printf("print_MUX_fq: error - unexpected short target sequence. aborting...\n");
+            abort();
+        }
+        
+        //search for a discordant barcode
+        while (!dscrdnt_bc_fnd) {                                    //until a discordant barcode is found
+            p_dsc_sc = &c3sc_BC[rand() % C3SC_BRCD_CNT][strlen(c3)]; //select a random sc barcode
+            
+            //make a fully uppercase copy of the sc barcode, which is
+            //necessary both for comparison to the input sc barcode
+            //and for generating the test data read
+            for (i = 0; i < sc_brcd_len && p_dsc_sc[i]; i++) {
+                dsc_sc_upr[i] = toupper(p_dsc_sc[i]);
+            }
+            dsc_sc_upr[i] = '\0';
+            
+            if (i != sc_brcd_len) { //check length of resulting string
+                printf("print_MUX_fq: error - unexpected short target sequence. aborting...\n");
+                abort();
+            }
+            
+            if (strcmp(dsc_sc_upr, ipt_sc_brcd)) { //if the newly generated bc is different from the input bc
+                dscrdnt_bc_fnd = 1;                //set flag that discordant barcode was found
+                
+                //generate discordant target sequence using the discordant barcode
+                //and target RNA pointers
+                ret = snprintf(dsc_trg, MAX_LINE, "%s%s", dsc_sc_upr, p_trg_RNA);
+                if (ret >= MAX_LINE || ret < 0) {
+                    printf("print_MUX_fq: error - error when constructing discordant test data target sequence. aborting...\n");
+                    abort();
+                }
+                
+                trg2use = dsc_trg; //point trg2use to the discordant barcode
+            }
+        }
+    } else {
+        printf("print_MUX_fq: invalid configuration. aborting...\n");
+        abort();
+    }
+    
+    
     //generate test data read 2, which contains:
     //1. channel barcode
     //2. leader (sc1 for SGL_BC or c3 for DBL_BC)
     //3. target sequence of the reference target from which the current barcode was derived
     //4. RLA29synch_3p11 linker
     //5. current barcode
-    ret = snprintf(rd2, MAX_LINE, "%s%s%s%s%s", chnl_bc, ldr2use, p_opt_BC_ref->tsq, RLA29synch_3p11, brcd);
+    ret = snprintf(rd2, MAX_LINE, "%s%s%s%s%s", chnl_bc, ldr2use, trg2use, RLA29synch_3p11, brcd);
     if (ret >= MAX_LINE || ret < 0) {
         printf("print_MUX_fq: error - error when constructing test data read. aborting...\n");
         abort();

@@ -195,7 +195,7 @@ int prcs_MUX_cotrans(TPROBE_names * nm, FILE * fp_MUXtrgs, int trgt_ftype, int l
     
     print_splitting_metrics(nm, lib_struct, &met, fastp_prms); //print metrics
     if (testdata_MUX->run) {
-        print_MUX_testdata_analysis(&met, &ctrg[0], TPROBE_MUX);
+        print_MUX_testdata_analysis(&met, &ctrg[0], TPROBE_MUX, lib_struct);
     }
     
     system("rm ./split/R*out.fq"); //remove fastp output files

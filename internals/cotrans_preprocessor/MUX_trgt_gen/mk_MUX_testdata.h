@@ -30,6 +30,6 @@
 void mk_MUX_testdata(TPROBE_names * nm, compact_target * ctrg, int ctrg_cnt, int lib_struct);
 
 /* print_MUX_fq: print TECprobe-MUX test data read to output fastq file */
-int print_MUX_fq(FILE * out_rd1, FILE * out_rd2, char * chnl_bc, compact_target * ctrg, int lib_struct);
+int print_MUX_fq(FILE * out_rd1, FILE * out_rd2, char * chnl_bc, compact_target * ctrg, int lib_struct, int concordant);
 
 #endif /* mk_MUX_testdata_h */
